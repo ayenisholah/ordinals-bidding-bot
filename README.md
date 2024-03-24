@@ -16,7 +16,7 @@ OR
 
 #### Create Test Wallets
 
-`yarn address -n <number of wallets you want to create defaults to 10>`
+`yarn account:create`
 
 #### Create Offers
 

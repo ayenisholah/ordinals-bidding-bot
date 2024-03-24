@@ -48,3 +48,7 @@ curl 'https://nfttools.pro/magiceden/v2/ord/btc/offers/cancel'
 #### Retrieve tokens by collection
 
 `curl 'https://nfttools.pro/magiceden/v2/ord/btc/tokens?limit=100&offset=0&sortBy=priceAsc&minPrice=0&maxPrice=0&collectionSymbol=nodemonkes&disablePendingTransactions=false'`
+
+#### Filter collections
+
+`https://stats-mainnet.magiceden.io/collection_stats/search/bitcoin?window=1d&limit=10&offset=0&walletAddress=bc1p5rw87me62aftc3lgrqpq430gp3rp5wtj4atxz6pum2rmhjhvsk0sx73cgk&sort=floorPrice&direction=desc&filter=%7B%7D`

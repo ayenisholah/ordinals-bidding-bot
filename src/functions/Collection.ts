@@ -11,8 +11,8 @@ export async function collectionDetails(collectionSymbol: string, api_key: strin
 
     return data
 
-  } catch (error) {
-    console.log(error);
+  } catch (error: any) {
+    console.log(error.response);
   }
 }
 

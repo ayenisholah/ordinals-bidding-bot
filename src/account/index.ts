@@ -1,31 +1,16 @@
-import yargs, { Arguments } from "yargs"
 import fs from "fs"
-import path from "path"
 import * as bitcoin from "bitcoinjs-lib"
 import { ECPairFactory } from "ecpair"
 import * as tinysecp from "tiny-secp256k1"
+import os from 'os'
 
 const ECPair = ECPairFactory(tinysecp);
 const network = bitcoin.networks.bitcoin;
 
-interface Options {
-  number: number
-}
+const rateLimit = 4;
+const number = rateLimit
 
-const options = yargs
-  .usage(
-    'Usage: -n <number of wallet you want created>'
-  )
-  .option('n', {
-    alias: 'number',
-    describe: 'Number of wallets you want created',
-    type: 'number',
-    demandOption: false
-  }).argv as unknown as Arguments<Options>
-
-const { number } = options
-
-console.log({ number });
+// Should hold logic that would distribute funds to the newly created accounts
 
 async function createP2PKHwallet(amount: number = 10) {
   const wallets = [];
@@ -51,20 +36,10 @@ async function createP2PKHwallet(amount: number = 10) {
     }
   }
 
-  const filePath = path.join(__dirname, "/wallet")
   const walletJSON = JSON.stringify(wallets, null, 2);
 
-  if (!fs.existsSync(filePath)) {
-    try {
-      fs.mkdirSync(filePath, { recursive: true });
-      console.log(`Directory '${filePath}' created.`);
-    } catch (err) {
-      console.error("Error creating directory:", err);
-      return;
-    }
-  }
 
-  fs.writeFile(`${filePath}/wallet.json`, walletJSON, "utf-8", (err) => {
+  fs.writeFile(`${__dirname}/wallet.json`, walletJSON, "utf-8", (err) => {
     if (err) {
       console.error("Error writing JSON to file:", err);
       return;
@@ -73,4 +48,7 @@ async function createP2PKHwallet(amount: number = 10) {
   });
 }
 
-createP2PKHwallet(number).catch((error) => console.log(error));
+createP2PKHwallet(number).then(() => {
+  console.log("\x1b[33m%s\x1b[0m", "Please remember to backup your private keys for the newly created wallets.");
+})
+  .catch((error) => console.log(error));
