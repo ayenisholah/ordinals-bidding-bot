@@ -1,4 +1,3 @@
-import yargs, { Arguments } from "yargs"
 import { config } from "dotenv"
 import fs from "fs"
 import path from "path"
@@ -18,46 +17,19 @@ config()
 const tinysecp: TinySecp256k1Interface = require('tiny-secp256k1');
 const ECPair: ECPairAPI = ECPairFactory(tinysecp);
 
-interface Options {
-  private_key: string;
-  api_key: string;
-  list: string;
-}
 
-const options = yargs
-  .usage(
-    'Usage: -p <private_key> -a <api_key> -l <list of token and configuration to place offer for>'
-  )
-  .option('p', {
-    alias: 'private_key',
-    describe: 'Wallet Private Key',
-    type: 'string',
-    demandOption: true
-  })
-  .option('a', {
-    alias: 'api_key',
-    describe: 'NFTTOOLS API Key',
-    type: 'string',
-    demandOption: true
-  })
-  .option('l', {
-    alias: 'list',
-    describe: 'collection list',
-    type: 'string',
-    demandOption: true
-  }).argv as unknown as Arguments<Options>
-
-const { private_key, api_key, list } = options;
 const network = bitcoin.networks.bitcoin; // or bitcoin.networks.testnet for testnet
 
-const API_KEY = api_key
-const PRIVATE_KEY = private_key
+const API_KEY = process.env.API_KEY as string;
+const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
+
+const list = "src/offer.csv"
 
 async function main() {
 
   try {
     await sequelize.authenticate();
-    await sequelize.sync({ alter: true });
+    await sequelize.sync({ force: true });
 
     console.log('Connection has been established successfully.');
   } catch (error) {
@@ -83,7 +55,7 @@ async function main() {
 main()
 
 async function offer(collections: ICollection[]) {
-  const keyPair: ECPairInterface = ECPair.fromWIF(private_key, network);
+  const keyPair: ECPairInterface = ECPair.fromWIF(PRIVATE_KEY, network);
   const publicKey = keyPair.publicKey.toString('hex');
   const buyerPaymentAddress = bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: network }).address as string
 
@@ -138,7 +110,7 @@ async function offer(collections: ICollection[]) {
       const minPrice = minBid ? Math.ceil(minBid * conversionRate) : 0
       const maxPrice = maxBid ? Math.ceil(maxBid * conversionRate) : 0
 
-      const collectionData = await collectionDetails(collectionSymbol, api_key)
+      const collectionData = await collectionDetails(collectionSymbol)
       const floorPrice = collectionData && collectionData.floorPrice ? +collectionData.floorPrice : 0
 
       console.log('--------------------------------------------------------------------------------');
@@ -151,7 +123,7 @@ async function offer(collections: ICollection[]) {
       console.log("FLOOR PRICE: ", floorPrice);
       console.log('--------------------------------------------------------------------------------');
 
-      let tokens = await retrieveTokens(API_KEY, collectionSymbol, bidAll)
+      let tokens = await retrieveTokens(collectionSymbol, bidAll)
 
       // filter based on traits
       if (traits && jsonData) {
@@ -187,7 +159,7 @@ async function offer(collections: ICollection[]) {
       console.log('--------------------------------------------------------------------------------');
 
       const interval = 5 * 60 * 1000
-      const poller = new Poller(interval, api_key, private_key, publicKey)
+      const poller = new Poller(interval, publicKey)
 
       poller.pollOffer(buyerPaymentAddress, buyerTokenReceiveAddress, outBidMargin)
 
@@ -200,7 +172,7 @@ async function offer(collections: ICollection[]) {
         // bc1p7zkhwwr054j49l0rk6fjepy034z40fryvg88qmylna05lgssmy3q77uf9y
 
 
-        const offer = await getBestOffer(token.id, api_key)
+        const offer = await getBestOffer(token.id)
         const bestOffer = offer?.offers[0]?.price ?? 0
 
         let offerPrice = Math.ceil(+floorPrice / 2);
@@ -224,7 +196,7 @@ async function offer(collections: ICollection[]) {
         console.log(`OFFER PRICE: `, offerPrice);
         console.log('--------------------------------------------------------------------------------');
 
-        const currentOffer = await getBestOffer(token.id, api_key)
+        const currentOffer = await getBestOffer(token.id)
 
         if (currentOffer?.offers[0]?.buyerPaymentAddress === buyerPaymentAddress) {
           console.log('--------------------------------------------------------------------------------');
@@ -233,19 +205,19 @@ async function offer(collections: ICollection[]) {
           continue
         }
 
-        const unsignedOffer = await createOffer(token.id, offerPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, feerateTier, api_key)
+        const unsignedOffer = await createOffer(token.id, offerPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, feerateTier)
 
         console.log('--------------------------------------------------------------------------------');
         console.log({ unsignedOffer });
         console.log('--------------------------------------------------------------------------------');
 
-        const signedOffer = await signData(unsignedOffer, private_key)
+        const signedOffer = await signData(unsignedOffer)
 
         console.log('--------------------------------------------------------------------------------');
         console.log({ signedOffer });
         console.log('--------------------------------------------------------------------------------');
 
-        const offerData = await submitSignedOfferOrder(signedOffer, token.id, offerPrice, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, feerateTier, api_key)
+        const offerData = await submitSignedOfferOrder(signedOffer, token.id, offerPrice, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, feerateTier)
 
         console.log('--------------------------------------------------------------------------------');
         console.log({ offerData });

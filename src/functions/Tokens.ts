@@ -1,9 +1,16 @@
+import { config } from "dotenv"
 import axiosInstance from "../axios/axiosInstance"
 
-export async function retrieveTokens(API_KEY: string, collectionSymbol: string, bidAll: boolean) {
-  const headers = {
-    'X-NFT-API-Key': API_KEY,
-  }
+
+config()
+
+const API_KEY = process.env.API_KEY as string;
+const headers = {
+  'X-NFT-API-Key': API_KEY,
+}
+
+export async function retrieveTokens(collectionSymbol: string, bidAll: boolean) {
+
   try {
     const url = `https://nfttools.pro/magiceden/v2/ord/btc/tokens`;
 

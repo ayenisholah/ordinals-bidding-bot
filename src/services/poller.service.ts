@@ -11,15 +11,11 @@ import Offer from "../models/offer.model";
 class Poller {
   private interval: number;
   private isPolling: boolean;
-  private apiKey: string;
   private publicKey: string;
-  private privateKey: string;
   private timeoutId: NodeJS.Timeout | null;
 
-  constructor(interval: number, apiKey: string, privateKey: string, publicKey: string) {
+  constructor(interval: number, publicKey: string) {
     this.interval = interval
-    this.apiKey = apiKey
-    this.privateKey = privateKey
     this.publicKey = publicKey
     this.isPolling = false
     this.timeoutId = null;
@@ -29,7 +25,7 @@ class Poller {
     try {
       const offers = await Offer.findAll({})
       for (const offer of offers) {
-        const currentOffer = await getBestOffer(offer.id, this.apiKey)
+        const currentOffer = await getBestOffer(offer.id)
 
         if (currentOffer?.offers[0]?.buyerPaymentAddress === buyerPaymentAddress) {
           console.log('YOU HAVE THE HIGHEST OFFER FOR THIS TOKEN');
@@ -44,7 +40,7 @@ class Poller {
             const expiration = currentTime + (duration * 60 * 1000);
             const feerateTier = 'halfHourFee'
 
-            await counterBid(currentOffer.offers[0].id, this.apiKey, this.privateKey, tokenId, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, this.publicKey, feerateTier)
+            await counterBid(currentOffer.offers[0].id, tokenId, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, this.publicKey, feerateTier)
           }
         }
       }

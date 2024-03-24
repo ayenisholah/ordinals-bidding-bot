@@ -1,34 +1,14 @@
-import yargs, { Arguments } from "yargs"
 import * as bitcoin from "bitcoinjs-lib"
 import { ECPairInterface, ECPairFactory, ECPairAPI, TinySecp256k1Interface } from 'ecpair';
+import { config } from "dotenv"
 
 import sequelize from "./database";
 import Bid from "./models/offer.model";
 import { getOffers, retrieveCancelOfferFormat, signData, submitCancelOfferData } from "./functions/Offer";
 
-const options = yargs
-  .usage(
-    'Usage: -p <private_key> -a <api_key> -l <list of token and configuration to bid on>'
-  )
-  .option('p', {
-    alias: 'private_key',
-    describe: 'Wallet Private Key',
-    type: 'string',
-    demandOption: true
-  })
-  .option('a', {
-    alias: 'api_key',
-    describe: 'NFTTOOLS API Key',
-    type: 'string',
-    demandOption: true
-  }).argv as unknown as Arguments<Options>
+config()
 
-interface Options {
-  private_key: string;
-  api_key: string;
-}
-
-const { private_key, api_key } = options;
+const private_key = process.env.PRIVATE_KEY as string;
 const network = bitcoin.networks.bitcoin; // or bitcoin.networks.testnet for testnet
 
 const tinysecp: TinySecp256k1Interface = require('tiny-secp256k1');
@@ -59,25 +39,25 @@ async function main() {
 
     // get offers
     for (const token of createdOffers) {
-      const offerData = await getOffers(token.id, api_key)
+      const offerData = await getOffers(token.id)
 
       const offer = offerData?.offers?.find(item => item.buyerPaymentAddress === buyerPaymentAddress)
 
       if (offer) {
-        const offerFormat = await retrieveCancelOfferFormat(offer.id, api_key)
+        const offerFormat = await retrieveCancelOfferFormat(offer.id)
 
         console.log('--------------------------------------------------------------------------------');
         console.log({ offerFormat });
 
         console.log('--------------------------------------------------------------------------------');
 
-        const signedOfferFormat = signData(offerFormat, private_key)
+        const signedOfferFormat = signData(offerFormat)
 
         console.log('--------------------------------------------------------------------------------');
         console.log({ signedOfferFormat });
         console.log('--------------------------------------------------------------------------------');
 
-        const cancelOfferData = await submitCancelOfferData(offer.id, signedOfferFormat, api_key)
+        const cancelOfferData = await submitCancelOfferData(offer.id, signedOfferFormat)
 
         console.log('--------------------------------------------------------------------------------');
         console.log({ cancelOfferData });

@@ -1,11 +1,13 @@
 import axiosInstance from "../axios/axiosInstance"
 
-export async function collectionDetails(collectionSymbol: string, api_key: string) {
+const API_KEY = process.env.API_KEY as string;
+const headers = {
+  'Content-Type': 'application/json',
+  'X-NFT-API-Key': API_KEY,
+}
+
+export async function collectionDetails(collectionSymbol: string) {
   try {
-    const headers = {
-      'Content-Type': 'application/json',
-      'X-NFT-API-Key': api_key,
-    }
     const url = `https://nfttools.pro/magiceden/v2/ord/btc/stat?collectionSymbol=${collectionSymbol}`
     const { data } = await axiosInstance.get<CollectionData>(url, { headers })
 
@@ -43,10 +45,6 @@ export async function fetchCollections(API_KEY: string) {
         sortDirection: 'desc',
         featuredCollection: false
       })
-    };
-
-    const headers = {
-      'X-NFT-API-Key': API_KEY
     };
 
     const { data: collections } = await axiosInstance.get(url, { params, headers })

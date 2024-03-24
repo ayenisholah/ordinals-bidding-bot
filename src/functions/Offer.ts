@@ -1,17 +1,27 @@
 import axiosInstance from "../axios/axiosInstance";
 import * as bitcoin from "bitcoinjs-lib"
 import { ECPairInterface, ECPairFactory, ECPairAPI, TinySecp256k1Interface } from 'ecpair';
+import { config } from "dotenv"
 
 const tinysecp: TinySecp256k1Interface = require('tiny-secp256k1');
 const ECPair: ECPairAPI = ECPairFactory(tinysecp);
-const network = bitcoin.networks.bitcoin; // or bitcoin.networks.testnet for testnet
+const network = bitcoin.networks.bitcoin;
+
+config()
+
+const api_key = process.env.API_KEY as string;
+const private_key = process.env.PRIVATE_KEY as string;
+const headers = {
+  'Content-Type': 'application/json',
+  'X-NFT-API-Key': api_key,
+}
 
 
 
 export async function createOffer(tokenId: string, price: number, expiration: number, buyerTokenReceiveAddress: string,
   buyerPaymentAddress: string,
 
-  publicKey: string, feerateTier: string, api_key: string) {
+  publicKey: string, feerateTier: string) {
   const baseURL = 'https://nfttools.pro/magiceden/v2/ord/btc/offers/create';
 
   const params = {
@@ -24,10 +34,7 @@ export async function createOffer(tokenId: string, price: number, expiration: nu
     feerateTier: feerateTier
   };
 
-  const headers = {
-    'Content-Type': 'application/json',
-    'X-NFT-API-Key': api_key,
-  }
+
 
   try {
     const { data } = await axiosInstance.get(baseURL, { params, headers })
@@ -37,11 +44,11 @@ export async function createOffer(tokenId: string, price: number, expiration: nu
   }
 }
 
-export function signData(unsignedData: any, privateKey: string) {
+export function signData(unsignedData: any) {
   console.log('Signing data...');
 
   const psbt = bitcoin.Psbt.fromBase64(unsignedData.psbtBase64);
-  const keyPair: ECPairInterface = ECPair.fromWIF(privateKey, network)
+  const keyPair: ECPairInterface = ECPair.fromWIF(private_key, network)
 
   const signedPSBTBase64 = psbt.signInput(1, keyPair).toBase64()
 
@@ -57,7 +64,6 @@ export async function submitSignedOfferOrder(
   buyerReceiveAddress: string,
   publicKey: string,
   feerateTier: string,
-  api_key: string
 ) {
   const url = 'https://nfttools.pro/magiceden/v2/ord/btc/offers/create'
 
@@ -72,11 +78,6 @@ export async function submitSignedOfferOrder(
     buyerReceiveAddress: buyerReceiveAddress
   };
 
-  const headers = {
-    'Content-Type': 'application/json',
-    'X-NFT-API-Key': api_key,
-  }
-
   try {
     console.log('--------------------------------------------------------------------------------');
     console.log("SUBMITTING SIGNED OFFER .....");
@@ -90,7 +91,7 @@ export async function submitSignedOfferOrder(
   }
 }
 
-export async function getBestOffer(tokenId: string, api_key: string) {
+export async function getBestOffer(tokenId: string) {
   const url = 'https://nfttools.pro/magiceden/v2/ord/btc/offers/';
   const params = {
     status: 'valid',
@@ -100,11 +101,6 @@ export async function getBestOffer(tokenId: string, api_key: string) {
     token_id: tokenId
   };
 
-  const headers = {
-    'Content-Type': 'application/json',
-    'X-NFT-API-Key': api_key,
-  }
-
   try {
     const { data } = await axiosInstance.get<OfferData>(url, { params, headers })
     return data
@@ -113,7 +109,7 @@ export async function getBestOffer(tokenId: string, api_key: string) {
   }
 }
 
-export async function getOffers(tokenId: string, api_key: string) {
+export async function getOffers(tokenId: string) {
   const url = 'https://nfttools.pro/magiceden/v2/ord/btc/offers/';
   const params = {
     status: 'valid',
@@ -122,10 +118,7 @@ export async function getOffers(tokenId: string, api_key: string) {
     sortBy: 'priceDesc',
     token_id: tokenId
   };
-  const headers = {
-    'Content-Type': 'application/json',
-    'X-NFT-API-Key': api_key,
-  }
+
   try {
     const { data } = await axiosInstance.get<OfferData>(url, { params, headers })
 
@@ -136,13 +129,9 @@ export async function getOffers(tokenId: string, api_key: string) {
   }
 }
 
-export async function retrieveCancelOfferFormat(offerId: string, api_key: string) {
+export async function retrieveCancelOfferFormat(offerId: string) {
   const url = `https://nfttools.pro/magiceden/v2/ord/btc/offers/cancel?offerId=${offerId}`
 
-  const headers = {
-    'Content-Type': 'application/json',
-    'X-NFT-API-Key': api_key,
-  }
   try {
     const { data } = await axiosInstance.get(url, { headers })
     return data
@@ -151,11 +140,8 @@ export async function retrieveCancelOfferFormat(offerId: string, api_key: string
   }
 }
 
-export async function submitCancelOfferData(offerId: string, signedPSBTBase64: string, api_key: string) {
-  const headers = {
-    'Content-Type': 'application/json',
-    'X-NFT-API-Key': api_key,
-  }
+export async function submitCancelOfferData(offerId: string, signedPSBTBase64: string) {
+
   const url = 'https://nfttools.pro/magiceden/v2/ord/btc/offers/cancel';
   const data = {
     offerId: offerId,
@@ -171,8 +157,6 @@ export async function submitCancelOfferData(offerId: string, signedPSBTBase64: s
 
 export async function counterBid(
   offerId: string,
-  api_key: string,
-  privateKey: string,
   tokenId: string,
   price: number,
   expiration: number,
@@ -185,36 +169,36 @@ export async function counterBid(
   console.log("COUNTER BID");
   console.log('--------------------------------------------------------------------------------');
 
-  const cancelOfferFormat = await retrieveCancelOfferFormat(offerId, api_key)
+  const cancelOfferFormat = await retrieveCancelOfferFormat(offerId)
 
   console.log('--------------------------------------------------------------------------------');
   console.log({ cancelOfferFormat });
   console.log('--------------------------------------------------------------------------------');
 
-  const signedCancelOffer = signData(cancelOfferFormat, privateKey)
+  const signedCancelOffer = signData(cancelOfferFormat)
 
   console.log('--------------------------------------------------------------------------------');
   console.log({ signedCancelOffer });
   console.log('--------------------------------------------------------------------------------');
-  const submitCancelOffer = await submitCancelOfferData(offerId, signedCancelOffer, api_key)
+  const submitCancelOffer = await submitCancelOfferData(offerId, signedCancelOffer)
 
   console.log('--------------------------------------------------------------------------------');
   console.log({ submitCancelOffer });
   console.log('--------------------------------------------------------------------------------');
 
-  const unsignedOffer = await createOffer(tokenId, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, feerateTier, api_key)
+  const unsignedOffer = await createOffer(tokenId, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, feerateTier)
 
   console.log('--------------------------------------------------------------------------------');
   console.log({ unsignedOffer });
   console.log('--------------------------------------------------------------------------------');
 
-  const signedOfferData = signData(unsignedOffer, privateKey)
+  const signedOfferData = signData(unsignedOffer)
 
   console.log('--------------------------------------------------------------------------------');
   console.log({ signedOfferData });
   console.log('--------------------------------------------------------------------------------');
 
-  const offerData = await submitSignedOfferOrder(signedOfferData, tokenId, price, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, feerateTier, api_key)
+  const offerData = await submitSignedOfferOrder(signedOfferData, tokenId, price, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, feerateTier)
 
   console.log('--------------------------------------------------------------------------------');
   console.log({ offerData });
@@ -231,15 +215,10 @@ interface Offer {
   buyerPaymentAddress: string;
   expirationDate: number;
   isValid: boolean;
-  token: any; // You can define a proper interface for token if needed
+  token: any;
 }
 
 interface OfferData {
   total: string;
   offers: Offer[];
 }
-
-// bulk cancel 1 - day
-// update database 
-// trait bidding - 3 days
-// polling - 3 days
