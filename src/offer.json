@@ -1,0 +1,46 @@
+[
+	{
+		"sn": 1,
+		"collectionSymbol": "dmtcult",
+		"bidAll": false,
+		"traits": "",
+		"minProfit": 10,
+		"maxProfit": 20,
+		"inscriptionId": "",
+		"outBidMargin": 5,
+		"minBid": 0.0000795,
+		"maxBid": 0.000658805
+	},
+	{
+		"sn": 2,
+		"collectionSymbol": "naticats",
+		"bidAll": false,
+		"traits": [
+			{ "value": "443712", "trait_type": "Block" },
+			{ "value": "Gold", "trait_type": "Background" },
+			{ "value": "Abjurer", "trait_type": "School" },
+			{ "value": "Lukkustafir", "trait_type": "Left Stave" },
+			{ "value": "Ægishjálmur", "trait_type": "Right Stave" },
+			{ "value": "Sciath chosentha", "trait_type": "Incantation" },
+			{ "value": "Adenine", "trait_type": "Nucleotide" }
+		],
+		"minProfit": 10,
+		"maxProfit": 20,
+		"inscriptionId": "",
+		"outBidMargin": 5,
+		"minBid": 0.0000795,
+		"maxBid": 0.000658805
+	},
+	{
+		"sn": 3,
+		"collectionSymbol": "machine-computation",
+		"bidAll": true,
+		"traits": "",
+		"minProfit": 5,
+		"maxProfit": 20,
+		"inscriptionId": "",
+		"outBidMargin": 10,
+		"minBid": 0.0000795,
+		"maxBid": 0.000658805
+	}
+]
