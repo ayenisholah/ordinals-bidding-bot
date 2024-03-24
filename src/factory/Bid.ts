@@ -56,7 +56,7 @@ export async function Bid(private_key: string, collections: Collection[], pid: n
 
     for (const collection of collections) {
       const collectionSymbol = collection.collectionSymbol
-      const collectionData = await collectionDetails(collectionSymbol, API_KEY)
+      const collectionData = await collectionDetails(collectionSymbol)
       const floorPrice = collectionData && collectionData.floorPrice ? +collectionData.floorPrice : 0
 
       console.log('--------------------------------------------------------------------------------');
@@ -64,7 +64,7 @@ export async function Bid(private_key: string, collections: Collection[], pid: n
       console.log("FLOOR PRICE: ", floorPrice);
       console.log('--------------------------------------------------------------------------------');
 
-      const tokens = await retrieveTokens(API_KEY, collectionSymbol, bidAll)
+      const tokens = await retrieveTokens(collectionSymbol, bidAll)
 
 
       const duration = 30 // MINUTES
@@ -80,7 +80,7 @@ export async function Bid(private_key: string, collections: Collection[], pid: n
       console.log('--------------------------------------------------------------------------------');
 
       for (const token of tokens) {
-        const offer = await getBestOffer(token.id, API_KEY)
+        const offer = await getBestOffer(token.id)
         const bestOffer = offer?.offers[0]?.price ?? 0
 
         let offerPrice = Math.ceil(+floorPrice / 2);
@@ -104,7 +104,7 @@ export async function Bid(private_key: string, collections: Collection[], pid: n
         console.log(`OFFER PRICE: `, offerPrice);
         console.log('--------------------------------------------------------------------------------');
 
-        const currentOffer = await getBestOffer(token.id, API_KEY)
+        const currentOffer = await getBestOffer(token.id)
 
         if (currentOffer?.offers[0]?.buyerPaymentAddress === buyerPaymentAddress) {
           console.log('--------------------------------------------------------------------------------');
@@ -113,19 +113,19 @@ export async function Bid(private_key: string, collections: Collection[], pid: n
           continue
         }
 
-        const unsignedOffer = await createOffer(token.id, offerPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, feerateTier, API_KEY)
+        const unsignedOffer = await createOffer(token.id, offerPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, feerateTier)
 
         console.log('--------------------------------------------------------------------------------');
         console.log({ unsignedOffer });
         console.log('--------------------------------------------------------------------------------');
 
-        const signedOffer = await signData(unsignedOffer, private_key)
+        const signedOffer = await signData(unsignedOffer)
 
         console.log('--------------------------------------------------------------------------------');
         console.log({ signedOffer });
         console.log('--------------------------------------------------------------------------------');
 
-        const offerData = await submitSignedOfferOrder(signedOffer, token.id, offerPrice, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, feerateTier, API_KEY)
+        const offerData = await submitSignedOfferOrder(signedOffer, token.id, offerPrice, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, feerateTier)
 
         console.log('--------------------------------------------------------------------------------');
         console.log({ offerData });

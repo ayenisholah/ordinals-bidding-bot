@@ -9,7 +9,7 @@ const filePath = path.join(__dirname, '/account/wallet.json');
 
 if (!fs.existsSync(filePath)) {
   console.log('--------------------------------------------------------------------------------');
-  console.log("YOU HAVENT CREATED YOUR BIDDING WALLETS, PLEASE RUN THE COMMAND 'yarn address'");
+  console.log("YOU HAVENT CREATED YOUR BIDDING WALLETS, PLEASE RUN THE COMMAND 'yarn account:create'");
   console.log('--------------------------------------------------------------------------------');
   process.exit()
 }
