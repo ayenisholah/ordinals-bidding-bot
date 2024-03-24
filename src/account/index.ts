@@ -2,7 +2,6 @@ import fs from "fs"
 import * as bitcoin from "bitcoinjs-lib"
 import { ECPairFactory } from "ecpair"
 import * as tinysecp from "tiny-secp256k1"
-import os from 'os'
 
 const ECPair = ECPairFactory(tinysecp);
 const network = bitcoin.networks.bitcoin;

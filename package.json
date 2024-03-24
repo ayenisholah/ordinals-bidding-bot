@@ -7,7 +7,8 @@
 		"cancel": "ts-node src/cancelOffer.ts",
 		"account:create": "ts-node src/account/index.ts",
 		"account:destroy": "ts-node src/account/destroy.ts",
-		"start": "ts-node src/index.ts"
+		"start": "ts-node src/index.ts",
+		"scan:collections": "ts-node src/scanCollections.ts"
 	},
 	"keywords": [],
 	"author": "",
@@ -26,6 +27,8 @@
 		"ecurve": "^1.0.6",
 		"json-bigint": "^1.0.0",
 		"json2csv": "^6.0.0-alpha.2",
+		"mongodb": "^6.5.0",
+		"mongoose": "^8.2.3",
 		"secp256k1": "^5.0.0",
 		"sequelize": "^6.37.1",
 		"sequelize-typescript": "^2.1.6",

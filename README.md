@@ -14,9 +14,19 @@ OR
 
 `npm install`
 
+### COLLECTION SCANNER
+
+`yarn scan:collections -a <NFT TOOLS API KEY>`
+
+### ACCOUNT MANAGEMENT
+
 #### Create Test Wallets
 
 `yarn account:create`
+
+#### Delete Wallets
+
+`yarn account:destroy`
 
 #### Create Offers
 
@@ -27,6 +37,9 @@ OR
 - Edit the offer.csv files to put collections you want
 
 `yarn offer -p <wallet private key> -a <NFT Tools api key> -l src/offer.csv`
+
+You can spin up workers to make 4 concurrent bidding
+`yarn start`
 
 #### Bulk cancel offers
 
