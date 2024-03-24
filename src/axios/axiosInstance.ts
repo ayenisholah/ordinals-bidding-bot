@@ -3,9 +3,9 @@ import axiosRetry from "axios-retry";
 
 const axiosInstance = axios.create({ timeout: 300000 });
 axiosRetry(axiosInstance, {
-  retries: 5,
+  retries: 3,
   retryDelay: (retryCount, error) => {
-    if (error.response && error.response.status === 429 || (error.response && error.response.status === 400)) {
+    if (error.response && error.response.status === 429) {
       return 60000;
     }
     return axiosRetry.exponentialDelay(retryCount);
