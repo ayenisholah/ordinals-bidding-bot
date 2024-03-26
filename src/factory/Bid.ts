@@ -64,7 +64,7 @@ export async function Bid(private_key: string, collections: Collection[], pid: n
       console.log("FLOOR PRICE: ", floorPrice);
       console.log('--------------------------------------------------------------------------------');
 
-      const tokens = await retrieveTokens(collectionSymbol, bidAll)
+      const tokens = await retrieveTokens(collectionSymbol, 20)
 
 
       const duration = 30 // MINUTES

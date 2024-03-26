@@ -1,46 +1,44 @@
 [
 	{
-		"sn": 1,
-		"collectionSymbol": "dmtcult",
-		"bidAll": false,
-		"traits": "",
-		"minProfit": 10,
-		"maxProfit": 20,
-		"inscriptionId": "",
-		"outBidMargin": 5,
-		"minBid": 0.0000795,
-		"maxBid": 0.000658805
+		"collectionSymbol": "nodemonkes",
+		"minBid": 0.01,
+		"maxBid": 0.2,
+		"bidCount": 20,
+		"duration": 15,
+		"loop": 5,
+		"counterbid": true,
+		"fundingWalletWIF": "",
+		"receiverWallet": "bc1p5rw87me62aftc3lgrqpq430gp3rp5wtj4atxz6pum2rmhjhvsk0sx73cgk"
 	},
 	{
-		"sn": 2,
-		"collectionSymbol": "naticats",
-		"bidAll": false,
+		"collectionSymbol": "the-prophecy",
+		"minBid": 0.01,
+		"maxBid": 0.2,
+		"bidCount": 20,
+		"duration": 15,
+		"loop": 5,
+		"counterbid": true,
+		"fundingWalletWIF": "",
+		"receiverWallet": "bc1p5rw87me62aftc3lgrqpq430gp3rp5wtj4atxz6pum2rmhjhvsk0sx73cgk",
+		"traits": { "traitType": "satributes", "value": "Pizza" }
+	},
+	{
+		"collectionSymbol": "artforthepeople",
+		"minBid": 0.01,
+		"maxBid": 0.2,
+		"bidCount": 20,
+		"counterbid": true,
+		"fundingWalletWIF": "",
+		"receiverWallet": "bc1p5rw87me62aftc3lgrqpq430gp3rp5wtj4atxz6pum2rmhjhvsk0sx73cgk",
 		"traits": [
-			{ "value": "443712", "trait_type": "Block" },
-			{ "value": "Gold", "trait_type": "Background" },
-			{ "value": "Abjurer", "trait_type": "School" },
-			{ "value": "Lukkustafir", "trait_type": "Left Stave" },
-			{ "value": "Ægishjálmur", "trait_type": "Right Stave" },
-			{ "value": "Sciath chosentha", "trait_type": "Incantation" },
-			{ "value": "Adenine", "trait_type": "Nucleotide" }
-		],
-		"minProfit": 10,
-		"maxProfit": 20,
-		"inscriptionId": "",
-		"outBidMargin": 5,
-		"minBid": 0.0000795,
-		"maxBid": 0.000658805
-	},
-	{
-		"sn": 3,
-		"collectionSymbol": "machine-computation",
-		"bidAll": true,
-		"traits": "",
-		"minProfit": 5,
-		"maxProfit": 20,
-		"inscriptionId": "",
-		"outBidMargin": 10,
-		"minBid": 0.0000795,
-		"maxBid": 0.000658805
+			{ "traitType": "satributes", "value": "Common" },
+			{ "traitType": "Background", "value": "Inscription 945" },
+			{ "traitType": "Number of Recursives", "value": "7" },
+			{ "traitType": "Number of Recursives", "value": "10" },
+			{ "traitType": "Number of Recursives", "value": "39" },
+			{ "traitType": "Number of Recursives", "value": "34" },
+			{ "traitType": "Recursive", "value": "Inscription 1082" },
+			{ "traitType": "TYPE", "value": "RARE" }
+		]
 	}
 ]

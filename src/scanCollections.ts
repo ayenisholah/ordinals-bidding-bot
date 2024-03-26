@@ -36,7 +36,7 @@ async function run() {
       const image = collection.image
       const floorPrice = collection.fp
 
-      const tokens = await retrieveTokens(api_key, collectionSymbol, true)
+      const tokens = await retrieveTokens(collectionSymbol, 10)
       const scannedTokens = tokens.length
 
       console.log({ collectionSymbol, count });
@@ -50,7 +50,7 @@ async function run() {
         const tokenId = token?.id
         listedMakerFeeBp = token && token.listedMakerFeeBp ? token.listedMakerFeeBp : 0
 
-        const data = await getOffers(tokenId, api_key)
+        const data = await getOffers(tokenId)
         const highestOffer = data && data.offers.length > 0 && data.offers[0].price ? data.offers[0].price * 0.00000001 : 0;
 
         if (highestOffer === 0) {

@@ -46,6 +46,8 @@ export async function createOffer(tokenId: string, price: number, expiration: nu
 
 export function signData(unsignedData: any) {
   console.log('Signing data...');
+  console.log({ unsignedData });
+
 
   const psbt = bitcoin.Psbt.fromBase64(unsignedData.psbtBase64);
   const keyPair: ECPairInterface = ECPair.fromWIF(private_key, network)

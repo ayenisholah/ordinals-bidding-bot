@@ -48,7 +48,6 @@ async function main() {
 
         console.log('--------------------------------------------------------------------------------');
         console.log({ offerFormat });
-
         console.log('--------------------------------------------------------------------------------');
 
         const signedOfferFormat = signData(offerFormat)

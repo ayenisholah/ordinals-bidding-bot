@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { Bid } from './factory/Bid';
 
-const collectionsData: Collection[] = JSON.parse(fs.readFileSync('collections.json', 'utf8'));
+const collectionsData: Collection[] = JSON.parse(fs.readFileSync(`${__dirname}/collections.json`, 'utf8'));
 
 const filePath = path.join(__dirname, '/account/wallet.json');
 
@@ -23,7 +23,6 @@ console.log("NUMBER OF WORKERS: ", workers);
 console.log('--------------------------------------------------------------------------------');
 
 
-
 const collectionsPerWallet = Math.floor(collectionsData.length / workers);
 const remainder = collectionsData.length % workers;
 const dividedCollections: Collection[][] = [];
@@ -39,6 +38,7 @@ const walletsWithCollections: { wallet: Wallet; collections: Collection[] }[] = 
   wallet,
   collections: dividedCollections[index],
 }));
+
 
 async function processItemWithCollection(wallet: Wallet, collections: Collection[], pid: number) {
   try {
