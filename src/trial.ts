@@ -4,10 +4,12 @@ import * as bitcoin from "bitcoinjs-lib";
 import { ECPairInterface, ECPairFactory, ECPairAPI, TinySecp256k1Interface } from 'ecpair';
 import { getBitcoinBalance } from "./utils";
 import { ITokenData, getTokenByTraits, retrieveTokens } from "./functions/Tokens";
-import { transformTrait, validateTraits } from "./utils/traits.utils";
+import { validateTraits } from "./utils/traits.utils";
 import Offer from "./models/offer.model";
 import { createOffer, getBestOffer, signData, submitSignedOfferOrder } from "./functions/Offer";
 import { collectionDetails } from "./functions/Collection";
+import Poller from "./services/poller.service";
+import sequelize from "./database";
 
 
 config()
@@ -26,6 +28,15 @@ let buyerPaymentAddress = bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, n
 
 async function main() {
 
+  try {
+    await sequelize.authenticate();
+    await sequelize.sync({ alter: true });
+
+    console.log('Connection has been established successfully.');
+  } catch (error) {
+    console.error('Unable to connect to the database:', error);
+  }
+
   const filePath = `${__dirname}/offer.json`
   try {
     const balance = await getBitcoinBalance(buyerPaymentAddress)
@@ -34,6 +45,15 @@ async function main() {
     const DEFAULT_OUTBID_MARGIN = 5
     const DEFAULT_OFFER_EXPIRATION = 15
     const feerateTier = 'halfHourFee'
+
+    // implement counterbid here
+    // update token
+
+    // const poller = new Poller(interval, publicKey)
+
+    //       poller.pollOffer(buyerPaymentAddress, buyerTokenReceiveAddress, outBidMargin)
+
+
 
 
     for (const collection of collections) {
