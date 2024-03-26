@@ -11,12 +11,13 @@ const headers = {
   'X-NFT-API-Key': API_KEY,
 }
 
-export async function retrieveTokens(collectionSymbol: string, bidCount: number) {
+export async function retrieveTokens(collectionSymbol: string, bidCount: number = 20) {
 
   try {
+    const limit = bidCount >= 20 ? bidCount : 20
     const url = `https://nfttools.pro/magiceden/v2/ord/btc/tokens`;
     const params = {
-      limit: bidCount,
+      limit: limit,
       offset: 0,
       sortBy: 'priceAsc',
       minPrice: 0,
@@ -34,9 +35,8 @@ export async function retrieveTokens(collectionSymbol: string, bidCount: number)
   }
 }
 
-export async function getTokenByTraits(traits: Trait[] | Trait, collectionSymbol: string) {
-
-
+export async function getTokenByTraits(traits: Trait[] | Trait, collectionSymbol: string, bidCount: number = 20) {
+  const limit = bidCount >= 20 ? bidCount : 20
   const traitsArray: Trait[] = Array.isArray(traits) ? traits : [traits]
 
 
@@ -50,7 +50,7 @@ export async function getTokenByTraits(traits: Trait[] | Trait, collectionSymbol
     attributes: encodeURIComponent(JSON.stringify(transformedAttributes)),
     collectionSymbol: collectionSymbol,
     disablePendingTransactions: true,
-    limit: 100,
+    limit: limit,
     offset: 0,
     sortBy: 'priceAsc'
   };
