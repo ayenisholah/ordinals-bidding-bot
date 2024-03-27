@@ -28,7 +28,7 @@
 		"maxBid": 0.2,
 		"bidCount": 20,
 		"counterbid": true,
-		"fundingWalletWIF": "",
+		"fundingWalletWIF": "L28cGRxowPCWm6eCoZGAxmfENfrMCYnGzX4jayFrEMG3HQWipZdi",
 		"receiverWallet": "bc1p5rw87me62aftc3lgrqpq430gp3rp5wtj4atxz6pum2rmhjhvsk0sx73cgk",
 		"traits": [
 			{ "traitType": "satributes", "value": "Common" },

@@ -59,7 +59,7 @@ async function main() {
     for (const collection of collections) {
       const collectionSymbol = collection['collectionSymbol']
       const minBid = collection['minBid']
-      const maxBid = collection['minBid']
+      const maxBid = collection['maxBid']
       const bidCount = collection['bidCount'] ?? 20
       const duration = collection.duration ?? DEFAULT_OFFER_EXPIRATION
       const loop = collection['loop'] ?? DEFAULT_COUNTER_BID_LOOP_TIME
@@ -115,7 +115,7 @@ async function main() {
 
 
       if (!traits) {
-        tokens = await retrieveTokens(collectionSymbol, bidCount)
+        tokens = (await retrieveTokens(collectionSymbol, bidCount)).slice(0, bidCount)
       }
 
       if (traits) {
@@ -123,7 +123,7 @@ async function main() {
       }
 
       if (traits && isTraitValid) {
-        tokens = await getTokenByTraits(traits, collectionSymbol)
+        tokens = (await getTokenByTraits(traits, collectionSymbol)).slice(0, bidCount)
       }
 
       const jsonString = JSON.stringify(tokens, null, 2);
