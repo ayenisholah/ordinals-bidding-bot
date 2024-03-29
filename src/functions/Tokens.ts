@@ -12,7 +12,6 @@ const headers = {
 }
 
 export async function retrieveTokens(collectionSymbol: string, bidCount: number = 20) {
-
   try {
     const limit = bidCount >= 20 ? bidCount : 20
     const url = `https://nfttools.pro/magiceden/v2/ord/btc/tokens`;

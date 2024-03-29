@@ -2,6 +2,7 @@ import axiosInstance from "../axios/axiosInstance";
 import * as bitcoin from "bitcoinjs-lib"
 import { ECPairInterface, ECPairFactory, ECPairAPI, TinySecp256k1Interface } from 'ecpair';
 import { config } from "dotenv"
+import Bid from "../models/offer.model";
 
 const tinysecp: TinySecp256k1Interface = require('tiny-secp256k1');
 const ECPair: ECPairAPI = ECPairFactory(tinysecp);
@@ -11,17 +12,21 @@ config()
 
 const api_key = process.env.API_KEY as string;
 const private_key = process.env.PRIVATE_KEY as string;
+
 const headers = {
   'Content-Type': 'application/json',
   'X-NFT-API-Key': api_key,
 }
 
-
-
-export async function createOffer(tokenId: string, price: number, expiration: number, buyerTokenReceiveAddress: string,
+export async function createOffer(
+  tokenId: string,
+  price: number,
+  expiration: number,
+  buyerTokenReceiveAddress: string,
   buyerPaymentAddress: string,
-
-  publicKey: string, feerateTier: string) {
+  publicKey: string,
+  feerateTier: string
+) {
   const baseURL = 'https://nfttools.pro/magiceden/v2/ord/btc/offers/create';
 
   const params = {
@@ -34,8 +39,6 @@ export async function createOffer(tokenId: string, price: number, expiration: nu
     feerateTier: feerateTier
   };
 
-
-
   try {
     const { data } = await axiosInstance.get(baseURL, { params, headers })
     return data
@@ -45,13 +48,11 @@ export async function createOffer(tokenId: string, price: number, expiration: nu
 }
 
 export function signData(unsignedData: any) {
-  console.log('Signing data...');
-  console.log({ unsignedData });
-
-
+  console.log('--------------------------------------------------------------------------------');
+  console.log('SIGNING DATA');
+  console.log('--------------------------------------------------------------------------------');
   const psbt = bitcoin.Psbt.fromBase64(unsignedData.psbtBase64);
   const keyPair: ECPairInterface = ECPair.fromWIF(private_key, network)
-
   const signedPSBTBase64 = psbt.signInput(1, keyPair).toBase64()
 
   return signedPSBTBase64;
@@ -111,9 +112,61 @@ export async function getBestOffer(tokenId: string) {
   }
 }
 
-export async function getOffers(tokenId: string) {
+
+export async function cancelAllUserOffers(buyerTokenReceiveAddress: string) {
+  try {
+    console.log('--------------------------------------------------------------------------------');
+    console.log('CANCEL ALL OFFERS!!!');
+    console.log('--------------------------------------------------------------------------------');
+
+    const offerData = await getUserOffers(buyerTokenReceiveAddress)
+
+    if (offerData && offerData.offers && offerData.offers.length > 0) {
+      const offers = offerData.offers
+      console.log('--------------------------------------------------------------------------------');
+      console.log('NUMBER OF CURRENT ACTIVE OFFERS: ', offers.length);
+      console.log('--------------------------------------------------------------------------------');
+
+      for (const offer of offers) {
+        const offerFormat = await retrieveCancelOfferFormat(offer.id)
+        const signedOfferFormat = signData(offerFormat)
+        await submitCancelOfferData(offer.id, signedOfferFormat)
+
+        console.log('--------------------------------------------------------------------------------');
+        console.log(`CANCELLED OFFER FOR ${offer.token.collectionSymbol} ${offer.token.id}`);
+        console.log('--------------------------------------------------------------------------------');
+      }
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function cancelBulkTokenOffers(tokenIds: string[], buyerTokenReceiveAddress: string) {
+  try {
+    for (const token of tokenIds) {
+      const offerData = await getOffers(token, buyerTokenReceiveAddress)
+      console.log({ offerData });
+      const offer = offerData?.offers[0]
+      if (offer) {
+        const offerFormat = await retrieveCancelOfferFormat(offer.id)
+        const signedOfferFormat = signData(offerFormat)
+        await submitCancelOfferData(offer.id, signedOfferFormat)
+        console.log('--------------------------------------------------------------------------------');
+        console.log(`CANCELLED OFFER FOR ${offer.token.collectionSymbol} ${offer.token.id}`);
+        console.log('--------------------------------------------------------------------------------');
+      }
+    }
+  } catch (error) {
+
+  }
+
+}
+
+export async function getOffers(tokenId: string, buyerTokenReceiveAddress?: string) {
   const url = 'https://nfttools.pro/magiceden/v2/ord/btc/offers/';
-  const params = {
+
+  let params: any = {
     status: 'valid',
     limit: 100,
     offset: 0,
@@ -121,19 +174,28 @@ export async function getOffers(tokenId: string) {
     token_id: tokenId
   };
 
+  if (buyerTokenReceiveAddress) {
+    params = {
+      status: 'valid',
+      limit: 100,
+      offset: 0,
+      sortBy: 'priceDesc',
+      token_id: tokenId,
+      wallet_address_buyer: buyerTokenReceiveAddress
+    };
+  }
+
   try {
     const { data } = await axiosInstance.get<OfferData>(url, { params, headers })
-
     return data
-
   } catch (error: any) {
     console.log(JSON.stringify(error.response.data));
   }
 }
 
+
 export async function retrieveCancelOfferFormat(offerId: string) {
   const url = `https://nfttools.pro/magiceden/v2/ord/btc/offers/cancel?offerId=${offerId}`
-
   try {
     const { data } = await axiosInstance.get(url, { headers })
     return data
@@ -143,7 +205,6 @@ export async function retrieveCancelOfferFormat(offerId: string) {
 }
 
 export async function submitCancelOfferData(offerId: string, signedPSBTBase64: string) {
-
   const url = 'https://nfttools.pro/magiceden/v2/ord/btc/offers/cancel';
   const data = {
     offerId: offerId,
@@ -207,6 +268,24 @@ export async function counterBid(
   console.log('--------------------------------------------------------------------------------');
 }
 
+export async function getUserOffers(buyerPaymentAddress: string) {
+  try {
+    const url = 'https://nfttools.pro/magiceden/v2/ord/btc/offers/';
+    const params = {
+      status: 'valid',
+      limit: 100,
+      offset: 0,
+      sortBy: 'priceDesc',
+      wallet_address_buyer: buyerPaymentAddress.toLowerCase()
+    };
+
+    const { data } = await axiosInstance.get<UserOffer>(url, { params, headers })
+    return data
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 interface Offer {
   id: string;
   tokenId: string;
@@ -223,4 +302,61 @@ interface Offer {
 interface OfferData {
   total: string;
   offers: Offer[];
+}
+
+interface Token {
+  id: string;
+  contentURI: string;
+  contentType: string;
+  contentBody: string;
+  contentPreviewURI: string;
+  genesisTransaction: string;
+  genesisTransactionBlockTime: string;
+  genesisTransactionBlockHash: string;
+  genesisTransactionBlockHeight: number;
+  inscriptionNumber: number;
+  chain: string;
+  meta: {
+    name: string;
+    attributes: string[];
+  };
+  location: string;
+  locationBlockHeight: number;
+  locationBlockTime: string;
+  locationBlockHash: string;
+  output: string;
+  outputValue: number;
+  owner: string;
+  listed: boolean;
+  listedAt: string;
+  listedPrice: number;
+  listedMakerFeeBp: number;
+  listedSellerReceiveAddress: string;
+  listedForMint: boolean;
+  collectionSymbol: string;
+  itemType: string;
+  sat: number;
+  satName: string;
+  satRarity: string;
+  satBlockHeight: number;
+  satBlockTime: string;
+  satributes: string[];
+}
+
+interface IOffer {
+  id: string;
+  tokenId: string;
+  sellerReceiveAddress: string;
+  sellerOrdinalsAddress: string;
+  price: number;
+  buyerReceiveAddress: string;
+  buyerPaymentAddress: string;
+  expirationDate: number;
+  isValid: boolean;
+  token: Token;
+}
+
+interface UserOffer {
+  total: string,
+  offers: IOffer[]
 }

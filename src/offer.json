@@ -1,44 +1,23 @@
 [
 	{
-		"collectionSymbol": "nodemonkes",
-		"minBid": 0.01,
-		"maxBid": 0.2,
-		"bidCount": 20,
-		"duration": 15,
-		"loop": 5,
-		"counterbid": true,
-		"fundingWalletWIF": "",
-		"receiverWallet": "bc1p5rw87me62aftc3lgrqpq430gp3rp5wtj4atxz6pum2rmhjhvsk0sx73cgk"
-	},
-	{
 		"collectionSymbol": "the-prophecy",
-		"minBid": 0.01,
-		"maxBid": 0.2,
+		"minBid": 0.0001,
+		"maxBid": 0.0002,
 		"bidCount": 20,
-		"duration": 15,
-		"loop": 5,
+		"duration": 30,
 		"counterbid": true,
+		"outBidMargin": 0.00001,
 		"fundingWalletWIF": "",
-		"receiverWallet": "bc1p5rw87me62aftc3lgrqpq430gp3rp5wtj4atxz6pum2rmhjhvsk0sx73cgk",
-		"traits": { "traitType": "satributes", "value": "Pizza" }
+		"receiverWallet": ""
 	},
 	{
 		"collectionSymbol": "artforthepeople",
-		"minBid": 0.01,
-		"maxBid": 0.2,
+		"minBid": 0.0001,
+		"maxBid": 0.0002,
+		"outBidMargin": 0.00001,
 		"bidCount": 20,
 		"counterbid": true,
-		"fundingWalletWIF": "L28cGRxowPCWm6eCoZGAxmfENfrMCYnGzX4jayFrEMG3HQWipZdi",
-		"receiverWallet": "bc1p5rw87me62aftc3lgrqpq430gp3rp5wtj4atxz6pum2rmhjhvsk0sx73cgk",
-		"traits": [
-			{ "traitType": "satributes", "value": "Common" },
-			{ "traitType": "Background", "value": "Inscription 945" },
-			{ "traitType": "Number of Recursives", "value": "7" },
-			{ "traitType": "Number of Recursives", "value": "10" },
-			{ "traitType": "Number of Recursives", "value": "39" },
-			{ "traitType": "Number of Recursives", "value": "34" },
-			{ "traitType": "Recursive", "value": "Inscription 1082" },
-			{ "traitType": "TYPE", "value": "RARE" }
-		]
+		"fundingWalletWIF": "",
+		"receiverWallet": ""
 	}
 ]
