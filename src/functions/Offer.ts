@@ -47,12 +47,12 @@ export async function createOffer(
   }
 }
 
-export function signData(unsignedData: any) {
+export function signData(unsignedData: any, privateKey: string) {
   console.log('--------------------------------------------------------------------------------');
   console.log('SIGNING DATA');
   console.log('--------------------------------------------------------------------------------');
   const psbt = bitcoin.Psbt.fromBase64(unsignedData.psbtBase64);
-  const keyPair: ECPairInterface = ECPair.fromWIF(private_key, network)
+  const keyPair: ECPairInterface = ECPair.fromWIF(privateKey, network)
   const signedPSBTBase64 = psbt.signInput(1, keyPair).toBase64()
 
   return signedPSBTBase64;
@@ -113,7 +113,7 @@ export async function getBestOffer(tokenId: string) {
 }
 
 
-export async function cancelAllUserOffers(buyerTokenReceiveAddress: string) {
+export async function cancelAllUserOffers(buyerTokenReceiveAddress: string, privateKey: string) {
   try {
     console.log('--------------------------------------------------------------------------------');
     console.log('CANCEL ALL OFFERS!!!');
@@ -129,7 +129,7 @@ export async function cancelAllUserOffers(buyerTokenReceiveAddress: string) {
 
       for (const offer of offers) {
         const offerFormat = await retrieveCancelOfferFormat(offer.id)
-        const signedOfferFormat = signData(offerFormat)
+        const signedOfferFormat = signData(offerFormat, privateKey)
         await submitCancelOfferData(offer.id, signedOfferFormat)
 
         console.log('--------------------------------------------------------------------------------');
@@ -142,7 +142,7 @@ export async function cancelAllUserOffers(buyerTokenReceiveAddress: string) {
   }
 }
 
-export async function cancelBulkTokenOffers(tokenIds: string[], buyerTokenReceiveAddress: string) {
+export async function cancelBulkTokenOffers(tokenIds: string[], buyerTokenReceiveAddress: string, privateKey: string) {
   try {
     for (const token of tokenIds) {
       const offerData = await getOffers(token, buyerTokenReceiveAddress)
@@ -150,7 +150,7 @@ export async function cancelBulkTokenOffers(tokenIds: string[], buyerTokenReceiv
       const offer = offerData?.offers[0]
       if (offer) {
         const offerFormat = await retrieveCancelOfferFormat(offer.id)
-        const signedOfferFormat = signData(offerFormat)
+        const signedOfferFormat = signData(offerFormat, privateKey)
         await submitCancelOfferData(offer.id, signedOfferFormat)
         console.log('--------------------------------------------------------------------------------');
         console.log(`CANCELLED OFFER FOR ${offer.token.collectionSymbol} ${offer.token.id}`);
@@ -226,7 +226,8 @@ export async function counterBid(
   buyerTokenReceiveAddress: string,
   buyerPaymentAddress: string,
   publicKey: string,
-  feerateTier: string
+  feerateTier: string,
+  privateKey: string
 ) {
   console.log('--------------------------------------------------------------------------------');
   console.log("COUNTER BID");
@@ -238,7 +239,7 @@ export async function counterBid(
   console.log({ cancelOfferFormat });
   console.log('--------------------------------------------------------------------------------');
 
-  const signedCancelOffer = signData(cancelOfferFormat)
+  const signedCancelOffer = signData(cancelOfferFormat, privateKey)
 
   console.log('--------------------------------------------------------------------------------');
   console.log({ signedCancelOffer });
@@ -255,7 +256,7 @@ export async function counterBid(
   console.log({ unsignedOffer });
   console.log('--------------------------------------------------------------------------------');
 
-  const signedOfferData = signData(unsignedOffer)
+  const signedOfferData = signData(unsignedOffer, privateKey)
 
   console.log('--------------------------------------------------------------------------------');
   console.log({ signedOfferData });

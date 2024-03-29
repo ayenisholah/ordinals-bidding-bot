@@ -5,12 +5,8 @@ import { ECPairInterface, ECPairFactory, ECPairAPI, TinySecp256k1Interface } fro
 import { getBitcoinBalance } from "./utils";
 import { ITokenData, getTokenByTraits, retrieveTokens } from "./functions/Tokens";
 import { validateTraits } from "./utils/traits.utils";
-import Offer from "./models/offer.model";
 import { cancelAllUserOffers, cancelBulkTokenOffers, counterBid, createOffer, getBestOffer, getOffers, signData, submitSignedOfferOrder } from "./functions/Offer";
 import { collectionDetails } from "./functions/Collection";
-// import Poller from "./services/poller.service";
-import sequelize from "./database";
-
 
 config()
 
@@ -28,7 +24,6 @@ let buyerPaymentAddress = bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, n
 const DEFAULT_COUNTER_BID_LOOP_TIME = 0.1
 let RESTART = true;
 
-
 async function main() {
   console.log('--------------------------------------------------------------------------------');
   console.log('RESTART:', RESTART);
@@ -40,7 +35,6 @@ async function main() {
     const DEFAULT_OUTBID_MARGIN = 0.00001
     const DEFAULT_OFFER_EXPIRATION = 30
     const feerateTier = 'halfHourFee'
-
 
     for (const collection of collections) {
       const collectionSymbol = collection['collectionSymbol']
@@ -55,12 +49,6 @@ async function main() {
       const outBidMargin = collection['outBidMargin'] ?? DEFAULT_OUTBID_MARGIN
 
       const buyerTokenReceiveAddress = receiverWallet ? receiverWallet : TOKEN_RECEIVE_ADDRESS
-
-
-      if (RESTART) {
-        await cancelAllUserOffers(buyerTokenReceiveAddress)
-        RESTART = false
-      }
       const privateKey = fundingWalletWIF ? fundingWalletWIF : PRIVATE_KEY
 
       if (!privateKey) {
@@ -70,6 +58,10 @@ async function main() {
         continue
       }
 
+      if (RESTART) {
+        await cancelAllUserOffers(buyerTokenReceiveAddress, privateKey)
+        RESTART = false
+      }
 
       const keyPair = ECPair.fromWIF(privateKey, network);
       const publicKey = keyPair.publicKey.toString('hex');
@@ -83,7 +75,6 @@ async function main() {
         console.log('--------------------------------------------------------------------------------');
         continue
       }
-
       console.log('--------------------------------------------------------------------------------');
       console.log(`BUYER PAYMENT ADDRESS: ${buyerPaymentAddress}`);
       console.log(`BUYER TOKEN RECEIVE ADDRESS: ${buyerTokenReceiveAddress}`);
@@ -93,7 +84,6 @@ async function main() {
       let isTraitValid = false
       const currentTime = new Date().getTime();
       const expiration = currentTime + (duration * 60 * 1000);
-
 
       const conversionRate = 100000000
       const minPrice = minBid ? Math.ceil(minBid * conversionRate) : 0
@@ -141,7 +131,7 @@ async function main() {
       console.log('--------------------------------------------------------------------------------');
 
       if (staleTokens.length > 0) {
-        await cancelBulkTokenOffers(staleTokens, buyerTokenReceiveAddress)
+        await cancelBulkTokenOffers(staleTokens, buyerTokenReceiveAddress, privateKey)
         console.log('--------------------------------------------------------------------------------');
         console.log(`CANCELLED ALL STALE OFFERS FOR ${collectionSymbol}`);
         console.log('--------------------------------------------------------------------------------');
@@ -231,7 +221,7 @@ async function main() {
 
           if (userOfferData && +userOfferData.total > 0) {
             const offer = userOfferData.offers[0]
-            await counterBid(offer.id, token.id, currentPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, feerateTier)
+            await counterBid(offer.id, token.id, currentPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, feerateTier, privateKey)
           } else {
             const unsignedOffer = await createOffer(token.id, offerPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, feerateTier)
 
@@ -239,7 +229,7 @@ async function main() {
             console.log({ unsignedOffer });
             console.log('--------------------------------------------------------------------------------');
 
-            const signedOffer = await signData(unsignedOffer)
+            const signedOffer = await signData(unsignedOffer, privateKey)
 
             console.log('--------------------------------------------------------------------------------');
             console.log({ signedOffer });
@@ -259,7 +249,7 @@ async function main() {
         console.log({ unsignedOffer });
         console.log('--------------------------------------------------------------------------------');
 
-        const signedOffer = await signData(unsignedOffer)
+        const signedOffer = await signData(unsignedOffer, privateKey)
 
         console.log('--------------------------------------------------------------------------------');
         console.log({ signedOffer });
@@ -289,30 +279,6 @@ async function main() {
           buyerPaymentAddress: buyerPaymentAddress,
           active: true,
           publicKey: publicKey,
-        }
-
-        const offerExist = await Offer.findOne({
-          where: {
-            id: token.id
-          }
-        })
-
-        if (offerData && offerData.ok) {
-          if (offerExist) {
-            await Offer.update(newOffer, {
-              where: {
-                id: token.id
-              }
-            })
-            console.log('--------------------------------------------------------------------------------');
-            console.log('UPDATED EXISTING OFFER');
-            console.log('--------------------------------------------------------------------------------');
-          } else {
-            console.log('--------------------------------------------------------------------------------');
-            console.log('SAVE NEW OFFER');
-            console.log('--------------------------------------------------------------------------------');
-            await Offer.create(newOffer)
-          }
         }
       }
     }
