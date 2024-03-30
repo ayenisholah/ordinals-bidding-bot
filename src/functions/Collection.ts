@@ -54,3 +54,72 @@ export async function fetchCollections(API_KEY: string) {
     return []
   }
 }
+
+export async function collectionActivity(collectionSymbol: string, bidCount: number = 20) {
+  console.log('----------------------------------------------------------------------------');
+  console.log(`POLLING FOR NEW OFFER ACTIVITIES FOR ${collectionSymbol}`);
+  console.log('----------------------------------------------------------------------------');
+
+
+  const url = 'https://nfttools.pro/magiceden/v2/ord/btc/activities';
+
+  const limit = bidCount >= 20 ? bidCount : 20
+  const params = {
+    limit: limit,
+    offset: 0,
+    sortBy: 'priceDesc',
+    collectionSymbol: collectionSymbol,
+    kind: ['offer_placed']
+  };
+
+  try {
+    const { data } = await axiosInstance.get<OfferData>(url, { params, headers })
+    return data
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+interface OfferData {
+  activities: OfferPlaced[]
+}
+
+export interface Token {
+  inscriptionNumber: string;
+  contentURI: string;
+  contentType: string;
+  contentBody: any;
+  contentPreviewURI: string;
+  meta: object;
+  satRarity: string;
+  satBlockHeight: number;
+  satBlockTime: string;
+  domain: any;
+}
+
+interface Collection {
+  symbol: string;
+  name: string;
+  imageURI: string;
+  chain: string;
+  labels: string[];
+}
+
+export interface OfferPlaced {
+  kind: 'offer_placed' | 'list';
+  tokenId: string;
+  chain: 'btc';
+  collectionSymbol: string;
+  collection: Collection;
+  token: Token;
+  createdAt: string;
+  tokenInscriptionNumber: number;
+  listedPrice: number;
+  oldLocation: string;
+  oldOwner: string;
+  newOwner: string;
+  txValue: number;
+  sellerPaymentReceiverAddress: string;
+  buyerPaymentAddress: string;
+  selectedFeeType: string;
+}

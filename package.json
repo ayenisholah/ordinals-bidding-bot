@@ -11,7 +11,9 @@
 		"start": "ts-node src/index.ts",
 		"scan:collections": "ts-node src/scanCollections.ts",
 		"trait": "ts-node src/trait.ts",
-		"offer:cancel": "ts-node src/cancel.ts"
+		"offer:cancel": "ts-node src/cancel.ts",
+		"activity": "ts-node src/activity.ts",
+		"bid": "ts-node src/bid.ts"
 	},
 	"keywords": [],
 	"author": "",
@@ -36,6 +38,7 @@
 		"jsonlint": "^1.6.3",
 		"mongodb": "^6.5.0",
 		"mongoose": "^8.2.3",
+		"p-queue": "^6.6.2",
 		"readline-sync": "^1.4.10",
 		"secp256k1": "^5.0.0",
 		"sequelize": "^6.37.1",

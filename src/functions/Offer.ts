@@ -3,6 +3,7 @@ import * as bitcoin from "bitcoinjs-lib"
 import { ECPairInterface, ECPairFactory, ECPairAPI, TinySecp256k1Interface } from 'ecpair';
 import { config } from "dotenv"
 import Bid from "../models/offer.model";
+import OfferModel from "../models/offer.model";
 
 const tinysecp: TinySecp256k1Interface = require('tiny-secp256k1');
 const ECPair: ECPairAPI = ECPairFactory(tinysecp);
@@ -49,7 +50,7 @@ export async function createOffer(
 
 export function signData(unsignedData: any, privateKey: string) {
   console.log('--------------------------------------------------------------------------------');
-  console.log('SIGNING DATA');
+  console.log('SIGNING DATA............');
   console.log('--------------------------------------------------------------------------------');
   const psbt = bitcoin.Psbt.fromBase64(unsignedData.psbtBase64);
   const keyPair: ECPairInterface = ECPair.fromWIF(privateKey, network)
@@ -146,7 +147,6 @@ export async function cancelBulkTokenOffers(tokenIds: string[], buyerTokenReceiv
   try {
     for (const token of tokenIds) {
       const offerData = await getOffers(token, buyerTokenReceiveAddress)
-      console.log({ offerData });
       const offer = offerData?.offers[0]
       if (offer) {
         const offerFormat = await retrieveCancelOfferFormat(offer.id)
@@ -155,6 +155,7 @@ export async function cancelBulkTokenOffers(tokenIds: string[], buyerTokenReceiv
         console.log('--------------------------------------------------------------------------------');
         console.log(`CANCELLED OFFER FOR ${offer.token.collectionSymbol} ${offer.token.id}`);
         console.log('--------------------------------------------------------------------------------');
+        await OfferModel.destroy({ where: { id: offer.id } })
       }
     }
   } catch (error) {

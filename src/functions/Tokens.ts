@@ -66,7 +66,7 @@ export async function getTokenByTraits(traits: Trait[] | Trait, collectionSymbol
   }
 }
 
-interface IToken {
+export interface IToken {
   tokens: ITokenData[]
 }
 

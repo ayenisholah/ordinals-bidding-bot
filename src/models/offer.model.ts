@@ -11,15 +11,15 @@ class Offer extends Model {
   public offerPrice!: number;
   public offerCreated!: boolean;
   public floorPrice!: number;
-  public listed!: boolean;
-  public listedAt!: string;
   public listingCreated!: boolean;
   public traits!: string;
   public counterbid!: boolean;
-  public loop!: number;
-  public buyerPaymentAddress!: string;
-  public publicKey!: string;
   public active!: boolean;
+  public privateKey!: string;
+  public publicKey!: string;
+  public buyerPaymentAddress!: string;
+  public buyerTokenReceiveAddress!: string;
+  public psbtBase64!: string;
 }
 
 Offer.init({
@@ -80,10 +80,6 @@ Offer.init({
     type: DataTypes.BOOLEAN,
     defaultValue: false
   },
-  loop: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-  },
   buyerPaymentAddress: {
     type: DataTypes.STRING,
     allowNull: true,
@@ -92,10 +88,18 @@ Offer.init({
     type: DataTypes.STRING,
     allowNull: true,
   },
+  buyerTokenReceiveAddress: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   active: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
   },
+  psbtBase64: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  }
 }, {
   sequelize,
   modelName: 'Offer',

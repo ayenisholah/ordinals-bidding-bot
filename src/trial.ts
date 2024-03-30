@@ -2,11 +2,14 @@ import { config } from "dotenv"
 import fs from "fs"
 import * as bitcoin from "bitcoinjs-lib";
 import { ECPairInterface, ECPairFactory, ECPairAPI, TinySecp256k1Interface } from 'ecpair';
+import Bottleneck from "bottleneck"
+import PQueue from "p-queue"
 import { getBitcoinBalance } from "./utils";
-import { ITokenData, getTokenByTraits, retrieveTokens } from "./functions/Tokens";
-import { validateTraits } from "./utils/traits.utils";
-import { cancelAllUserOffers, cancelBulkTokenOffers, counterBid, createOffer, getBestOffer, getOffers, signData, submitSignedOfferOrder } from "./functions/Offer";
-import { collectionDetails } from "./functions/Collection";
+import { cancelBulkTokenOffers, counterBid, createOffer, getBestOffer, getOffers, signData, submitSignedOfferOrder } from "./functions/Offer";
+import { Token, collectionActivity, collectionDetails } from "./functions/Collection";
+import sequelize from "./database";
+import Offer from "./models/offer.model";
+import { activityStream } from "./activity";
 
 config()
 
@@ -21,17 +24,35 @@ const ECPair: ECPairAPI = ECPairFactory(tinysecp);
 
 let keyPair: ECPairInterface = ECPair.fromWIF(PRIVATE_KEY, network);
 let buyerPaymentAddress = bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: network }).address as string
-const DEFAULT_COUNTER_BID_LOOP_TIME = 0.1
+const DEFAULT_COUNTER_BID_LOOP_TIME = 180 // seconds
 let RESTART = true;
+
+async function dbConnect() {
+  try {
+    await sequelize.authenticate()
+    await sequelize.sync({ alter: true })
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+const limiter = new Bottleneck({
+  minTime: 250, // 4 requests per second
+});
+
+
+dbConnect().then(() => console.log('DATABASE CONNECTED SUCCESSFULLY!')).catch(error => console.log(error))
+
+const filePath = `${__dirname}/collections.json`
+const collections: CollectionData[] = JSON.parse(fs.readFileSync(filePath, "utf-8"))
+
 
 async function main() {
   console.log('--------------------------------------------------------------------------------');
   console.log('RESTART:', RESTART);
   console.log('--------------------------------------------------------------------------------');
 
-  const filePath = `${__dirname}/offer.json`
   try {
-    const collections = JSON.parse(fs.readFileSync(filePath, "utf-8"))
     const DEFAULT_OUTBID_MARGIN = 0.00001
     const DEFAULT_OFFER_EXPIRATION = 30
     const feerateTier = 'halfHourFee'
@@ -45,7 +66,6 @@ async function main() {
       const counterbid = collection['counterbid'] ?? false
       const fundingWalletWIF = collection['fundingWalletWIF']
       const receiverWallet = collection['receiverWallet']
-      const traits = collection['traits']
       const outBidMargin = collection['outBidMargin'] ?? DEFAULT_OUTBID_MARGIN
 
       const buyerTokenReceiveAddress = receiverWallet ? receiverWallet : TOKEN_RECEIVE_ADDRESS
@@ -59,9 +79,12 @@ async function main() {
       }
 
       if (RESTART) {
-        await cancelAllUserOffers(buyerTokenReceiveAddress, privateKey)
+        const offers = await Offer.findAll({})
+        const tokenIds = offers.filter(item => item.privateKey === privateKey).map(item => item.id)
+        await cancelBulkTokenOffers(tokenIds, buyerTokenReceiveAddress, privateKey)
         RESTART = false
       }
+
 
       const keyPair = ECPair.fromWIF(privateKey, network);
       const publicKey = keyPair.publicKey.toString('hex');
@@ -80,8 +103,7 @@ async function main() {
       console.log(`BUYER TOKEN RECEIVE ADDRESS: ${buyerTokenReceiveAddress}`);
       console.log('--------------------------------------------------------------------------------');
 
-      let tokens: ITokenData[] = []
-      let isTraitValid = false
+      let tokens: any = []
       const currentTime = new Date().getTime();
       const expiration = currentTime + (duration * 60 * 1000);
 
@@ -99,20 +121,35 @@ async function main() {
       console.log("FLOOR PRICE: ", floorPrice);
       console.log('--------------------------------------------------------------------------------');
 
-      if (!traits) {
-        tokens = (await retrieveTokens(collectionSymbol, bidCount)).slice(0, bidCount)
+      let collectionOffers = await collectionActivity(collectionSymbol)
+
+      async function scheduleCollectionActivity() {
+        collectionOffers = await collectionActivity(collectionSymbol);
+        setTimeout(scheduleCollectionActivity, 1000);
       }
 
-      if (traits) {
-        isTraitValid = validateTraits(traits)
+      scheduleCollectionActivity()
+
+      interface IOffer extends Token {
+        id: string;
+        price: number;
       }
 
-      if (traits && isTraitValid) {
-        tokens = (await getTokenByTraits(traits, collectionSymbol)).slice(0, bidCount)
-      }
+      let offers: IOffer[] = [];
 
-      let oldTokens: ITokenData[] = [];
-      const filePath = `${collectionSymbol}.json`
+      if (collectionOffers && collectionOffers.activities && collectionOffers.activities.length > 0) {
+        offers = collectionOffers.activities.map(item => ({
+          id: item.tokenId, listedPrice: item.listedPrice,
+          price: item.listedPrice,
+          ...item.token
+        }))
+      }
+      console.log('--------------------------------------------------------------------------------');
+      console.log({ offers });
+      console.log('--------------------------------------------------------------------------------');
+
+      let oldTokens: any[] = [];
+      const filePath = `${collectionSymbol}.collection.json`
       try {
         const fileContent = fs.readFileSync(filePath, 'utf-8')
         if (fileContent.length > 0) {
@@ -123,7 +160,7 @@ async function main() {
         console.log('COLLECTION NOT CACHE');
         console.log('--------------------------------------------------------------------------------');
       }
-      const staleTokens = oldTokens.filter(token => !tokens.some(t => t.id === token.id)).map(token => token.id);
+      const staleTokens = oldTokens.filter(token => !tokens.some((t: any) => t.id === token.id)).map(token => token.id);
 
 
       console.log('--------------------------------------------------------------------------------');
@@ -155,8 +192,12 @@ async function main() {
       console.log('MAKER FEE: ', makerFee);
       console.log('--------------------------------------------------------------------------------');
 
-
       for (const token of tokens) {
+
+        console.log({
+          id: token.id,
+          price: token.price
+        });
 
         const offer = await getBestOffer(token.id)
         const bestOffer = offer?.offers[0]?.price ?? 0
@@ -204,7 +245,7 @@ async function main() {
 
         if (currentOffer && currentOffer.offers && currentOffer.offers.length > 0 && currentOffer.offers[0].buyerPaymentAddress === buyerPaymentAddress) {
           console.log('--------------------------------------------------------------------------------');
-          console.log('YOU ALREADY HAVE AN OFFER FOR THIS TOKEN');
+          console.log('YOU CURRENTLY HAVE THE HIGHEST OFFER FOR THIS TOKEN');
           console.log('--------------------------------------------------------------------------------');
           continue
         } else if (currentOffer && currentOffer.offers && currentOffer.offers.length > 0 && currentOffer.offers[0].buyerPaymentAddress !== buyerPaymentAddress) {
@@ -261,24 +302,36 @@ async function main() {
         console.log({ offerData });
         console.log('--------------------------------------------------------------------------------');
 
+        const offerExist = await Offer.findByPk(token.id)
+
         const newOffer = {
           id: token.id,
           collectionSymbol: collectionSymbol,
           listedPrice: token.listedPrice,
           listedMakerFeeBp: token.listedMakerFeeBp,
-          offerDate: new Date().toISOString(),
+          offerDate: Date.now(),
           bestOffer: bestOffer,
           offerPrice: offerPrice,
           offerCreated: true,
           floorPrice: floorPrice,
-          listed: token.listed,
-          listedAt: token.listedAt,
           listingCreated: false,
-          traits: traits,
           counterbid: counterbid,
-          buyerPaymentAddress: buyerPaymentAddress,
           active: true,
+          privateKey: privateKey,
           publicKey: publicKey,
+          buyerPaymentAddress: buyerPaymentAddress,
+          buyerTokenReceiveAddress: buyerPaymentAddress,
+        }
+
+        if (offerExist) {
+          await Offer.update(newOffer, {
+            where: {
+              id: token.id
+            }
+          })
+        } else {
+          const saveOffer = await Offer.create(newOffer)
+          saveOffer.save()
         }
       }
     }
@@ -286,7 +339,29 @@ async function main() {
   } catch (error) {
     throw error
   }
-  setTimeout(() => main(), DEFAULT_COUNTER_BID_LOOP_TIME * 60 * 1000);
+}
+main()
+
+
+
+interface CollectionData {
+  collectionSymbol: string;
+  minBid: number;
+  maxBid: number;
+  outBidMargin: number;
+  bidCount: number;
+  counterbid: number;
+  duration: number;
+  fundingWalletWIF?: string;
+  receiverWallet?: string;
 }
 
-main().catch(error => console.log(error))
+
+// STOP TIMER
+// setTimeout(() => {
+//   clearInterval(mainInterval);
+//   activityIntervals.forEach(interval => clearInterval(interval));
+// }, 3600000);
+
+// const mainInterval = setInterval(main, mainIntervalTime);
+// const mainIntervalTime = 60000;
