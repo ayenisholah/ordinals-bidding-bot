@@ -4,6 +4,7 @@ import { ECPairInterface, ECPairFactory, ECPairAPI, TinySecp256k1Interface } fro
 import { config } from "dotenv"
 import Bid from "../models/offer.model";
 import OfferModel from "../models/offer.model";
+import Bottleneck from "bottleneck"
 
 const tinysecp: TinySecp256k1Interface = require('tiny-secp256k1');
 const ECPair: ECPairAPI = ECPairFactory(tinysecp);
@@ -19,6 +20,11 @@ const headers = {
   'X-NFT-API-Key': api_key,
 }
 
+
+const limiter = new Bottleneck({
+  minTime: 250,
+});
+
 export async function createOffer(
   tokenId: string,
   price: number,
@@ -29,7 +35,6 @@ export async function createOffer(
   feerateTier: string
 ) {
   const baseURL = 'https://nfttools.pro/magiceden/v2/ord/btc/offers/create';
-
   const params = {
     tokenId: tokenId,
     price: price,
@@ -41,7 +46,8 @@ export async function createOffer(
   };
 
   try {
-    const { data } = await axiosInstance.get(baseURL, { params, headers })
+    const { data } = await limiter.schedule(() => axiosInstance.get(baseURL, { params, headers }));
+
     return data
   } catch (error: any) {
     console.log(error.response.data);
@@ -86,9 +92,7 @@ export async function submitSignedOfferOrder(
     console.log('--------------------------------------------------------------------------------');
     console.log("SUBMITTING SIGNED OFFER .....");
     console.log('--------------------------------------------------------------------------------');
-
-
-    const response = await axiosInstance.post(url, data, { headers });
+    const response = await limiter.schedule(() => axiosInstance.post(url, data, { headers }));
     return response.data;
   } catch (error: any) {
     console.log(JSON.stringify(error.response.data));
@@ -106,10 +110,11 @@ export async function getBestOffer(tokenId: string) {
   };
 
   try {
-    const { data } = await axiosInstance.get<OfferData>(url, { params, headers })
+
+    const { data } = await limiter.schedule(() => axiosInstance.get<OfferData>(url, { params, headers }));
     return data
   } catch (error: any) {
-    console.log(error);
+    console.log(error.response);
   }
 }
 
@@ -178,7 +183,7 @@ export async function getOffers(tokenId: string, buyerTokenReceiveAddress?: stri
   if (buyerTokenReceiveAddress) {
     params = {
       status: 'valid',
-      limit: 100,
+      limit: 1,
       offset: 0,
       sortBy: 'priceDesc',
       token_id: tokenId,
@@ -198,7 +203,10 @@ export async function getOffers(tokenId: string, buyerTokenReceiveAddress?: stri
 export async function retrieveCancelOfferFormat(offerId: string) {
   const url = `https://nfttools.pro/magiceden/v2/ord/btc/offers/cancel?offerId=${offerId}`
   try {
-    const { data } = await axiosInstance.get(url, { headers })
+
+    const { data } = await limiter.schedule({ priority: 5 }, () =>
+      axiosInstance.get(url, { headers })
+    );
     return data
   } catch (error: any) {
     console.log(error.response.data);

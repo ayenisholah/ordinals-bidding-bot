@@ -1,3 +1,4 @@
+
 import fs from "fs"
 import Bottleneck from "bottleneck"
 import PQueue from "p-queue"
@@ -9,6 +10,7 @@ import axiosInstance from "./axios/axiosInstance";
 import { OfferPlaced } from "./functions/Collection";
 import { IToken, ITokenData } from "./functions/Tokens";
 import { createOffer, getBestOffer, getOffers, retrieveCancelOfferFormat, signData, submitCancelOfferData, submitSignedOfferOrder } from "./functions/Offer";
+import { getBitcoinBalance } from "./utils"
 
 config()
 
@@ -35,6 +37,7 @@ const headers = {
   'X-NFT-API-Key': API_KEY,
 }
 
+// add this to the database to resume
 const collectionData: any = {};
 
 async function getCollectionActivity(
@@ -81,11 +84,12 @@ async function getCollectionActivity(
 
 async function getListedTokens(collectionSymbol: string, bidCount: number = 20) {
   try {
+    let offset = 0;
     const limit = bidCount >= 20 ? bidCount : 20
     const url = `https://nfttools.pro/magiceden/v2/ord/btc/tokens`;
     const params = {
       limit: limit,
-      offset: 0,
+      offset: offset,
       sortBy: 'priceAsc',
       minPrice: 0,
       maxPrice: 0,
@@ -98,6 +102,7 @@ async function getListedTokens(collectionSymbol: string, bidCount: number = 20) 
     do {
       const { data } = await axiosInstance.get<IToken>(url, { params, headers });
       const filteredTokens = data.tokens.filter(item => item.listed === true)
+      offset += filteredTokens.length
       tokens = [...filteredTokens, ...tokens]
     } while (tokens.length < bidCount)
 
@@ -115,8 +120,22 @@ async function cancelBid(tokenId: string, buyerTokenReceiveAddress: string, priv
     if (data && data.offers && data.offers.length > 0) {
       const offer = data.offers[0]
       const offerFormat = await retrieveCancelOfferFormat(offer.id)
+      console.log('--------------------------------------------------------------------------------');
+      console.log({ offerFormat });
+      console.log('--------------------------------------------------------------------------------');
+
       const signedOfferFormat = signData(offerFormat, privateKey)
-      await submitCancelOfferData(offer.id, signedOfferFormat)
+
+      console.log('--------------------------------------------------------------------------------');
+      console.log({ signedOfferFormat });
+      console.log('--------------------------------------------------------------------------------');
+
+      const cancelData = await submitCancelOfferData(offer.id, signedOfferFormat)
+
+      console.log('--------------------------------------------------------------------------------');
+      console.log({ cancelData });
+      console.log('--------------------------------------------------------------------------------');
+
       console.log('--------------------------------------------------------------------------------');
       console.log(`CANCELLED OFFER FOR ${offer.token.collectionSymbol} ${offer.token.id}`);
       console.log('--------------------------------------------------------------------------------');
@@ -128,15 +147,48 @@ async function cancelBid(tokenId: string, buyerTokenReceiveAddress: string, priv
 }
 
 async function placeBid(tokenId: string, price: number, expiration: number, buyerTokenReceiveAddress: string, buyerPaymentAddress: string, publicKey: string, feerateTier: string, privateKey: string) {
+
+  console.log({
+    tokenId,
+    price,
+    expiration,
+    buyerTokenReceiveAddress,
+    buyerPaymentAddress,
+    publicKey,
+    feerateTier,
+    privateKey
+  });
+
   console.log('--------------------------------------------------------------------------------');
   console.log(`BIDDING ON ${tokenId} FOR ${price} SATS`);
   console.log('--------------------------------------------------------------------------------');
 
+  console.log('--------------------------------------------------------------------------------');
+  console.log(`BUYER TOKEN ADDRESS: ${buyerPaymentAddress}`);
+  console.log(`TOKEN RECEIVE ADDRESS: ${buyerTokenReceiveAddress}`);
+  console.log('--------------------------------------------------------------------------------');
+
   try {
     const unsignedOffer = await createOffer(tokenId, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, feerateTier)
+    console.log('--------------------------------------------------------------------------------');
+    console.log({ unsignedOffer });
+    console.log('--------------------------------------------------------------------------------');
+
     const signedOffer = await signData(unsignedOffer, privateKey)
-    await submitSignedOfferOrder(signedOffer, tokenId, price, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, feerateTier)
-    console.log(`SUCCESSFULLY PLACED BID ON TOKEN ID: ${tokenId}`);
+    console.log('--------------------------------------------------------------------------------');
+    console.log({ signedOffer });
+    console.log('--------------------------------------------------------------------------------');
+
+    const offerData = await submitSignedOfferOrder(signedOffer, tokenId, price, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, feerateTier)
+    console.log('--------------------------------------------------------------------------------');
+    console.log({ offerData });
+    console.log('--------------------------------------------------------------------------------');
+
+    console.log(`SUCCESSFULLY PLACED BID ON TOKEN ID: ${tokenId}`)
+    console.log(`TOKEN RECEIVE ADDRESS: ${buyerTokenReceiveAddress}`);
+
+    return { success: true }
+
   } catch (error) {
     console.log(error);
   }
@@ -162,11 +214,12 @@ async function processScheduledLoop(item: CollectionData) {
   try {
     const listedTokens = await getListedTokens(collectionSymbol);
     const topListings = listedTokens.slice(0, bidCount);
+
     collectionData[collectionSymbol].topListings = topListings;
-    const reservoir = await limiter.currentReservoir()
-    const queueConcurrency = Math.floor(Number(reservoir) * 1.1);
+
+    const ratelimit = 4
     const queue = new PQueue({
-      concurrency: 2 // hardcoded would fix
+      concurrency: 1.5 * ratelimit
     });
 
     await queue.addAll(
@@ -180,12 +233,24 @@ async function processScheduledLoop(item: CollectionData) {
         const ourExistingOffer = collectionData[collectionSymbol] && collectionData[collectionSymbol].ourBids && collectionData[collectionSymbol].ourBids[tokenId] ?
           collectionData[collectionSymbol].ourBids[tokenId] : null
 
+        console.log({ existingOffer: bestOffer && +bestOffer.total > 0 });
+
+
         if (bestOffer && +bestOffer.total > 0) {
+
           const offer = bestOffer.offers[0]
 
           const { price: bestPrice } = offer;
 
+          console.log('--------------------------------------------------------------------------------');
+          console.log(`BEST OFFER: `, bestPrice);
+          console.log('--------------------------------------------------------------------------------');
+
           const isOurs = offer.buyerPaymentAddress === buyerPaymentAddress
+
+          console.log('--------------------------------------------------------------------------------');
+          console.log({ isOurs, offer });
+          console.log('--------------------------------------------------------------------------------');
 
           if (!isOurs && bestPrice >= minBid && bestPrice <= maxBid) {
             if (ourExistingOffer) {
@@ -205,6 +270,7 @@ async function processScheduledLoop(item: CollectionData) {
           const currentBidCount = Object.values(
             collectionData[collectionSymbol].topBids
           ).filter(Boolean).length;
+
           if (currentBidCount < bidCount) {
             if (ourExistingOffer) {
               await cancelBid(tokenId, buyerTokenReceiveAddress, privateKey);
@@ -219,7 +285,6 @@ async function processScheduledLoop(item: CollectionData) {
             } else if (!collectionData[collectionSymbol].ourBids) {
               collectionData[collectionSymbol].ourBids = {}; // Initialize ourBids if it's undefined
             }
-
             collectionData[collectionSymbol].ourBids[tokenId] = bidPrice;
             collectionData[collectionSymbol].topBids[tokenId] = true;
           }
@@ -245,6 +310,7 @@ async function processCounterBidLoop(item: CollectionData) {
   const buyerTokenReceiveAddress = item.receiverWallet ? item.receiverWallet : TOKEN_RECEIVE_ADDRESS
   const privateKey = item.fundingWalletWIF ? item.fundingWalletWIF : PRIVATE_KEY
   const duration = item.duration ? item.duration : DEFAULT_BID_DURATION
+  const outBidMargin = item.outBidMargin ? item.outBidMargin : DEFAULT_OUTBID_MARGIN
   const expiration = duration * 60 * 1000
   const keyPair = ECPair.fromWIF(privateKey, network);
   const publicKey = keyPair.publicKey.toString('hex');
@@ -260,12 +326,17 @@ async function processCounterBidLoop(item: CollectionData) {
   }
 
   const lastSeenTimestamp = collectionData[collectionSymbol].lastSeenActivity;
-
   try {
+    const balance = await getBitcoinBalance(buyerPaymentAddress);
+    console.log('----------------------------------------------------------------------------------------------------');
+    console.log('BALANCE: ', balance);
+    console.log('----------------------------------------------------------------------------------------------------');
+
     const activities = await getCollectionActivity(
       collectionSymbol,
       lastSeenTimestamp
     );
+
 
     if (activities.length > 0) {
       collectionData[collectionSymbol].lastSeenActivity = new Date(activities[0].createdAt).getTime();
@@ -289,9 +360,9 @@ async function processCounterBidLoop(item: CollectionData) {
       const { tokenId, listedPrice: offerPrice } = offer;
       if (collectionData[collectionSymbol].topBids[tokenId]) {
         if (offerPrice >= minBid && offerPrice <= maxBid) {
-          const bidPrice = offerPrice + 0.00001;
+          const bidPrice = offerPrice + outBidMargin;
           console.log('----------------------------------------------------------------------------------------------------');
-          console.log(`COUNTER BID FOR ${collectionSymbol} NEW BID PRICE ${bidPrice} SATS`);
+          console.log(`COUNTER BID FOR COLLECTION ${collectionSymbol} TOKEN ${tokenId} NEW BID PRICE ${bidPrice} SATS`);
           console.log('----------------------------------------------------------------------------------------------------');
           await cancelBid(tokenId, buyerTokenReceiveAddress, privateKey);
           await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, feerateTier, privateKey);
@@ -326,11 +397,11 @@ async function processCounterBidLoop(item: CollectionData) {
         .map((listing: ITokenData) => listing.id);
 
       for (const tokenId of tokensToCancel) {
+        await cancelBid(tokenId, buyerTokenReceiveAddress, privateKey);
+        delete collectionData[collectionSymbol].topBids[tokenId];
         console.log('----------------------------------------------------------------------------------------------------');
         console.log(`CANCEL BID FOR ${collectionSymbol} ${tokenId}`);
         console.log('----------------------------------------------------------------------------------------------------');
-        await cancelBid(tokenId, buyerTokenReceiveAddress, privateKey);
-        delete collectionData[collectionSymbol].topBids[tokenId];
       }
 
       for (const listing of newBottomListings) {

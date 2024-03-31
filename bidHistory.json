@@ -1,0 +1,80 @@
+{
+  "the-prophecy": {
+    "ourBids": {},
+    "topBids": {},
+    "topListings": [
+      {
+        "id": "8649af274999d6b6fbd818d72e9c345e3d26ceb3073521b6b3cf862b59b74e76i0",
+        "price": 15000
+      },
+      {
+        "id": "7d24d5451c9b698e24cba306f9871e1e9167e7a20fa218ff3699b468c47370e8i0",
+        "price": 15000
+      },
+      {
+        "id": "ddf95f3fd361f2e08fcc95cc5bbed49f73ef768943cebe8f20f571165574c342i0",
+        "price": 15000
+      },
+      {
+        "id": "95c3caaf8e9439fd9766bc959a0e1177f5f571cf3e87892c4071064ee6d47333i0",
+        "price": 15000
+      },
+      {
+        "id": "b7f49dd7794498b72d2cbfc15bdb820681ff456a277fe5832b0a787a025f30ebi0",
+        "price": 15100
+      },
+      {
+        "id": "d1001eef3c6e6cb88c045c5182ed150cd6602c046458741b51420fcc60c8106bi0",
+        "price": 16900
+      },
+      {
+        "id": "b0e904ac381849ea6194def7467e13ad18be6ae462bbb1db205a35ae2ea1414ai0",
+        "price": 17000
+      },
+      {
+        "id": "8b6a2b17a2caeb966cefdcff9f6e94eedad8d9e5e3288e8f56f3862c4c846a8di0",
+        "price": 17000
+      },
+      {
+        "id": "59480f1cf5e958a760f57910ae545e7d93ffcc0e9ecc05de0930094bd7684b97i0",
+        "price": 17000
+      },
+      {
+        "id": "4b3dd6b1cb1d6f87220ab88ae490c3f251cbc251ec6839340a353dabf06cac64i1",
+        "price": 17000
+      }
+    ],
+    "lastSeenActivity": 1711924061000
+  },
+  "artforthepeople": {
+    "ourBids": {},
+    "topBids": {},
+    "topListings": [
+      {
+        "id": "ee5fb816a5a9163c0726e4a17d215beb99288092ac0aafdb34b7dfefb034f077i0",
+        "price": 80000
+      },
+      {
+        "id": "c0b34266f8c3048f4fe8f44676b43810284d2da37fc58e031d090df329714187i0",
+        "price": 80000
+      },
+      {
+        "id": "53fcc64cf464fec2f58b9fb8e1bb3e30cbc52b9bbc78ede5c90725f0212a5657i0",
+        "price": 80000
+      },
+      {
+        "id": "02f4b9a558d61379d683f1ee5a2f3cbea732f6b7404e573139d744134e78cc18i0",
+        "price": 80000
+      },
+      {
+        "id": "7d72b906dc525d18fc60ccf993d56f6e2f9deee8e12c52895f7fc3213b3afa1bi0",
+        "price": 200000
+      },
+      {
+        "id": "57f8d4eee3ef0d8e69685fbfe619420a80b412577dce8796b22f3da54733a4eei0",
+        "price": 1000000
+      }
+    ],
+    "lastSeenActivity": 1711923864000
+  }
+}

@@ -2,6 +2,7 @@ import { config } from "dotenv"
 import axiosInstance from "../axios/axiosInstance"
 import { Trait, transformTrait } from "../utils/traits.utils";
 import rateLimitedAxiosInstance from "../axios/axiosInstance";
+import Bottleneck from "bottleneck";
 
 
 config()
@@ -10,6 +11,10 @@ const API_KEY = process.env.API_KEY as string;
 const headers = {
   'X-NFT-API-Key': API_KEY,
 }
+
+const limiter = new Bottleneck({
+  minTime: 250,
+});
 
 export async function retrieveTokens(collectionSymbol: string, bidCount: number = 20) {
   try {
@@ -24,12 +29,14 @@ export async function retrieveTokens(collectionSymbol: string, bidCount: number 
       collectionSymbol: collectionSymbol,
       disablePendingTransactions: true
     };
-    const { data } = await axiosInstance.get<IToken>(url, { params, headers });
+
+    const { data } = await limiter.schedule(() => axiosInstance.get<IToken>(url, { params, headers }));
+
     const tokens = data.tokens
 
     return tokens.filter(item => item.listed === true)
   } catch (error: any) {
-    console.log(error.response.data);
+    console.log(error.response);
     return []
   }
 }

@@ -1,3 +1,4 @@
+import Bottleneck from "bottleneck";
 import axiosInstance from "../axios/axiosInstance"
 
 const API_KEY = process.env.API_KEY as string;
@@ -6,10 +7,14 @@ const headers = {
   'X-NFT-API-Key': API_KEY,
 }
 
+const limiter = new Bottleneck({
+  minTime: 250, // 4 requests per second
+});
+
 export async function collectionDetails(collectionSymbol: string) {
   try {
     const url = `https://nfttools.pro/magiceden/v2/ord/btc/stat?collectionSymbol=${collectionSymbol}`
-    const { data } = await axiosInstance.get<CollectionData>(url, { headers })
+    const { data } = await limiter.schedule(() => axiosInstance.get<CollectionData>(url, { headers }));
 
     return data
 
