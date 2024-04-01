@@ -1,0 +1,139 @@
+{
+  "gamestone": {
+    "ourBids": {
+      "3d97b9d1e5a8935d387dfb0161428c8d5a083a6049f5744fb117add7b52d829ai1233": 20000,
+      "3d97b9d1e5a8935d387dfb0161428c8d5a083a6049f5744fb117add7b52d829ai1235": 20000,
+      "f4943a23f0a166e6d9a0628bdd7e6f256355465ac736b07e2dcfa482a636c58ei363": 19950,
+      "3d97b9d1e5a8935d387dfb0161428c8d5a083a6049f5744fb117add7b52d829ai1241": 20000,
+      "3d97b9d1e5a8935d387dfb0161428c8d5a083a6049f5744fb117add7b52d829ai1242": 20000,
+      "54248d41b5ed151ce4ede7cbc5609f9f9b25434645c805eb349204750c09de1ei475": 20000,
+      "3d97b9d1e5a8935d387dfb0161428c8d5a083a6049f5744fb117add7b52d829ai1243": 20000,
+      "3d97b9d1e5a8935d387dfb0161428c8d5a083a6049f5744fb117add7b52d829ai36": 20000,
+      "3d97b9d1e5a8935d387dfb0161428c8d5a083a6049f5744fb117add7b52d829ai977": 20000
+    },
+    "topBids": {
+      "3d97b9d1e5a8935d387dfb0161428c8d5a083a6049f5744fb117add7b52d829ai1233": true,
+      "3d97b9d1e5a8935d387dfb0161428c8d5a083a6049f5744fb117add7b52d829ai1235": true,
+      "f4943a23f0a166e6d9a0628bdd7e6f256355465ac736b07e2dcfa482a636c58ei363": true,
+      "3d97b9d1e5a8935d387dfb0161428c8d5a083a6049f5744fb117add7b52d829ai1241": true,
+      "3d97b9d1e5a8935d387dfb0161428c8d5a083a6049f5744fb117add7b52d829ai1242": true,
+      "54248d41b5ed151ce4ede7cbc5609f9f9b25434645c805eb349204750c09de1ei475": true,
+      "3d97b9d1e5a8935d387dfb0161428c8d5a083a6049f5744fb117add7b52d829ai1243": true,
+      "3d97b9d1e5a8935d387dfb0161428c8d5a083a6049f5744fb117add7b52d829ai36": true,
+      "3d97b9d1e5a8935d387dfb0161428c8d5a083a6049f5744fb117add7b52d829ai977": true
+    },
+    "topListings": [
+      {
+        "id": "f4943a23f0a166e6d9a0628bdd7e6f256355465ac736b07e2dcfa482a636c58ei363",
+        "price": 39900
+      },
+      {
+        "id": "3d97b9d1e5a8935d387dfb0161428c8d5a083a6049f5744fb117add7b52d829ai1241",
+        "price": 40000
+      },
+      {
+        "id": "3d97b9d1e5a8935d387dfb0161428c8d5a083a6049f5744fb117add7b52d829ai1242",
+        "price": 40000
+      },
+      {
+        "id": "3d97b9d1e5a8935d387dfb0161428c8d5a083a6049f5744fb117add7b52d829ai1243",
+        "price": 40000
+      },
+      {
+        "id": "3d97b9d1e5a8935d387dfb0161428c8d5a083a6049f5744fb117add7b52d829ai36",
+        "price": 40000
+      },
+      {
+        "id": "3d97b9d1e5a8935d387dfb0161428c8d5a083a6049f5744fb117add7b52d829ai977",
+        "price": 40000
+      },
+      {
+        "id": "54248d41b5ed151ce4ede7cbc5609f9f9b25434645c805eb349204750c09de1ei475",
+        "price": 40000
+      }
+    ],
+    "lastSeenActivity": 1711935089000
+  },
+  "the-prophecy": {
+    "ourBids": {
+      "468206f558a1f9c55a134950613be24a956a012e0f7672a9b5a050603e924d1fi0": 7500,
+      "9e8cb2ee554b37538d6c8f2ea3623e655bd507dd8a58853ef37451c6c4c09923i0": 7500,
+      "ddf95f3fd361f2e08fcc95cc5bbed49f73ef768943cebe8f20f571165574c342i0": 7500,
+      "081bdcf0c65fa178b05002df21bb1bfb4363f45f7b05e5db4f8db448cadccb3ci0": 7500,
+      "b7f49dd7794498b72d2cbfc15bdb820681ff456a277fe5832b0a787a025f30ebi0": 7550,
+      "6f6ecd6f7f016f4da7a0199a882e88381c34965af1535bf8e3e10349997c4118i0": 8000,
+      "53094f02f3146e5aa17bd3a1fd3a78cf73ad750d293017a4feef70c09319387ei0": 7500
+    },
+    "topBids": {
+      "468206f558a1f9c55a134950613be24a956a012e0f7672a9b5a050603e924d1fi0": true,
+      "9e8cb2ee554b37538d6c8f2ea3623e655bd507dd8a58853ef37451c6c4c09923i0": true,
+      "ddf95f3fd361f2e08fcc95cc5bbed49f73ef768943cebe8f20f571165574c342i0": true,
+      "081bdcf0c65fa178b05002df21bb1bfb4363f45f7b05e5db4f8db448cadccb3ci0": true,
+      "b7f49dd7794498b72d2cbfc15bdb820681ff456a277fe5832b0a787a025f30ebi0": true,
+      "6f6ecd6f7f016f4da7a0199a882e88381c34965af1535bf8e3e10349997c4118i0": true,
+      "53094f02f3146e5aa17bd3a1fd3a78cf73ad750d293017a4feef70c09319387ei0": true
+    },
+    "topListings": [
+      {
+        "id": "081bdcf0c65fa178b05002df21bb1bfb4363f45f7b05e5db4f8db448cadccb3ci0",
+        "price": 15000
+      },
+      {
+        "id": "468206f558a1f9c55a134950613be24a956a012e0f7672a9b5a050603e924d1fi0",
+        "price": 15000
+      },
+      {
+        "id": "53094f02f3146e5aa17bd3a1fd3a78cf73ad750d293017a4feef70c09319387ei0",
+        "price": 15000
+      },
+      {
+        "id": "9e8cb2ee554b37538d6c8f2ea3623e655bd507dd8a58853ef37451c6c4c09923i0",
+        "price": 15000
+      },
+      {
+        "id": "ddf95f3fd361f2e08fcc95cc5bbed49f73ef768943cebe8f20f571165574c342i0",
+        "price": 15000
+      },
+      {
+        "id": "b7f49dd7794498b72d2cbfc15bdb820681ff456a277fe5832b0a787a025f30ebi0",
+        "price": 15100
+      },
+      {
+        "id": "6f6ecd6f7f016f4da7a0199a882e88381c34965af1535bf8e3e10349997c4118i0",
+        "price": 16000
+      }
+    ],
+    "lastSeenActivity": 1711935113000
+  },
+  "artforthepeople": {
+    "ourBids": {},
+    "topBids": {},
+    "topListings": [
+      {
+        "id": "10552c0550e7ba9353b05baa0eb9a9f9326870dad63a9c635a52ba7888df8804i0",
+        "price": 29800
+      },
+      {
+        "id": "1c0ad813b2c2d056de3afd37faa156392bee2da66ac7bddaac8f7655b1274388i0",
+        "price": 29800
+      },
+      {
+        "id": "6db9034533aad2d82e8e7ca6ca9129986c5ebfd5a75e3ff2f2e05bb72fb6c265i0",
+        "price": 29800
+      },
+      {
+        "id": "8ae6ca6fb0ff6068f2b18c7b0d4953e4ebbd624a83a42945ada247d38ff9f412i0",
+        "price": 29800
+      },
+      {
+        "id": "8e4f06f3b7d4c0acf38d9b5c3f29a4ea71bf5ea8292a82d74126dce4d45d6361i0",
+        "price": 29800
+      },
+      {
+        "id": "abc6a4ef89969b11326e5ca7e6526ce3f481223a0324bc032792a9d03f861fddi0",
+        "price": 29800
+      }
+    ],
+    "lastSeenActivity": 1711933997000
+  }
+}

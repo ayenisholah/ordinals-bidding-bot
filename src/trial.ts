@@ -84,7 +84,7 @@ async function processScheduledLoop(item: CollectionData) {
   });
 
   try {
-    const balance = await getBitcoinBalance(buyerPaymentAddress)
+    // const balance = await getBitcoinBalance(buyerPaymentAddress)
     const collectionData = await collectionDetails(collectionSymbol)
     const tokens = await retrieveTokens(collectionSymbol, bidCount)
 
@@ -340,28 +340,28 @@ collections.forEach((item) => {
   processCounterBidLoop(item)
 });
 
-function writeBidHistoryToFile() {
-  const jsonString = JSON.stringify(bidHistory, null, 2);
-  const filePath = 'bidHistory.json';
+// function writeBidHistoryToFile() {
+//   const jsonString = JSON.stringify(bidHistory, null, 2);
+//   const filePath = 'bidHistory.json';
 
-  fs.writeFile(filePath, jsonString, 'utf-8', (err) => {
-    if (err) {
-      console.error('Error writing bidHistory to file:', err);
-      return;
-    }
-    console.log('bidHistory has been written to bidHistory.json');
-  });
-}
+//   fs.writeFile(filePath, jsonString, 'utf-8', (err) => {
+//     if (err) {
+//       console.error('Error writing bidHistory to file:', err);
+//       return;
+//     }
+//     console.log('bidHistory has been written to bidHistory.json');
+//   });
+// }
 
-process.on('SIGINT', () => {
-  console.log('Received SIGINT signal. Writing bidHistory to file...');
-  writeBidHistoryToFile();
-});
+// process.on('SIGINT', () => {
+//   console.log('Received SIGINT signal. Writing bidHistory to file...');
+//   writeBidHistoryToFile();
+// });
 
-process.on('exit', () => {
-  console.log('Process is about to exit. Writing bidHistory to file...');
-  writeBidHistoryToFile();
-});
+// process.on('exit', () => {
+//   console.log('Process is about to exit. Writing bidHistory to file...');
+//   writeBidHistoryToFile();
+// });
 
 
 

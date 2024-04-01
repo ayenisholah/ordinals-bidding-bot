@@ -1,9 +1,21 @@
 [
 	{
+		"collectionSymbol": "gamestone",
+		"minBid": 0.0001,
+		"maxBid": 0.0002,
+		"bidCount": 7,
+		"duration": 30,
+		"counterbid": 60,
+		"loop": 60,
+		"counterbidLoop": 60,
+		"outBidMargin": 0.00001,
+		"receiverWallet": "bc1p5rw87me62aftc3lgrqpq430gp3rp5wtj4atxz6pum2rmhjhvsk0sx73cgk"
+	},
+	{
 		"collectionSymbol": "the-prophecy",
 		"minBid": 0.0001,
 		"maxBid": 0.0002,
-		"bidCount": 10,
+		"bidCount": 7,
 		"duration": 30,
 		"counterbid": 60,
 		"loop": 60,
@@ -16,7 +28,7 @@
 		"minBid": 0.0001,
 		"maxBid": 0.0002,
 		"outBidMargin": 0.00001,
-		"bidCount": 10,
+		"bidCount": 6,
 		"counterbid": 60,
 		"counterbidLoop": 60,
 		"receiverWallet": "bc1p5rw87me62aftc3lgrqpq430gp3rp5wtj4atxz6pum2rmhjhvsk0sx73cgk"
