@@ -2,9 +2,7 @@ import * as bitcoin from "bitcoinjs-lib"
 import { ECPairInterface, ECPairFactory, ECPairAPI, TinySecp256k1Interface } from 'ecpair';
 import { config } from "dotenv"
 
-import sequelize from "./database";
-import Bid from "./models/offer.model";
-import { getOffers, retrieveCancelOfferFormat, signData, submitCancelOfferData } from "./functions/Offer";
+import { cancelAllUserOffers, getOffers, retrieveCancelOfferFormat, signData, submitCancelOfferData } from "./functions/Offer";
 
 config()
 
@@ -15,14 +13,6 @@ const tinysecp: TinySecp256k1Interface = require('tiny-secp256k1');
 const ECPair: ECPairAPI = ECPairFactory(tinysecp);
 
 async function main() {
-  try {
-    await sequelize.authenticate();
-    // await sequelize.sync({ alter: true }); // chain to alter
-
-    console.log('Connection has been established successfully.');
-  } catch (error) {
-    console.error('Unable to connect to the database:', error);
-  }
 
   try {
     // get successful offers
@@ -34,36 +24,9 @@ async function main() {
     console.log(`PAYMENT ADDRESS: ${buyerPaymentAddress}`);
     console.log('--------------------------------------------------------------------------------');
 
+    const buyerTokenReceiveAddress = 'bc1p5rw87me62aftc3lgrqpq430gp3rp5wtj4atxz6pum2rmhjhvsk0sx73cgk'
 
-    const createdOffers = await Bid.findAll({})
-
-    // get offers
-    for (const token of createdOffers) {
-      const offerData = await getOffers(token.id)
-
-      const offer = offerData?.offers?.find(item => item.buyerPaymentAddress === buyerPaymentAddress)
-
-      if (offer) {
-        const offerFormat = await retrieveCancelOfferFormat(offer.id)
-
-        console.log('--------------------------------------------------------------------------------');
-        console.log({ offerFormat });
-        console.log('--------------------------------------------------------------------------------');
-
-        const signedOfferFormat = signData(offerFormat)
-
-        console.log('--------------------------------------------------------------------------------');
-        console.log({ signedOfferFormat });
-        console.log('--------------------------------------------------------------------------------');
-
-        const cancelOfferData = await submitCancelOfferData(offer.id, signedOfferFormat)
-
-        console.log('--------------------------------------------------------------------------------');
-        console.log({ cancelOfferData });
-        console.log('--------------------------------------------------------------------------------');
-      }
-    }
-
+    await cancelAllUserOffers(buyerTokenReceiveAddress, private_key)
     // bulk cancel
 
   } catch (error) {
