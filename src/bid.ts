@@ -175,13 +175,10 @@ async function placeBid(tokenId: string, price: number, expiration: number, buye
     console.log('--------------------------------------------------------------------------------');
 
     const signedOffer = await signData(unsignedOffer, privateKey)
-    console.log('--------------------------------------------------------------------------------');
-    console.log({ signedOffer });
-    console.log('--------------------------------------------------------------------------------');
 
     const offerData = await submitSignedOfferOrder(signedOffer, tokenId, price, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, feerateTier)
     console.log('--------------------------------------------------------------------------------');
-    console.log({ offerData });
+    console.log({ offerData, tokenId, price, buyerPaymentAddress, buyerTokenReceiveAddress });
     console.log('--------------------------------------------------------------------------------');
 
     console.log(`SUCCESSFULLY PLACED BID ON TOKEN ID: ${tokenId}`)
