@@ -5,7 +5,7 @@ import { ECPairFactory, ECPairAPI, TinySecp256k1Interface } from 'ecpair';
 import Bottleneck from "bottleneck"
 import PQueue from "p-queue"
 import { getBitcoinBalance } from "./utils";
-import { createOffer, getBestOffer, getOffers, retrieveCancelOfferFormat, signData, submitCancelOfferData, submitSignedOfferOrder } from "./functions/Offer";
+import { createOffer, getBestOffer, getOffers, getUserOffers, retrieveCancelOfferFormat, signData, submitCancelOfferData, submitSignedOfferOrder } from "./functions/Offer";
 import { OfferPlaced, collectionDetails } from "./functions/Collection";
 import { retrieveTokens } from "./functions/Tokens";
 import axiosInstance from "./axios/axiosInstance";
@@ -28,6 +28,7 @@ const ECPair: ECPairAPI = ECPairFactory(tinysecp);
 
 const DEFAULT_COUNTER_BID_LOOP_TIME = 180
 const DEFAULT_LOOP = 100
+let RESTART = true
 
 
 const headers = {
@@ -41,6 +42,7 @@ const limiter = new Bottleneck({
 
 const filePath = `${__dirname}/collections.json`
 const collections: CollectionData[] = JSON.parse(fs.readFileSync(filePath, "utf-8"))
+let balance: number;
 
 interface BidHistory {
   [collectionSymbol: string]: {
@@ -65,7 +67,7 @@ async function processScheduledLoop(item: CollectionData) {
   console.log(`START AUTOBID SCHEDULE FOR ${item.collectionSymbol}`);
   console.log('----------------------------------------------------------------------');
 
-  const collectionSymbol = item['collectionSymbol']
+  const collectionSymbol = item.collectionSymbol
   const minBid = item.minBid
   const maxBid = item.maxBid
   const bidCount = item.bidCount ?? 20
@@ -84,8 +86,8 @@ async function processScheduledLoop(item: CollectionData) {
   });
 
   try {
-    // const balance = await getBitcoinBalance(buyerPaymentAddress)
     const collectionData = await collectionDetails(collectionSymbol)
+
     const tokens = await retrieveTokens(collectionSymbol, bidCount)
 
     const topListings = tokens.slice(0, bidCount).map((item) => ({ id: item.id, price: item.listedPrice }))
@@ -97,6 +99,27 @@ async function processScheduledLoop(item: CollectionData) {
         topListings: [],
         lastSeenActivity: null
       };
+    }
+
+    if (RESTART) {
+      balance = await getBitcoinBalance(buyerPaymentAddress)
+      const offerData = await getUserOffers(buyerTokenReceiveAddress)
+      if (offerData && offerData.offers.length > 0) {
+        const offers = offerData.offers
+        offers.forEach((item) => {
+          if (!bidHistory[item.token.collectionSymbol]) {
+            bidHistory[item.token.collectionSymbol] = {
+              ourBids: {},
+              topBids: {},
+              topListings: [],
+              lastSeenActivity: null
+            };
+          }
+          bidHistory[item.token.collectionSymbol].topBids[item.tokenId] = true
+          bidHistory[item.token.collectionSymbol].ourBids[item.tokenId] = item.price;
+        })
+      }
+      RESTART = false
     }
 
     bidHistory[collectionSymbol].topListings = topListings;
@@ -133,18 +156,22 @@ async function processScheduledLoop(item: CollectionData) {
         const bestOffer = await getBestOffer(tokenId);
         const ourExistingOffer = bidHistory[collectionSymbol].ourBids[tokenId];
 
-        console.log({ bestOffer });
+        console.log({ bestOffer: bestOffer?.offers[0]?.price, paymentAddress: bestOffer?.offers[0]?.buyerPaymentAddress });
 
 
         if (bestOffer && bestOffer.offers && bestOffer.offers.length > 0) {
           const offer = bestOffer.offers[0]
           const bestPrice = offer.price
 
-          console.log({ bestPrice });
-
           const isOurs = offer.buyerPaymentAddress === buyerPaymentAddress
 
-          if (!isOurs && bestPrice >= minBid && bestPrice <= maxBid) {
+          if (isOurs) {
+            console.log('--------------------------------------------------------------------------------');
+            console.log('YOU ALREADY HAVE THE HIGHEST OFFER FOR THIS TOKEN');
+            console.log('--------------------------------------------------------------------------------');
+          }
+
+          if (!isOurs && bestPrice >= minPrice && bestPrice <= maxPrice) {
 
             if (ourExistingOffer) {
               await cancelBid(offer.id, privateKey)
@@ -159,15 +186,16 @@ async function processScheduledLoop(item: CollectionData) {
               bidHistory[collectionSymbol].topBids
             ).filter(Boolean).length;
 
-            const activeBidCount = bidHistory.topBids ? Object.keys(bidHistory.topBids).length : 0
+            console.log({ currentBidCount, bidCount });
 
             if (currentBidCount < bidCount) {
-              const bidPrice = Math.ceil(Math.min(bestPrice + (outBidMargin * CONVERSION_RATE), maxBid))
-              console.log({ bidPrice });
-
-              await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey)
-              bidHistory[collectionSymbol].ourBids[tokenId] = bidPrice;
-              bidHistory[collectionSymbol].topBids[tokenId] = true;
+              const bidPrice = Math.ceil(Math.min(bestPrice + (outBidMargin * CONVERSION_RATE), maxPrice))
+              console.log({ bidPrice, bestPrice });
+              if (!isOurs && bidPrice < balance) {
+                await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey)
+                bidHistory[collectionSymbol].ourBids[tokenId] = bidPrice;
+                bidHistory[collectionSymbol].topBids[tokenId] = true;
+              }
             }
           }
         } else {
@@ -175,16 +203,18 @@ async function processScheduledLoop(item: CollectionData) {
             bidHistory[collectionSymbol].topBids
           ).filter(Boolean).length;
 
-          const activeBidCount = bidHistory.topBids ? Object.keys(bidHistory.topBids).length : 0
-          console.log({ currentBidCount, activeBidCount });
+          console.log({ currentBidCount, bidCount });
 
           if (currentBidCount < bidCount) {
-            const bidPrice = Math.ceil(Math.max(minBid, listedPrice * 0.5));
-            console.log({ bidPrice });
-            await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey);
+            const bidPrice = Math.ceil(Math.max(minPrice, listedPrice * 0.5));
+            console.log({ bidPrice, minPrice, listedPrice });
 
-            bidHistory[collectionSymbol].ourBids[tokenId] = bidPrice;
-            bidHistory[collectionSymbol].topBids[tokenId] = true;
+            if (bidPrice < balance) {
+              await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey);
+              bidHistory[collectionSymbol].ourBids[tokenId] = bidPrice;
+              bidHistory[collectionSymbol].topBids[tokenId] = true;
+            }
+
           }
         }
       })
@@ -192,7 +222,6 @@ async function processScheduledLoop(item: CollectionData) {
   } catch (error) {
     throw error
   }
-
   setTimeout(() => processScheduledLoop(item), scheduledLoop * 1000);
 }
 
@@ -218,6 +247,9 @@ async function processCounterBidLoop(item: CollectionData) {
 
   const buyerPaymentAddress = bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: network }).address as string
 
+  const minPrice = minBid * CONVERSION_RATE
+  const maxPrice = maxBid * CONVERSION_RATE
+
 
   if (!bidHistory[collectionSymbol]) {
     bidHistory[collectionSymbol] = {
@@ -228,8 +260,31 @@ async function processCounterBidLoop(item: CollectionData) {
     };
   }
 
+  if (RESTART) {
+    balance = await getBitcoinBalance(buyerPaymentAddress)
+    const offerData = await getUserOffers(buyerTokenReceiveAddress)
+    if (offerData && offerData.offers.length > 0) {
+      const offers = offerData.offers
+      offers.forEach((item) => {
+        if (!bidHistory[item.token.collectionSymbol]) {
+          bidHistory[item.token.collectionSymbol] = {
+            ourBids: {},
+            topBids: {},
+            topListings: [],
+            lastSeenActivity: null
+          };
+        }
+        bidHistory[item.token.collectionSymbol].topBids[item.tokenId] = true
+        bidHistory[item.token.collectionSymbol].ourBids[item.tokenId] = item.price;
+      })
+    }
+    RESTART = false
+  }
+
+
   try {
     const lastSeenTimestamp = bidHistory[collectionSymbol]?.lastSeenActivity;
+
 
     const activities = await getCollectionActivity(
       collectionSymbol,
@@ -259,8 +314,15 @@ async function processCounterBidLoop(item: CollectionData) {
 
       const isOurs = offer.buyerPaymentAddress === buyerPaymentAddress
 
+      if (isOurs) {
+        console.log('--------------------------------------------------------------------------------');
+        console.log('YOU ALREADY HAVE THE HIGHEST OFFER FOR THIS TOKEN');
+        console.log('--------------------------------------------------------------------------------');
+      }
+
+
       if (!isOurs && bidHistory[collectionSymbol].topBids[tokenId]) {
-        if (offerPrice >= minBid && offerPrice <= maxBid) {
+        if (offerPrice >= minPrice && offerPrice <= maxPrice) {
           const offerData = await getOffers(tokenId, buyerTokenReceiveAddress)
           if (offerData && offerData.offers.length > 0) {
             const offer = offerData.offers[0]
@@ -274,7 +336,14 @@ async function processCounterBidLoop(item: CollectionData) {
           console.log('----------------------------------------------------------------------');
 
 
-          console.log({ bidPrice });
+          console.log({ bidPrice, offerPrice });
+
+          if (bidPrice > balance) {
+            console.log('----------------------------------------------------------------------');
+            console.log(`BID PRICE ${bidPrice} EXCEEDS BALANCE ${balance} SKIP TOKEN`);
+            console.log('----------------------------------------------------------------------');
+            continue
+          }
 
           await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey);
           bidHistory[collectionSymbol].topBids[tokenId] = true;
@@ -325,13 +394,27 @@ async function processCounterBidLoop(item: CollectionData) {
       }
 
       for (const listing of newBottomListings) {
-        const bidPrice = Math.ceil(listing.price / 2)
-        console.log({ bidPrice });
+        const bidPrice = Math.ceil(listing.price * 0.5)
+        console.log({ bidPrice, minPrice, maxPrice });
 
-        if (bidPrice >= minBid && listing.price <= maxBid) {
-          ('----------------------------------------------------------------------');
+        if (bidPrice >= minPrice && bidPrice <= maxPrice) {
+          console.log('----------------------------------------------------------------------');
           console.log(`BID ON NEW BOTTOM LISTING: ${collectionSymbol} ${listing.id}`);
           console.log('----------------------------------------------------------------------');
+
+          if (bidPrice > balance) {
+            console.log('----------------------------------------------------------------------');
+            console.log(`BID PRICE ${bidPrice} EXCEEDS BALANCE ${balance} SKIP BIDDING`);
+            console.log('----------------------------------------------------------------------');
+            continue
+          }
+
+          if (bidPrice > balance) {
+            console.log('----------------------------------------------------------------------');
+            console.log(`BID PRICE ${bidPrice} EXCEEDS BALANCE ${balance} SKIP TOKEN`);
+            console.log('----------------------------------------------------------------------');
+            continue
+          }
 
           await placeBid(listing.id, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey)
           bidHistory[collectionSymbol].topBids[listing.id] = true;
@@ -345,8 +428,8 @@ async function processCounterBidLoop(item: CollectionData) {
   setTimeout(() => processCounterBidLoop(item), counterbidLoop * 1000);
 }
 
-collections.forEach((item) => {
-  processScheduledLoop(item);
+collections.forEach(async (item) => {
+  await processScheduledLoop(item);
   processCounterBidLoop(item)
 });
 
@@ -370,13 +453,6 @@ process.on('SIGINT', () => {
   writeBidHistoryToFile();
   process.exit(0)
 });
-
-// process.on('exit', () => {
-//   console.log('Process is about to exit. Writing bidHistory to file...');
-//   writeBidHistoryToFile();
-// });
-
-
 
 async function getCollectionActivity(
   collectionSymbol: string,
@@ -450,8 +526,11 @@ async function placeBid(
   try {
     const unsignedOffer = await createOffer(tokenId, offerPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, FEE_RATE_TIER)
 
+    console.log({ offerPrice });
+
+
     console.log('--------------------------------------------------------------------------------');
-    console.log({ unsignedOffer });
+    console.log({ unsignedOffer, offerPrice, expiration });
     console.log('--------------------------------------------------------------------------------');
 
     const signedOffer = await signData(unsignedOffer, privateKey)
