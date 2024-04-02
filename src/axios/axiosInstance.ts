@@ -1,20 +1,26 @@
-import axios from "axios";
-import axiosRetry from "axios-retry";
+import axios, { AxiosInstance } from "axios";
+import axiosRetry, { IAxiosRetryConfig } from "axios-retry";
+import Bottleneck from "bottleneck";
 
-const axiosInstance = axios.create({
+const axiosInstance: AxiosInstance = axios.create({
   timeout: 300000,
 });
 
-axiosRetry(axiosInstance, {
-  retries: Infinity, // Retry indefinitely
+const limiter = new Bottleneck({
+  minTime: 250,
+});
+
+const retryConfig: IAxiosRetryConfig = {
+  retries: 3,
   retryDelay: (retryCount, error) => {
+    limiter.schedule(() => Promise.resolve());
     if (error.response && error.response.status === 429) {
       return 1000;
     }
     return axiosRetry.exponentialDelay(retryCount);
   },
   retryCondition: async (error: any) => {
-    if (error.response.status === 429) {
+    if (error.response && error.response.status === 429) {
       console.log('RATE LIMIT HIT');
     }
     if (
@@ -24,13 +30,13 @@ axiosRetry(axiosInstance, {
     ) {
       return true;
     }
-
     if (error.response) {
       const { status, data, config } = error.response;
       console.log(`Request failed for URL: ${config.url}`);
       console.log(`Status Code: ${status}`);
-      console.log(`Error Message: ${typeof data === "object" && (data as { message?: string }).message ? (data as { message: string }).message : "Unknown error"}`);
-
+      console.log(`Error Message: ${typeof data === "object" && (data as { message?: string }).message
+        ? (data as { message: string }).message
+        : "Unknown error"}`);
       if (status === 400) {
         console.log("Bad Request. Please check the request parameters.");
       } else if (status === 401) {
@@ -47,9 +53,10 @@ axiosRetry(axiosInstance, {
     } else {
       console.log("An unknown error occurred.");
     }
-
     return false;
   },
-});
+};
+
+axiosRetry(axiosInstance, retryConfig);
 
 export default axiosInstance;
