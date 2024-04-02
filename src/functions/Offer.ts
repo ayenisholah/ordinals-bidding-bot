@@ -46,7 +46,7 @@ export async function createOffer(
   };
 
   try {
-    const { data } = await limiter.schedule(() => axiosInstance.get(baseURL, { params, headers }));
+    const { data } = await limiter.schedule(() => axiosInstance.get(baseURL, { params, headers }))
 
     return data
   } catch (error: any) {
@@ -92,7 +92,7 @@ export async function submitSignedOfferOrder(
     console.log('--------------------------------------------------------------------------------');
     console.log("SUBMITTING SIGNED OFFER .....");
     console.log('--------------------------------------------------------------------------------');
-    const response = await limiter.schedule(() => axiosInstance.post(url, data, { headers }));
+    const response = await limiter.schedule(() => axiosInstance.post(url, data, { headers }))
     return response.data;
   } catch (error: any) {
     console.log(JSON.stringify(error.response.data));
@@ -192,7 +192,7 @@ export async function getOffers(tokenId: string, buyerTokenReceiveAddress?: stri
   }
 
   try {
-    const { data } = await axiosInstance.get<OfferData>(url, { params, headers })
+    const { data } = await limiter.schedule(() => axiosInstance.get<OfferData>(url, { params, headers }))
     return data
   } catch (error: any) {
     console.log(JSON.stringify(error.response.data));
@@ -220,7 +220,7 @@ export async function submitCancelOfferData(offerId: string, signedPSBTBase64: s
     signedPSBTBase64: signedPSBTBase64
   };
   try {
-    const response = await axiosInstance.post(url, data, { headers })
+    const response = await limiter.schedule(() => axiosInstance.post(url, data, { headers }))
     return response.data.ok
   } catch (error: any) {
     console.log(error.response.data);
@@ -289,7 +289,7 @@ export async function getUserOffers(buyerPaymentAddress: string) {
       wallet_address_buyer: buyerPaymentAddress.toLowerCase()
     };
 
-    const { data } = await axiosInstance.get<UserOffer>(url, { params, headers })
+    const { data } = await limiter.schedule(() => axiosInstance.get<UserOffer>(url, { params, headers }))
     return data
   } catch (error) {
     console.log(error);
@@ -353,7 +353,7 @@ interface Token {
   satributes: string[];
 }
 
-interface IOffer {
+export interface IOffer {
   id: string;
   tokenId: string;
   sellerReceiveAddress: string;

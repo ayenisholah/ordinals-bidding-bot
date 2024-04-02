@@ -9,11 +9,14 @@ axiosRetry(axiosInstance, {
   retries: Infinity, // Retry indefinitely
   retryDelay: (retryCount, error) => {
     if (error.response && error.response.status === 429) {
-      return 60000;
+      return 1000;
     }
     return axiosRetry.exponentialDelay(retryCount);
   },
-  retryCondition: async (error) => {
+  retryCondition: async (error: any) => {
+    if (error.response.status === 429) {
+      console.log('RATE LIMIT HIT');
+    }
     if (
       axiosRetry.isNetworkError(error) ||
       (error.response && error.response.status === 429) ||

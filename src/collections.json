@@ -1,21 +1,12 @@
 [
 	{
 		"collectionSymbol": "the-prophecy",
-		"minBid": 0.00015,
-		"maxBid": 0.0009,
-		"bidCount": 10,
+		"minBid": 0.0001,
+		"maxBid": 0.00013,
+		"bidCount": 20,
 		"duration": 30,
 		"counterbidLoop": 10,
 		"outBidMargin": 0.00001,
-		"receiverWallet": "bc1p5rw87me62aftc3lgrqpq430gp3rp5wtj4atxz6pum2rmhjhvsk0sx73cgk"
-	},
-	{
-		"collectionSymbol": "artforthepeople",
-		"minBid": 0.00015,
-		"maxBid": 0.0009,
-		"outBidMargin": 0.00001,
-		"bidCount": 10,
-		"counterbidLoop": 10,
 		"receiverWallet": "bc1p5rw87me62aftc3lgrqpq430gp3rp5wtj4atxz6pum2rmhjhvsk0sx73cgk"
 	}
 ]

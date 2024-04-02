@@ -5,7 +5,7 @@ import { ECPairFactory, ECPairAPI, TinySecp256k1Interface } from 'ecpair';
 import Bottleneck from "bottleneck"
 import PQueue from "p-queue"
 import { getBitcoinBalance } from "./utils";
-import { createOffer, getBestOffer, getOffers, getUserOffers, retrieveCancelOfferFormat, signData, submitCancelOfferData, submitSignedOfferOrder } from "./functions/Offer";
+import { IOffer, createOffer, getBestOffer, getOffers, getUserOffers, retrieveCancelOfferFormat, signData, submitCancelOfferData, submitSignedOfferOrder } from "./functions/Offer";
 import { OfferPlaced, collectionDetails } from "./functions/Collection";
 import { retrieveTokens } from "./functions/Tokens";
 import axiosInstance from "./axios/axiosInstance";
@@ -16,7 +16,7 @@ const TOKEN_RECEIVE_ADDRESS = process.env.TOKEN_RECEIVE_ADDRESS as string
 const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
 const DEFAULT_OUTBID_MARGIN = Number(process.env.DEFAULT_OUTBID_MARGIN) || 0.00001
 const API_KEY = process.env.API_KEY as string;
-const RATE_LIMIT = Number(process.env.RATE_LIMIT) ?? 4
+const RATE_LIMIT = Number(process.env.RATE_LIMIT) ?? 8
 const DEFAULT_OFFER_EXPIRATION = 30
 const FEE_RATE_TIER = 'halfHourFee'
 const CONVERSION_RATE = 100000000
@@ -102,7 +102,7 @@ async function processScheduledLoop(item: CollectionData) {
     }
 
     if (RESTART) {
-      balance = await getBitcoinBalance(buyerPaymentAddress)
+      balance = 50000
       const offerData = await getUserOffers(buyerTokenReceiveAddress)
       if (offerData && offerData.offers.length > 0) {
         const offers = offerData.offers
@@ -131,8 +131,8 @@ async function processScheduledLoop(item: CollectionData) {
 
     const currentTime = new Date().getTime();
     const expiration = currentTime + (duration * 60 * 1000);
-    const minPrice = minBid * CONVERSION_RATE
-    const maxPrice = maxBid * CONVERSION_RATE
+    const minPrice = Math.ceil(minBid * CONVERSION_RATE)
+    const maxPrice = Math.ceil(maxBid * CONVERSION_RATE)
     const floorPrice = Number(collectionData?.floorPrice) ?? 0
 
     console.log('--------------------------------------------------------------------------------');
@@ -157,7 +157,7 @@ async function processScheduledLoop(item: CollectionData) {
         const offerData = await getOffers(tokenId, buyerTokenReceiveAddress)
         const ourExistingOffer = bidHistory[collectionSymbol].ourBids[tokenId];
 
-        const newPrice = Math.ceil(Math.max(listedPrice * 0.5, minPrice))
+        const newPrice = listedPrice * 0.5 < minPrice ? Math.ceil(minPrice) : Math.ceil(listedPrice * 0.5)
         const oldPrice = offerData?.offers[0]?.price
 
         if (RESTART && newPrice !== oldPrice) {
@@ -175,7 +175,7 @@ async function processScheduledLoop(item: CollectionData) {
             console.log(`CANCEL OLD BID FOR ${collectionSymbol} ${tokenId} BID PRICE: ${oldPrice}`);
             console.log('--------------------------------------------------------------------------------');
 
-            await cancelBid(offer.id, privateKey);
+            await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress);
             delete bidHistory[collectionSymbol].topBids[tokenId];
             delete bidHistory[collectionSymbol].ourBids[tokenId];
           }
@@ -199,10 +199,10 @@ async function processScheduledLoop(item: CollectionData) {
             console.log('--------------------------------------------------------------------------------');
           }
 
-          if (!isOurs && bestPrice >= minPrice && bestPrice <= maxPrice) {
+          if (!isOurs && bestPrice <= maxPrice) {
 
             if (ourExistingOffer) {
-              await cancelBid(offer.id, privateKey)
+              await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
               console.log('--------------------------------------------------------------------------------');
               console.log(`CANCELLED OFFER FOR ${offer.token.collectionSymbol} ${offer.token.id}`);
               console.log('--------------------------------------------------------------------------------');
@@ -268,8 +268,8 @@ async function processCounterBidLoop(item: CollectionData) {
 
   const buyerPaymentAddress = bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: network }).address as string
 
-  const minPrice = minBid * CONVERSION_RATE
-  const maxPrice = maxBid * CONVERSION_RATE
+  const minPrice = Math.ceil(minBid * CONVERSION_RATE)
+  const maxPrice = Math.ceil(maxBid * CONVERSION_RATE)
 
 
   if (!bidHistory[collectionSymbol]) {
@@ -282,7 +282,7 @@ async function processCounterBidLoop(item: CollectionData) {
   }
 
   if (RESTART) {
-    balance = await getBitcoinBalance(buyerPaymentAddress)
+    balance = 50000
     const offerData = await getUserOffers(buyerTokenReceiveAddress)
     if (offerData && offerData.offers.length > 0) {
       const offers = offerData.offers
@@ -350,7 +350,7 @@ async function processCounterBidLoop(item: CollectionData) {
           const offerData = await getOffers(tokenId, buyerTokenReceiveAddress)
           if (offerData && offerData.offers.length > 0) {
             const offer = offerData.offers[0]
-            await cancelBid(offer.id, privateKey);
+            await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress);
             delete bidHistory[collectionSymbol].topBids[tokenId];
             delete bidHistory[collectionSymbol].ourBids[tokenId];
           }
@@ -419,7 +419,7 @@ async function processCounterBidLoop(item: CollectionData) {
           console.log(`CANCEL PREVIOUS BOTTOM LISTING TOKEN: `);
           console.log({ collectionSymbol, tokenId: token.id, offerPrice: offer.price });
           console.log('----------------------------------------------------------------------');
-          await cancelBid(offer.id, privateKey);
+          await cancelBid(offer, privateKey, collectionSymbol, token.id, buyerPaymentAddress);
           delete bidHistory[collectionSymbol].topBids[token.id];
           delete bidHistory[collectionSymbol].ourBids[token.id];
         }
@@ -456,7 +456,7 @@ async function processCounterBidLoop(item: CollectionData) {
 
 collections.forEach(async (item) => {
   await processScheduledLoop(item);
-  await processCounterBidLoop(item)
+  // await processCounterBidLoop(item)
 });
 
 
@@ -522,23 +522,36 @@ async function getCollectionActivity(
   }
 }
 
-async function cancelBid(offerId: string, privateKey: string) {
-  try {
-    const cancelOfferFormat = await retrieveCancelOfferFormat(offerId)
-    console.log('--------------------------------------------------------------------------------');
-    console.log({ cancelOfferFormat });
-    console.log('--------------------------------------------------------------------------------');
-    const signedOfferFormat = signData(cancelOfferFormat, privateKey)
-    console.log('--------------------------------------------------------------------------------');
-    console.log({ signedOfferFormat });
-    console.log('--------------------------------------------------------------------------------');
-    await submitCancelOfferData(offerId, signedOfferFormat)
+async function cancelBid(offer: IOffer, privateKey: string, collectionSymbol: string, tokenId: string, buyerPaymentAddress: string) {
 
-  } catch (error) {
-    console.log(error);
+  if (offer.buyerPaymentAddress === buyerPaymentAddress) {
+    const offerFormat = await retrieveCancelOfferFormat(offer.id)
+    const signedOfferFormat = signData(offerFormat, privateKey)
+    await submitCancelOfferData(offer.id, signedOfferFormat)
 
+    console.log('--------------------------------------------------------------------------------');
+    console.log(`CANCELLED OFFER FOR ${collectionSymbol} ${tokenId}`);
+    console.log('--------------------------------------------------------------------------------');
   }
 }
+
+// async function cancelBid(offerId: string, privateKey: string) {
+//   try {
+//     const cancelOfferFormat = await retrieveCancelOfferFormat(offerId)
+//     console.log('--------------------------------------------------------------------------------');
+//     console.log({ cancelOfferFormat });
+//     console.log('--------------------------------------------------------------------------------');
+//     const signedOfferFormat = signData(cancelOfferFormat, privateKey)
+//     console.log('--------------------------------------------------------------------------------');
+//     console.log({ signedOfferFormat });
+//     console.log('--------------------------------------------------------------------------------');
+//     await submitCancelOfferData(offerId, signedOfferFormat)
+
+//   } catch (error) {
+//     console.log(error);
+
+//   }
+// }
 
 async function placeBid(
   tokenId: string,
@@ -550,7 +563,8 @@ async function placeBid(
   privateKey: string
 ) {
   try {
-    const unsignedOffer = await createOffer(tokenId, offerPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, FEE_RATE_TIER)
+    const price = Math.ceil(offerPrice)
+    const unsignedOffer = await createOffer(tokenId, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, FEE_RATE_TIER)
 
     console.log('--------------------------------------------------------------------------------');
     console.log({ unsignedOffer, offerPrice, expiration });
@@ -582,7 +596,7 @@ interface Listing {
   id: string
   price: number
 }
-interface CollectionData {
+export interface CollectionData {
   collectionSymbol: string;
   minBid: number;
   maxBid: number;

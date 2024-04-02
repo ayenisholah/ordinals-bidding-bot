@@ -52,7 +52,7 @@ export async function fetchCollections(API_KEY: string) {
       })
     };
 
-    const { data: collections } = await axiosInstance.get(url, { params, headers })
+    const { data: collections } = await limiter.schedule(() => axiosInstance.get(url, { params, headers }))
     return collections
   } catch (error: any) {
     console.log(error.response);
@@ -78,7 +78,7 @@ export async function collectionActivity(collectionSymbol: string, bidCount: num
   };
 
   try {
-    const { data } = await axiosInstance.get<OfferData>(url, { params, headers })
+    const { data } = await limiter.schedule(() => axiosInstance.get<OfferData>(url, { params, headers }))
     return data
   } catch (error) {
     console.log(error);

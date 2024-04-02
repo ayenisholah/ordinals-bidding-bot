@@ -1,7 +1,6 @@
 import { config } from "dotenv"
 import axiosInstance from "../axios/axiosInstance"
 import { Trait, transformTrait } from "../utils/traits.utils";
-import rateLimitedAxiosInstance from "../axios/axiosInstance";
 import Bottleneck from "bottleneck";
 
 
@@ -64,7 +63,7 @@ export async function getTokenByTraits(traits: Trait[] | Trait, collectionSymbol
   const url = 'https://nfttools.pro/magiceden/v2/ord/btc/attributes';
 
   try {
-    const { data } = await rateLimitedAxiosInstance.get<IToken>(url, { params, headers });
+    const { data } = await limiter.schedule(() => axiosInstance.get<IToken>(url, { params, headers }))
     const tokens = data.tokens
     return tokens.filter(item => item.listed === true)
   } catch (error: any) {
