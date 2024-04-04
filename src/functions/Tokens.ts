@@ -69,6 +69,16 @@ export async function getTokenByTraits(traits: Trait[] | Trait, collectionSymbol
   }
 }
 
+export async function getToken(tokenId: string) {
+  try {
+    const { data } = await limiter.schedule(() => axiosInstance.get<Inscription>(`https://nfttools.pro/magiceden/v2/ord/btc/tokens/${tokenId}`, { headers }))
+
+    return data
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 export interface IToken {
   tokens: ITokenData[]
 }
@@ -117,4 +127,60 @@ export interface ITokenData {
   satBlockHeight: number;
   satBlockTime: string;
   satributes: any[]; // You may want to define a more specific type for `satributes`
+}
+
+
+interface Inscription {
+  id: string;
+  contentURI: string;
+  contentType: string;
+  contentBody: string;
+  contentPreviewURI: string;
+  genesisTransaction: string;
+  genesisTransactionBlockTime: string;
+  genesisTransactionBlockHash: string;
+  genesisTransactionBlockHeight: number;
+  inscriptionNumber: number;
+  chain: string;
+  location: string;
+  locationBlockHeight: number;
+  locationBlockTime: string;
+  locationBlockHash: string;
+  output: string;
+  outputValue: number;
+  owner: string;
+  listed: boolean;
+  listedAt: string;
+  listedPrice: number;
+  listedMakerFeeBp: number;
+  listedSellerReceiveAddress: string;
+  listedForMint: boolean;
+  collectionSymbol: string;
+  collection: Collection;
+  itemType: string;
+  sat: number;
+  satName: string;
+  satRarity: string;
+  satBlockHeight: number;
+  satBlockTime: string;
+  satributes: string[];
+  displayName: string;
+}
+
+interface Collection {
+  symbol: string;
+  name: string;
+  imageURI: string;
+  chain: string;
+  inscriptionIcon: string;
+  description: string;
+  supply: number;
+  twitterLink: string;
+  discordLink: string;
+  websiteLink: string;
+  createdAt: string;
+  overrideContentType: string;
+  disableRichThumbnailGeneration: boolean;
+  labels: string[];
+  enableCollectionOffer: boolean;
 }

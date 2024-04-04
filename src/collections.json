@@ -4,7 +4,17 @@
 		"minBid": 0.00012,
 		"maxBid": 0.00018,
 		"bidCount": 10,
-		"duration": 30,
+		"duration": 10,
+		"counterbidLoop": 10,
+		"outBidMargin": 0.00001,
+		"receiverWallet": "bc1p5rw87me62aftc3lgrqpq430gp3rp5wtj4atxz6pum2rmhjhvsk0sx73cgk"
+	},
+	{
+		"collectionSymbol": "the-prophecy",
+		"minBid": 0.00005,
+		"maxBid": 0.00008,
+		"bidCount": 10,
+		"duration": 10,
 		"counterbidLoop": 10,
 		"outBidMargin": 0.00001,
 		"receiverWallet": "bc1p5rw87me62aftc3lgrqpq430gp3rp5wtj4atxz6pum2rmhjhvsk0sx73cgk"

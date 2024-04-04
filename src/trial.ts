@@ -6,7 +6,7 @@ import PQueue from "p-queue"
 import { getBitcoinBalance } from "./utils";
 import { IOffer, createOffer, getBestOffer, getOffers, getUserOffers, retrieveCancelOfferFormat, signData, submitCancelOfferData, submitSignedOfferOrder } from "./functions/Offer";
 import { OfferPlaced, collectionDetails } from "./functions/Collection";
-import { retrieveTokens } from "./functions/Tokens";
+import { getToken, retrieveTokens } from "./functions/Tokens";
 import axiosInstance from "./axios/axiosInstance";
 import limiter from "./bottleneck";
 
@@ -125,6 +125,12 @@ async function processScheduledLoop(item: CollectionData) {
     bidHistory[collectionSymbol].topListings = topListings;
 
     console.log('--------------------------------------------------------------------------------');
+    console.log(`BOTTOM LISTING FOR ${collectionSymbol}`);
+    console.table(bidHistory[collectionSymbol].topListings)
+    console.log('--------------------------------------------------------------------------------');
+
+
+    console.log('--------------------------------------------------------------------------------');
     console.log(`BUYER PAYMENT ADDRESS: ${buyerPaymentAddress}`);
     console.log(`BUYER TOKEN RECEIVE ADDRESS: ${buyerTokenReceiveAddress}`);
     console.log('--------------------------------------------------------------------------------');
@@ -174,7 +180,6 @@ async function processScheduledLoop(item: CollectionData) {
           const secondBestPrice = secondTopOffer?.price ?? 0
 
           const isOurs = topOffer.buyerPaymentAddress === buyerPaymentAddress
-          const bidExpired = Date.now() > topOffer.expirationDate
 
 
           if (isOurs) {
@@ -522,8 +527,8 @@ async function processCounterBidLoop(item: CollectionData) {
 }
 
 async function startProcessing() {
-  for (const item of collections) {
-    while (true) {
+  while (true) {
+    for (const item of collections) {
       await processScheduledLoop(item);
       await delay(item.scheduledLoop || DEFAULT_LOOP);
 
@@ -652,21 +657,24 @@ async function placeBid(
   collectionSymbol: string
 ) {
   try {
-    const price = Math.ceil(offerPrice)
-    const unsignedOffer = await createOffer(tokenId, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, FEE_RATE_TIER)
-    const signedOffer = await signData(unsignedOffer, privateKey)
-    if (signedOffer) {
+    const token = await getToken(tokenId)
+    if (token?.listed) {
+      const price = Math.ceil(offerPrice)
+      const unsignedOffer = await createOffer(tokenId, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, FEE_RATE_TIER)
+      const signedOffer = await signData(unsignedOffer, privateKey)
+      if (signedOffer) {
 
-      await submitSignedOfferOrder(signedOffer, tokenId, offerPrice, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, FEE_RATE_TIER)
+        await submitSignedOfferOrder(signedOffer, tokenId, offerPrice, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, FEE_RATE_TIER)
 
-      console.log({
-        collectionSymbol,
-        tokenId,
-        price,
-        buyerTokenReceiveAddress,
-        buyerPaymentAddress,
-        bid: true,
-      });
+        console.log({
+          collectionSymbol,
+          tokenId,
+          price,
+          buyerTokenReceiveAddress,
+          buyerPaymentAddress,
+          bid: true,
+        });
+      }
     }
 
   } catch (error) {

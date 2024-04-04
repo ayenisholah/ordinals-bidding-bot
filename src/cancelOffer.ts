@@ -19,7 +19,13 @@ const collections: CollectionData[] = JSON.parse(fs.readFileSync(filePath, "utf-
 const tinysecp: TinySecp256k1Interface = require('tiny-secp256k1');
 const ECPair: ECPairAPI = ECPairFactory(tinysecp);
 
-collections.forEach((item) => {
+const uniqueCollections = collections.filter(
+  (collection, index, self) =>
+    index === self.findIndex((c) => c.receiverWallet === collection.receiverWallet)
+);
+
+
+uniqueCollections.forEach((item) => {
   main(item)
 })
 
