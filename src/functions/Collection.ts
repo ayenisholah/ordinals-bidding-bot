@@ -1,15 +1,12 @@
 import Bottleneck from "bottleneck";
 import axiosInstance from "../axios/axiosInstance"
+import limiter from "../bottleneck";
 
 const API_KEY = process.env.API_KEY as string;
 const headers = {
   'Content-Type': 'application/json',
   'X-NFT-API-Key': API_KEY,
 }
-
-const limiter = new Bottleneck({
-  minTime: 250, // 4 requests per second
-});
 
 export async function collectionDetails(collectionSymbol: string) {
   try {

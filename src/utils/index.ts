@@ -1,10 +1,7 @@
 import Bottleneck from "bottleneck"
 
 import axiosInstance from "../axios/axiosInstance";
-
-const limiter = new Bottleneck({
-  minTime: 250,
-});
+import limiter from "../bottleneck";
 
 export async function getBitcoinBalance(address: string) {
   try {

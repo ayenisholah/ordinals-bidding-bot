@@ -5,6 +5,7 @@ import { config } from "dotenv"
 import Bid from "../models/offer.model";
 import OfferModel from "../models/offer.model";
 import Bottleneck from "bottleneck"
+import limiter from "../bottleneck";
 
 const tinysecp: TinySecp256k1Interface = require('tiny-secp256k1');
 const ECPair: ECPairAPI = ECPairFactory(tinysecp);
@@ -19,11 +20,6 @@ const headers = {
   'Content-Type': 'application/json',
   'X-NFT-API-Key': api_key,
 }
-
-
-const limiter = new Bottleneck({
-  minTime: 250,
-});
 
 export async function createOffer(
   tokenId: string,
@@ -58,11 +54,15 @@ export function signData(unsignedData: any, privateKey: string) {
   console.log('--------------------------------------------------------------------------------');
   console.log('SIGNING DATA............');
   console.log('--------------------------------------------------------------------------------');
-  const psbt = bitcoin.Psbt.fromBase64(unsignedData.psbtBase64);
-  const keyPair: ECPairInterface = ECPair.fromWIF(privateKey, network)
-  const signedPSBTBase64 = psbt.signInput(1, keyPair).toBase64()
 
-  return signedPSBTBase64;
+
+  if (typeof unsignedData !== "undefined") {
+    const psbt = bitcoin.Psbt.fromBase64(unsignedData.psbtBase64);
+    const keyPair: ECPairInterface = ECPair.fromWIF(privateKey, network)
+    const signedPSBTBase64 = psbt.signInput(1, keyPair).toBase64()
+    return signedPSBTBase64;
+  }
+
 }
 
 export async function submitSignedOfferOrder(
@@ -103,7 +103,7 @@ export async function getBestOffer(tokenId: string) {
   const url = 'https://nfttools.pro/magiceden/v2/ord/btc/offers/';
   const params = {
     status: 'valid',
-    limit: 1,
+    limit: 2,
     offset: 0,
     sortBy: 'priceDesc',
     token_id: tokenId
@@ -136,11 +136,14 @@ export async function cancelAllUserOffers(buyerTokenReceiveAddress: string, priv
       for (const offer of offers) {
         const offerFormat = await retrieveCancelOfferFormat(offer.id)
         const signedOfferFormat = signData(offerFormat, privateKey)
-        await submitCancelOfferData(offer.id, signedOfferFormat)
+        if (signedOfferFormat) {
+          await submitCancelOfferData(offer.id, signedOfferFormat)
 
-        console.log('--------------------------------------------------------------------------------');
-        console.log(`CANCELLED OFFER FOR ${offer.token.collectionSymbol} ${offer.token.id}`);
-        console.log('--------------------------------------------------------------------------------');
+          console.log('--------------------------------------------------------------------------------');
+          console.log(`CANCELLED OFFER FOR ${offer.token.collectionSymbol} ${offer.token.id}`);
+          console.log('--------------------------------------------------------------------------------');
+
+        }
       }
     }
   } catch (error) {
@@ -156,11 +159,13 @@ export async function cancelBulkTokenOffers(tokenIds: string[], buyerTokenReceiv
       if (offer) {
         const offerFormat = await retrieveCancelOfferFormat(offer.id)
         const signedOfferFormat = signData(offerFormat, privateKey)
-        await submitCancelOfferData(offer.id, signedOfferFormat)
-        console.log('--------------------------------------------------------------------------------');
-        console.log(`CANCELLED OFFER FOR ${offer.token.collectionSymbol} ${offer.token.id}`);
-        console.log('--------------------------------------------------------------------------------');
-        await OfferModel.destroy({ where: { id: offer.id } })
+
+        if (signedOfferFormat) {
+          await submitCancelOfferData(offer.id, signedOfferFormat)
+          console.log('--------------------------------------------------------------------------------');
+          console.log(`CANCELLED OFFER FOR ${offer.token.collectionSymbol} ${offer.token.id}`);
+          console.log('--------------------------------------------------------------------------------');
+        }
       }
     }
   } catch (error) {
@@ -253,11 +258,15 @@ export async function counterBid(
   console.log('--------------------------------------------------------------------------------');
   console.log({ signedCancelOffer });
   console.log('--------------------------------------------------------------------------------');
-  const submitCancelOffer = await submitCancelOfferData(offerId, signedCancelOffer)
 
-  console.log('--------------------------------------------------------------------------------');
-  console.log({ submitCancelOffer });
-  console.log('--------------------------------------------------------------------------------');
+  if (signedCancelOffer) {
+    const submitCancelOffer = await submitCancelOfferData(offerId, signedCancelOffer)
+
+    console.log('--------------------------------------------------------------------------------');
+    console.log({ submitCancelOffer });
+    console.log('--------------------------------------------------------------------------------');
+
+  }
 
   const unsignedOffer = await createOffer(tokenId, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, feerateTier)
 
@@ -271,11 +280,15 @@ export async function counterBid(
   console.log({ signedOfferData });
   console.log('--------------------------------------------------------------------------------');
 
-  const offerData = await submitSignedOfferOrder(signedOfferData, tokenId, price, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, feerateTier)
+  if (signedOfferData) {
 
-  console.log('--------------------------------------------------------------------------------');
-  console.log({ offerData });
-  console.log('--------------------------------------------------------------------------------');
+    const offerData = await submitSignedOfferOrder(signedOfferData, tokenId, price, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, feerateTier)
+
+    console.log('--------------------------------------------------------------------------------');
+    console.log({ offerData });
+    console.log('--------------------------------------------------------------------------------');
+  }
+
 }
 
 export async function getUserOffers(buyerPaymentAddress: string) {

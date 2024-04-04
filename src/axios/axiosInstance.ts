@@ -1,17 +1,13 @@
 import axios, { AxiosInstance } from "axios";
 import axiosRetry, { IAxiosRetryConfig } from "axios-retry";
-import Bottleneck from "bottleneck";
+import limiter from "../bottleneck";
 
 const axiosInstance: AxiosInstance = axios.create({
   timeout: 300000,
 });
 
-const limiter = new Bottleneck({
-  minTime: 250,
-});
-
 const retryConfig: IAxiosRetryConfig = {
-  retries: 3,
+  retries: Infinity,
   retryDelay: (retryCount, error) => {
     limiter.schedule(() => Promise.resolve());
     if (error.response && error.response.status === 429) {
@@ -21,7 +17,6 @@ const retryConfig: IAxiosRetryConfig = {
   },
   retryCondition: async (error: any) => {
     if (error.response && error.response.status === 429) {
-      console.log('RATE LIMIT HIT');
     }
     if (
       axiosRetry.isNetworkError(error) ||

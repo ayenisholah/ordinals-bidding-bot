@@ -2,6 +2,7 @@ import { config } from "dotenv"
 import axiosInstance from "../axios/axiosInstance"
 import { Trait, transformTrait } from "../utils/traits.utils";
 import Bottleneck from "bottleneck";
+import limiter from "../bottleneck";
 
 
 config()
@@ -10,10 +11,6 @@ const API_KEY = process.env.API_KEY as string;
 const headers = {
   'X-NFT-API-Key': API_KEY,
 }
-
-const limiter = new Bottleneck({
-  minTime: 250,
-});
 
 export async function retrieveTokens(collectionSymbol: string, bidCount: number = 20) {
   try {

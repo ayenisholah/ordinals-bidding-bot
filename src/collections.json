@@ -1,9 +1,9 @@
 [
 	{
-		"collectionSymbol": "the-prophecy",
-		"minBid": 0.0001,
-		"maxBid": 0.00013,
-		"bidCount": 20,
+		"collectionSymbol": "rune_gods",
+		"minBid": 0.00012,
+		"maxBid": 0.00018,
+		"bidCount": 10,
 		"duration": 30,
 		"counterbidLoop": 10,
 		"outBidMargin": 0.00001,

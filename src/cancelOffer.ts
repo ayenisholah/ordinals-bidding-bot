@@ -63,11 +63,15 @@ async function cancelBid(offer: IOffer, privateKey: string, collectionSymbol: st
   if (offer.buyerPaymentAddress === buyerPaymentAddress) {
     const offerFormat = await retrieveCancelOfferFormat(offer.id)
     const signedOfferFormat = signData(offerFormat, privateKey)
-    await submitCancelOfferData(offer.id, signedOfferFormat)
 
-    console.log('--------------------------------------------------------------------------------');
-    console.log(`CANCELLED OFFER FOR ${collectionSymbol} ${tokenId}`);
-    console.log('--------------------------------------------------------------------------------');
+    if (signedOfferFormat) {
+
+      await submitCancelOfferData(offer.id, signedOfferFormat)
+
+      console.log('--------------------------------------------------------------------------------');
+      console.log(`CANCELLED OFFER FOR ${collectionSymbol} ${tokenId}`);
+      console.log('--------------------------------------------------------------------------------');
+    }
   }
 
 
