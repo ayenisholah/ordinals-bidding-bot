@@ -155,12 +155,23 @@ async function processScheduledLoop(item: CollectionData) {
         const bestOffer = await getBestOffer(tokenId);
         const ourExistingOffer = bidHistory[collectionSymbol].ourBids[tokenId];
 
+
+
         if (bestOffer && bestOffer.offers && bestOffer.offers.length > 0) {
           const [topOffer, secondTopOffer] = bestOffer.offers
           const bestPrice = topOffer.price
           const secondBestPrice = secondTopOffer?.price ?? 0
 
           const isOurs = topOffer.buyerPaymentAddress === buyerPaymentAddress
+          const bidExpired = Date.now() > topOffer.expirationDate
+
+          if (topOffer.buyerPaymentAddress !== buyerPaymentAddress || secondTopOffer.buyerPaymentAddress !== buyerPaymentAddress) {
+            const bidPrice = Math.ceil(Math.max(listedPrice * 0.5, minPrice))
+            await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
+            bidHistory[collectionSymbol].ourBids[tokenId] = bestPrice;
+            bidHistory[collectionSymbol].topBids[tokenId] = true;
+          }
+
 
           if (isOurs) {
             console.log('--------------------------------------------------------------------------------');
@@ -215,6 +226,7 @@ async function processScheduledLoop(item: CollectionData) {
             console.log({ collectionSymbol, tokenId, price: topOffer.price, buyerPaymentAddress: topOffer.buyerPaymentAddress });
             console.log('--------------------------------------------------------------------------------');
           }
+
 
           if (!isOurs && bestPrice <= maxPrice) {
 
@@ -506,7 +518,7 @@ async function processCounterBidLoop(item: CollectionData) {
 }
 
 collections.forEach(async (item) => {
-  await processScheduledLoop(item);
+  // await processScheduledLoop(item);
   await processCounterBidLoop(item)
 });
 
