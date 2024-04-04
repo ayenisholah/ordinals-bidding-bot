@@ -543,13 +543,18 @@ async function processCounterBidLoop(item: CollectionData) {
 
 async function startProcessing() {
   while (true) {
-    for (const item of collections) {
-      await processScheduledLoop(item);
-      await delay(item.scheduledLoop || DEFAULT_LOOP);
-
-      await processCounterBidLoop(item);
-      await delay(item.counterbidLoop || DEFAULT_COUNTER_BID_LOOP_TIME);
-    }
+    await Promise.all(
+      collections.map(async (item) => {
+        await Promise.all([
+          processScheduledLoop(item),
+          processCounterBidLoop(item)
+        ]);
+        await Promise.all([
+          delay(item.scheduledLoop || DEFAULT_LOOP),
+          delay(item.counterbidLoop || DEFAULT_COUNTER_BID_LOOP_TIME)
+        ]);
+      })
+    );
   }
 }
 
