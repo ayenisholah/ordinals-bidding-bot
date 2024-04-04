@@ -161,7 +161,7 @@ async function processScheduledLoop(item: CollectionData) {
 
 
 
-        if (ourExistingOffer && !bestOffer) {
+        if (ourExistingOffer && Number(bestOffer?.total) < 1) {
           const bidPrice = Math.ceil(Math.max(listedPrice * 0.5, minPrice))
           await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
           bidHistory[collectionSymbol].ourBids[tokenId] = bidPrice;
