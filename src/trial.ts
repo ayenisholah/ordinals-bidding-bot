@@ -137,8 +137,8 @@ async function processScheduledLoop(item: CollectionData) {
 
     const currentTime = new Date().getTime();
     const expiration = currentTime + (duration * 60 * 1000);
-    const minPrice = Math.ceil(minBid * CONVERSION_RATE)
-    const maxPrice = Math.ceil(maxBid * CONVERSION_RATE)
+    const minPrice = Math.round(minBid * CONVERSION_RATE)
+    const maxPrice = Math.round(maxBid * CONVERSION_RATE)
     const floorPrice = Number(collectionData?.floorPrice) ?? 0
 
     console.log('--------------------------------------------------------------------------------');
@@ -166,9 +166,12 @@ async function processScheduledLoop(item: CollectionData) {
         const ourExistingOffer = bidHistory[collectionSymbol].ourBids[tokenId];
 
 
+        const currentBidCount = Object.values(
+          bidHistory[collectionSymbol].topBids
+        ).filter(Boolean).length;
 
         if (ourExistingOffer && Number(bestOffer?.total) < 1) {
-          const bidPrice = Math.ceil(Math.max(listedPrice * 0.5, minPrice))
+          const bidPrice = Math.round(Math.max(listedPrice * 0.5, minPrice))
           await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
           bidHistory[collectionSymbol].ourBids[tokenId] = bidPrice;
           bidHistory[collectionSymbol].topBids[tokenId] = true;
@@ -187,11 +190,11 @@ async function processScheduledLoop(item: CollectionData) {
             console.log(`YOU ALREADY HAVE THE HIGHEST OFFER FOR THIS TOKEN ${collectionSymbol}`);
             console.log('--------------------------------------------------------------------------------');
 
-            const outBidAmount = Math.ceil(outBidMargin * CONVERSION_RATE)
-            const offerDifference = Math.ceil(bestPrice - secondBestPrice)
+            const outBidAmount = Math.round(outBidMargin * CONVERSION_RATE)
+            const offerDifference = Math.round(bestPrice - secondBestPrice)
 
-            if (offerDifference > outBidAmount && Math.ceil(secondBestPrice + outBidAmount) > (listedPrice * 0.5)) {
-              const newPrice = Math.ceil(secondBestPrice + outBidAmount)
+            if (offerDifference > outBidAmount && Math.round(secondBestPrice + outBidAmount) > (listedPrice * 0.5)) {
+              const newPrice = Math.round(secondBestPrice + outBidAmount)
               console.log('------------------------------------------------------------------------------------------------------------------------');
               console.log(`DIFFERENCE BETWEEN THE BEST PRICE AND SECOND BEST PRICE ${offerDifference} IS GREATER THAN OUTBID MARGIN ${outBidAmount}`);
               console.log({ tokenId, collectionSymbol });
@@ -206,7 +209,7 @@ async function processScheduledLoop(item: CollectionData) {
 
 
             const currentPrice = bidHistory[collectionSymbol].ourBids[tokenId]
-            const newPrice = Math.ceil(Math.max(listedPrice * 0.5, minPrice))
+            const newPrice = Math.round(Math.max(listedPrice * 0.5, minPrice))
 
             if (currentPrice !== newPrice && RESTART === true) {
               console.log('--------------------------------------------------------------------------------');
@@ -243,7 +246,7 @@ async function processScheduledLoop(item: CollectionData) {
               console.log(`CANCELLED OFFER FOR ${topOffer.token.collectionSymbol} ${topOffer.token.id}`);
               console.log('--------------------------------------------------------------------------------');
 
-              const bidPrice = Math.ceil(bestPrice + (outBidMargin * CONVERSION_RATE))
+              const bidPrice = Math.round(bestPrice + (outBidMargin * CONVERSION_RATE))
 
               if (bidPrice < balance) {
                 await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
@@ -252,15 +255,12 @@ async function processScheduledLoop(item: CollectionData) {
               }
             }
 
-            const currentBidCount = Object.values(
-              bidHistory[collectionSymbol].topBids
-            ).filter(Boolean).length;
 
             console.log({ currentBidCount, bidCount, collectionSymbol });
 
 
             if (currentBidCount < bidCount) {
-              const bidPrice = Math.ceil(Math.min(bestPrice + (outBidMargin * CONVERSION_RATE), maxPrice))
+              const bidPrice = Math.round(Math.min(bestPrice + (outBidMargin * CONVERSION_RATE), maxPrice))
               if (!isOurs && bidPrice < balance) {
                 await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
                 bidHistory[collectionSymbol].ourBids[tokenId] = bidPrice;
@@ -273,7 +273,7 @@ async function processScheduledLoop(item: CollectionData) {
             bidHistory[collectionSymbol].topBids
           ).filter(Boolean).length;
           if (currentBidCount < bidCount) {
-            const bidPrice = Math.ceil(Math.max(minPrice, listedPrice * 0.5));
+            const bidPrice = Math.round(Math.max(minPrice, listedPrice * 0.5));
             if (bidPrice < balance) {
               await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol);
               bidHistory[collectionSymbol].ourBids[tokenId] = bidPrice;
@@ -311,8 +311,8 @@ async function processCounterBidLoop(item: CollectionData) {
 
   const buyerPaymentAddress = bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: network }).address as string
 
-  const minPrice = Math.ceil(minBid * CONVERSION_RATE)
-  const maxPrice = Math.ceil(maxBid * CONVERSION_RATE)
+  const minPrice = Math.round(minBid * CONVERSION_RATE)
+  const maxPrice = Math.round(maxBid * CONVERSION_RATE)
 
 
   if (!bidHistory[collectionSymbol]) {
@@ -384,7 +384,7 @@ async function processCounterBidLoop(item: CollectionData) {
     for (const offer of uniqueOffers) {
       const { tokenId, listedPrice: offerPrice } = offer;
       const isOurs = offer.buyerPaymentAddress === buyerPaymentAddress
-      const newPrice = Math.ceil(offerPrice + (outBidMargin * CONVERSION_RATE));
+      const newPrice = Math.round(offerPrice + (outBidMargin * CONVERSION_RATE));
 
       const ownBid = bidHistory[collectionSymbol].ourBids[tokenId]
 
@@ -503,7 +503,7 @@ async function processCounterBidLoop(item: CollectionData) {
 
 
     for (const listing of newListings) {
-      const bidPrice = Math.ceil(listing.price * 0.5)
+      const bidPrice = Math.round(listing.price * 0.5)
       if (bidPrice >= minPrice && bidPrice <= maxPrice) {
 
         if (bidPrice > balance) {
@@ -675,7 +675,7 @@ async function placeBid(
   try {
     const token = await getToken(tokenId)
     if (token?.listed) {
-      const price = Math.ceil(offerPrice)
+      const price = Math.round(offerPrice)
       const unsignedOffer = await createOffer(tokenId, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, FEE_RATE_TIER)
       const signedOffer = await signData(unsignedOffer, privateKey)
       if (signedOffer) {
