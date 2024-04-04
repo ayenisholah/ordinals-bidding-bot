@@ -594,6 +594,7 @@ async function getCollectionActivity(
     limit: 100,
     collectionSymbol,
     kind: ["list", "offer_placed"],
+    disablePendingTransactions: true
   };
 
   try {
