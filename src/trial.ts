@@ -518,7 +518,7 @@ async function processCounterBidLoop(item: CollectionData) {
 }
 
 collections.forEach(async (item) => {
-  // await processScheduledLoop(item);
+  await processScheduledLoop(item);
   await processCounterBidLoop(item)
 });
 
