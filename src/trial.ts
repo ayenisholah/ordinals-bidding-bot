@@ -200,8 +200,6 @@ async function processScheduledLoop(item: CollectionData) {
               await cancelBid(topOffer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
 
               placeBid(tokenId, newPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
-
-              // UPDATE BID RECORD
               bidHistory[collectionSymbol].ourBids[tokenId] = newPrice;
               bidHistory[collectionSymbol].topBids[tokenId] = true;
             }
@@ -215,7 +213,7 @@ async function processScheduledLoop(item: CollectionData) {
               console.log(`NEW BID CONFIGURATION DETECTED ${collectionSymbol}`);
               console.log('--------------------------------------------------------------------------------');
 
-              if (topOffer.buyerPaymentAddress === buyerPaymentAddress && topOffer.expirationDate > Date.now() + 10000 && topOffer.isValid) {
+              if (topOffer.buyerPaymentAddress === buyerPaymentAddress) {
                 await cancelBid(topOffer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
                 console.log('--------------------------------------------------------------------------------');
                 console.log(`CANCEL OLD BID ${collectionSymbol}`);
@@ -244,13 +242,22 @@ async function processScheduledLoop(item: CollectionData) {
               console.log('--------------------------------------------------------------------------------');
               console.log(`CANCELLED OFFER FOR ${topOffer.token.collectionSymbol} ${topOffer.token.id}`);
               console.log('--------------------------------------------------------------------------------');
-              delete bidHistory[collectionSymbol].topBids[tokenId];
-              delete bidHistory[collectionSymbol].ourBids[tokenId];
+
+              const bidPrice = Math.ceil(bestPrice + (outBidMargin * CONVERSION_RATE))
+
+              if (bidPrice < balance) {
+                await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
+                bidHistory[collectionSymbol].ourBids[tokenId] = bidPrice;
+                bidHistory[collectionSymbol].topBids[tokenId] = true;
+              }
             }
 
             const currentBidCount = Object.values(
               bidHistory[collectionSymbol].topBids
             ).filter(Boolean).length;
+
+            console.log({ currentBidCount, bidCount, collectionSymbol });
+
 
             if (currentBidCount < bidCount) {
               const bidPrice = Math.ceil(Math.min(bestPrice + (outBidMargin * CONVERSION_RATE), maxPrice))
@@ -340,7 +347,8 @@ async function processCounterBidLoop(item: CollectionData) {
 
 
   try {
-    const lastSeenTimestamp = bidHistory[collectionSymbol]?.lastSeenActivity;
+    const lastSeenTimestamp = bidHistory[collectionSymbol]?.lastSeenActivity ?? Date.now()
+
 
 
     const activities = await getCollectionActivity(
@@ -356,7 +364,14 @@ async function processCounterBidLoop(item: CollectionData) {
       (activity) => activity.kind === "offer_placed"
     );
 
-    const listings = activities.filter((activity) => activity.kind === "list");
+    const listings = activities.filter((activity) => activity.kind === "list" && new Date(activity.createdAt).getTime() > lastSeenTimestamp);
+
+    console.log('--------------------------------------------------------------------------------');
+    console.log(`NEW LISTING ACTIVITY FOR ${collectionSymbol} DETECTED`);
+    console.log(console.table(listings));
+    console.log('--------------------------------------------------------------------------------');
+
+
 
     const uniqueOffers = offers.reduce((acc, offer) => {
       const existingOffer = acc.find((o) => o.tokenId === offer.tokenId);
@@ -567,7 +582,7 @@ process.on('SIGINT', () => {
 
 async function getCollectionActivity(
   collectionSymbol: string,
-  lastSeenTimestamp: number | null = null
+  lastSeenTimestamp: number = Date.now()
 ) {
   const url = "https://nfttools.pro/magiceden/v2/ord/btc/activities";
   const params: any = {
@@ -593,7 +608,7 @@ async function getCollectionActivity(
 
     if (lastSeenTimestamp) {
       const lastSeenIndex = allActivities.findIndex(
-        (activity) => new Date(activity.createdAt).getTime() <= lastSeenTimestamp
+        (activity) => new Date(activity.createdAt).getTime() >= lastSeenTimestamp
       );
       if (lastSeenIndex !== -1) {
         allActivities = allActivities.slice(0, lastSeenIndex);
