@@ -542,16 +542,29 @@ async function processCounterBidLoop(item: CollectionData) {
 }
 
 async function startProcessing() {
-  while (true) {
-    for (const item of collections) {
-      await processScheduledLoop(item);
-      await delay(item.scheduledLoop || DEFAULT_LOOP);
-
-      await processCounterBidLoop(item);
-      await delay(item.counterbidLoop || DEFAULT_COUNTER_BID_LOOP_TIME);
-    }
-  }
+  // Run processScheduledLoop and processCounterBidLoop for each item concurrently
+  await Promise.all(
+    collections.map(async (item) => {
+      // Start processScheduledLoop and processCounterBidLoop loops concurrently for the item
+      await Promise.all([
+        (async () => {
+          while (true) {
+            await processScheduledLoop(item);
+            await delay(item.scheduledLoop || DEFAULT_LOOP);
+          }
+        })(),
+        (async () => {
+          await delay(item.scheduledLoop || DEFAULT_LOOP); // Wait for the first scheduled loop delay
+          while (true) {
+            await processCounterBidLoop(item);
+            await delay(item.counterbidLoop || DEFAULT_COUNTER_BID_LOOP_TIME);
+          }
+        })(),
+      ]);
+    })
+  );
 }
+
 
 startProcessing();
 
