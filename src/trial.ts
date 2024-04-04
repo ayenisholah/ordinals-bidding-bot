@@ -517,11 +517,13 @@ async function processCounterBidLoop(item: CollectionData) {
   setTimeout(() => processCounterBidLoop(item), counterbidLoop * 1000);
 }
 
-collections.forEach(async (item) => {
-  await processScheduledLoop(item);
-  await processCounterBidLoop(item)
+collections.forEach((item) => {
+  processScheduledLoop(item);
 });
 
+collections.forEach((item) => {
+  processCounterBidLoop(item)
+});
 
 
 function writeBidHistoryToFile() {
