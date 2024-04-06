@@ -95,7 +95,7 @@ export async function submitSignedOfferOrder(
     const response = await limiter.schedule(() => axiosInstance.post(url, data, { headers }))
     return response.data;
   } catch (error: any) {
-    console.log(JSON.stringify(error.response.data));
+    console.log(JSON.stringify(error.response));
   }
 }
 

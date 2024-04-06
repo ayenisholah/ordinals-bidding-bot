@@ -14,7 +14,7 @@ const headers = {
 
 export async function retrieveTokens(collectionSymbol: string, bidCount: number = 20) {
   try {
-    const limit = bidCount >= 20 ? bidCount : 20
+    const limit = getLimit(bidCount)
     const url = `https://nfttools.pro/magiceden/v2/ord/btc/tokens`;
     const params = {
       limit: limit,
@@ -32,7 +32,7 @@ export async function retrieveTokens(collectionSymbol: string, bidCount: number 
 
     return tokens.filter(item => item.listed === true)
   } catch (error: any) {
-    console.log(error.response);
+    console.log(error.response.data);
     return []
   }
 }
@@ -83,6 +83,21 @@ export interface IToken {
   tokens: ITokenData[]
 }
 
+function getLimit(bidCount: number): number {
+  if (bidCount < 20) {
+    return 20;
+  }
+
+  const remainder = bidCount % 20;
+  const quotient = Math.floor(bidCount / 20);
+
+  if (remainder < 10) {
+    return quotient * 20;
+  } else {
+    return (quotient + 1) * 20;
+  }
+}
+
 interface Attribute { }
 
 interface Meta {
@@ -90,6 +105,7 @@ interface Meta {
   attributes: Attribute[];
   high_res_img_url: string;
 }
+
 
 
 export interface ITokenData {
