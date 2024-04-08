@@ -55,6 +55,7 @@ export function signData(unsignedData: any, privateKey: string) {
 
   if (typeof unsignedData !== "undefined") {
     const psbt = bitcoin.Psbt.fromBase64(unsignedData.psbtBase64);
+
     const keyPair: ECPairInterface = ECPair.fromWIF(privateKey, network)
     const signedPSBTBase64 = psbt.signInput(1, keyPair).toBase64()
     return signedPSBTBase64;
@@ -211,7 +212,7 @@ export async function retrieveCancelOfferFormat(offerId: string) {
     );
     return data
   } catch (error: any) {
-    console.log("retrieveCancelOfferFormat: ", error.response.data);
+    console.log("retrieveCancelOfferFormat: ", error.response);
   }
 }
 

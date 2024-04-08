@@ -513,15 +513,15 @@ async function processCounterBidLoop(item: CollectionData) {
         return accumulator;
       }, []);
 
-    // if (sold.length > 0) {
+    if (sold.length > 0) {
 
-    //   for (const token of sold) {
-    //     delete bidHistory[collectionSymbol].ourBids[token.tokenId]
-    //     delete bidHistory[collectionSymbol].topBids[token.tokenId]
-    //     delete bidHistory[collectionSymbol].topOffers[token.tokenId]
+      for (const token of sold) {
+        delete bidHistory[collectionSymbol].ourBids[token.tokenId]
+        delete bidHistory[collectionSymbol].topBids[token.tokenId]
+        delete bidHistory[collectionSymbol].topOffers[token.tokenId]
 
-    //   }
-    // }
+      }
+    }
 
     console.log('-------------------------------------------------------------------------------');
     console.log('LATEST OFFERS');
@@ -750,24 +750,24 @@ async function placeBid(
   collectionSymbol: string
 ) {
   try {
-    const token = await getToken(tokenId)
-    if (token?.listed) {
-      const price = Math.round(offerPrice)
-      const unsignedOffer = await createOffer(tokenId, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, FEE_RATE_TIER)
-      const signedOffer = await signData(unsignedOffer, privateKey)
-      if (signedOffer) {
+    const price = Math.round(offerPrice)
+    const unsignedOffer = await createOffer(tokenId, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, FEE_RATE_TIER)
 
-        await submitSignedOfferOrder(signedOffer, tokenId, offerPrice, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, FEE_RATE_TIER)
+    console.log({ unsignedOffer });
 
-        console.log({
-          collectionSymbol,
-          tokenId,
-          price,
-          buyerTokenReceiveAddress,
-          buyerPaymentAddress,
-          bid: true,
-        });
-      }
+    const signedOffer = await signData(unsignedOffer, privateKey)
+    if (signedOffer) {
+
+      await submitSignedOfferOrder(signedOffer, tokenId, offerPrice, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, FEE_RATE_TIER)
+
+      console.log({
+        collectionSymbol,
+        tokenId,
+        price,
+        buyerTokenReceiveAddress,
+        buyerPaymentAddress,
+        bid: true,
+      });
     }
 
   } catch (error) {
@@ -812,7 +812,7 @@ function combineBidsAndListings(userBids: UserBid[], bottomListings: BottomListi
     })
     .filter(entry => entry !== null);
 
-  return combinedArray.sort((a: any, b: any) => a.price - b.price);
+  return combinedArray.sort((a: any, b: any) => a.listedPrice - b.listedPrice);
 }
 
 interface UserBid {
