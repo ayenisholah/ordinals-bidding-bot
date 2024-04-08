@@ -13,8 +13,8 @@ export async function getBitcoinBalance(address: string) {
     console.log('--------------------------------------------------------------------------------');
 
     return balance;
-  } catch (error) {
-    console.error('Error:', error);
+  } catch (error: any) {
+    console.error('getBitcoinBalance:', error?.response);
     throw error;
   }
 }

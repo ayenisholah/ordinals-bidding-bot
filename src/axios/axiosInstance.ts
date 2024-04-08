@@ -7,7 +7,7 @@ const axiosInstance: AxiosInstance = axios.create({
 });
 
 const retryConfig: IAxiosRetryConfig = {
-  retries: Infinity,
+  retries: 3,
   retryDelay: (retryCount, error) => {
     limiter.schedule(() => Promise.resolve());
     if (error.response && error.response.status === 429) {
@@ -16,13 +16,20 @@ const retryConfig: IAxiosRetryConfig = {
     return axiosRetry.exponentialDelay(retryCount);
   },
   retryCondition: async (error: any) => {
-    if (error.response && error.response.status === 429) {
+    if (/have reached the maximum number of offers you can make: 20/i.test(error.response.data.error)) {
+      console.log('\x1b[31m%s\x1b[0m', '🛑 MAXIMUM LIMIT REACHED!!! 🛑');
+      return false;
+    }
+    if (/Insufficient funds. Required/i.test(error.response.data.error)) {
+      console.log('\x1b[31m%s\x1b[0m', '🛑 INSUFFICIENT FUND TO MAKE BID 🛑');
+      return false;
+    }
+    if (/This offer does not exists. It is either not valid anymore or canceled by the offerer./i.test(error.response.data.error)) {
+      console.log('\x1b[31m%s\x1b[0m', '🛑 INVALID OFFER!!! 🛑');
+      return false;
     }
     if (
-      axiosRetry.isNetworkError(error) ||
-      (error.response && error.response.status === 429) ||
-      (error.response && error.response.status === 400)
-    ) {
+      axiosRetry.isNetworkError(error) || (error.response && error.response.status === 429)) {
       return true;
     }
     if (error.response) {

@@ -32,7 +32,7 @@ export async function retrieveTokens(collectionSymbol: string, bidCount: number 
 
     return tokens.filter(item => item.listed === true)
   } catch (error: any) {
-    console.log(error.response.data);
+    console.log('retrieveTokens: ', error?.response?.data);
     return []
   }
 }
@@ -64,7 +64,7 @@ export async function getTokenByTraits(traits: Trait[] | Trait, collectionSymbol
     const tokens = data.tokens
     return tokens.filter(item => item.listed === true)
   } catch (error: any) {
-    console.log(error.response.data);
+    console.log('getTokenByTraits', error.response.data);
     return []
   }
 }
@@ -75,7 +75,7 @@ export async function getToken(tokenId: string) {
 
     return data
   } catch (error) {
-    console.log(error);
+    console.log('getToken', error);
   }
 }
 
@@ -84,18 +84,9 @@ export interface IToken {
 }
 
 function getLimit(bidCount: number): number {
-  if (bidCount < 20) {
-    return 20;
-  }
+  const quotient = Math.floor((bidCount + 19) / 20);
 
-  const remainder = bidCount % 20;
-  const quotient = Math.floor(bidCount / 20);
-
-  if (remainder < 10) {
-    return quotient * 20;
-  } else {
-    return (quotient + 1) * 20;
-  }
+  return Math.min(quotient * 20, 100);
 }
 
 interface Attribute { }

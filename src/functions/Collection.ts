@@ -16,7 +16,7 @@ export async function collectionDetails(collectionSymbol: string) {
     return data
 
   } catch (error: any) {
-    console.log(error.response);
+    console.log('collectionDetailsError: ', error.response);
   }
 }
 
@@ -31,7 +31,7 @@ interface CollectionData {
   inscriptionNumberMax: string;
   symbol: string;
 }
-export async function fetchCollections(API_KEY: string) {
+export async function fetchCollections() {
   try {
     const url = 'https://nfttools.pro/magiceden_stats/collection_stats/search/bitcoin';
     const params = {
@@ -52,7 +52,7 @@ export async function fetchCollections(API_KEY: string) {
     const { data: collections } = await limiter.schedule(() => axiosInstance.get(url, { params, headers }))
     return collections
   } catch (error: any) {
-    console.log(error.response);
+    console.log("fetchCollectionsError: ", error.response);
     return []
   }
 }
@@ -78,7 +78,7 @@ export async function collectionActivity(collectionSymbol: string, bidCount: num
     const { data } = await limiter.schedule(() => axiosInstance.get<OfferData>(url, { params, headers }))
     return data
   } catch (error) {
-    console.log(error);
+    console.log("collectionActivityError: ", error);
   }
 }
 

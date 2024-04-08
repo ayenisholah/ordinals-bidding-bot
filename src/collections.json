@@ -1,12 +1,12 @@
 [
 	{
-		"collectionSymbol": "rune_gods",
-		"minBid": 0.00016,
-		"maxBid": 0.00022,
+		"collectionSymbol": "gamestone",
+		"minBid": 0.0003,
+		"maxBid": 0.0004,
 		"bidCount": 20,
 		"duration": 10,
 		"counterbidLoop": 10,
-		"outBidMargin": 0.00001,
+		"outBidMargin": 1e-8,
 		"receiverWallet": "bc1p5rw87me62aftc3lgrqpq430gp3rp5wtj4atxz6pum2rmhjhvsk0sx73cgk"
 	}
 ]

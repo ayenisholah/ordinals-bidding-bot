@@ -130,6 +130,8 @@ async function processScheduledLoop(item: CollectionData) {
     const tokens = await retrieveTokens(collectionSymbol, bidCount)
 
     bidHistory[collectionSymbol].bottomListings = tokens.map(item => ({ id: item.id, price: item.listedPrice }))
+      .sort((a, b) => a.price - b.price)
+      .slice(0, bidCount)
 
     const bottomListings = bidHistory[collectionSymbol].bottomListings
 
@@ -164,7 +166,7 @@ async function processScheduledLoop(item: CollectionData) {
         collectionSymbol,
         tokenId,
         price: bidInfo.price,
-        expiration: new Date(bidInfo.expiration).toString(),
+        expiration: new Date(bidInfo.expiration).toISOString(),
       }));
     });
 
@@ -172,6 +174,13 @@ async function processScheduledLoop(item: CollectionData) {
     console.log('USER BIDS');
     console.table(userBids)
     console.log('--------------------------------------------------------------------------------');
+
+    const bottomListingBids = combineBidsAndListings(userBids, bottomListings)
+    console.log('--------------------------------------------------------------------------------');
+    console.log('BOTTOM LISTING BIDS');
+    console.table(bottomListingBids)
+    console.log('--------------------------------------------------------------------------------');
+
 
     console.log('--------------------------------------------------------------------------------');
     console.log('TOKENS TO CANCEL');
@@ -184,13 +193,15 @@ async function processScheduledLoop(item: CollectionData) {
         if (offerData && Number(offerData.total) > 0) {
           const offer = offerData.offers[0]
 
-          await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
-
-          delete bidHistory[collectionSymbol].ourBids[tokenId]
-          delete bidHistory[collectionSymbol].topBids[tokenId]
+          cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
         }
+        delete bidHistory[collectionSymbol].ourBids[tokenId]
+        delete bidHistory[collectionSymbol].topBids[tokenId]
       }
     }
+
+    // also I tried setting outbid margin to 1 sat
+    // improvement would be how the current users bids are displayed, would be good to display maybe with listed price sorted the same as bottomlistedtokens , to compare
 
 
 
@@ -200,7 +211,6 @@ async function processScheduledLoop(item: CollectionData) {
 
         const bestOffer = await getBestOffer(tokenId);
         const ourExistingOffer = bidHistory[collectionSymbol].ourBids[tokenId]?.expiration > Date.now()
-
         const currentBidCount = Object.values(bidHistory[collectionSymbol].topBids).length;
 
         /*
@@ -214,7 +224,8 @@ async function processScheduledLoop(item: CollectionData) {
         * If there's no existing offer on the token:
         *   - We place a minimum bid on the token.
         */
-        if (!ourExistingOffer || currentBidCount < bidCount) {
+        if (!ourExistingOffer) {
+
           if (bestOffer && Number(bestOffer.total) > 0) {
             const topOffer = bestOffer.offers[0]
             /*
@@ -230,11 +241,15 @@ async function processScheduledLoop(item: CollectionData) {
                 console.log(`OUTBID CURRENT OFFER ${currentPrice} OUR OFFER ${bidPrice} FOR ${collectionSymbol} ${tokenId}`);
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
-                await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
-                bidHistory[collectionSymbol].topBids[tokenId] = true
-                bidHistory[collectionSymbol].ourBids[tokenId] = {
-                  price: bidPrice,
-                  expiration: expiration
+                try {
+                  await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
+                  bidHistory[collectionSymbol].topBids[tokenId] = true
+                  bidHistory[collectionSymbol].ourBids[tokenId] = {
+                    price: bidPrice,
+                    expiration: expiration
+                  }
+                } catch (error) {
+                  console.log(error);
                 }
               } else {
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
@@ -254,11 +269,17 @@ async function processScheduledLoop(item: CollectionData) {
             const bidPrice = Math.max(listedPrice * 0.5, minPrice)
 
             if (bidPrice <= maxPrice) {
-              await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
-              bidHistory[collectionSymbol].topBids[tokenId] = true
-              bidHistory[collectionSymbol].ourBids[tokenId] = {
-                price: bidPrice,
-                expiration: expiration
+
+              try {
+                await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
+                bidHistory[collectionSymbol].topBids[tokenId] = true
+                bidHistory[collectionSymbol].ourBids[tokenId] = {
+                  price: bidPrice,
+                  expiration: expiration
+                }
+
+              } catch (error) {
+                console.log(error);
               }
             } else {
               console.log('-----------------------------------------------------------------------------------------------------------------------------');
@@ -296,13 +317,19 @@ async function processScheduledLoop(item: CollectionData) {
                 console.log(`OUTBID CURRENT OFFER ${currentPrice} OUR OFFER ${bidPrice} FOR ${collectionSymbol} ${tokenId}`);
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
-                await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
+                try {
+                  await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
 
-                bidHistory[collectionSymbol].topBids[tokenId] = true
-                bidHistory[collectionSymbol].ourBids[tokenId] = {
-                  price: bidPrice,
-                  expiration: expiration
+                  bidHistory[collectionSymbol].topBids[tokenId] = true
+                  bidHistory[collectionSymbol].ourBids[tokenId] = {
+                    price: bidPrice,
+                    expiration: expiration
+                  }
+
+                } catch (error) {
+                  console.log(error);
                 }
+
               } else {
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
                 console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxPrice} FOR ${collectionSymbol} ${tokenId}`);
@@ -323,12 +350,17 @@ async function processScheduledLoop(item: CollectionData) {
                     console.log(`ADJUST OUR CURRENT OFFER ${bestPrice} TO ${bidPrice} FOR ${collectionSymbol} ${tokenId}`);
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
-                    await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
+                    try {
 
-                    bidHistory[collectionSymbol].topBids[tokenId] = true
-                    bidHistory[collectionSymbol].ourBids[tokenId] = {
-                      price: bidPrice,
-                      expiration: expiration
+                      await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
+
+                      bidHistory[collectionSymbol].topBids[tokenId] = true
+                      bidHistory[collectionSymbol].ourBids[tokenId] = {
+                        price: bidPrice,
+                        expiration: expiration
+                      }
+                    } catch (error) {
+                      console.log(error);
                     }
                   } else {
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
@@ -346,12 +378,17 @@ async function processScheduledLoop(item: CollectionData) {
                   console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
                   if (bidPrice <= maxPrice) {
-                    await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
 
-                    bidHistory[collectionSymbol].topBids[tokenId] = true
-                    bidHistory[collectionSymbol].ourBids[tokenId] = {
-                      price: bidPrice,
-                      expiration: expiration
+                    try {
+                      await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
+
+                      bidHistory[collectionSymbol].topBids[tokenId] = true
+                      bidHistory[collectionSymbol].ourBids[tokenId] = {
+                        price: bidPrice,
+                        expiration: expiration
+                      }
+                    } catch (error) {
+                      console.log(error);
                     }
                   } else {
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
@@ -426,7 +463,7 @@ async function processCounterBidLoop(item: CollectionData) {
 
   try {
     const lastSeenTimestamp = bidHistory[collectionSymbol]?.lastSeenActivity || null;
-    const { offers, latestTimestamp } = await getCollectionActivity(
+    const { offers, latestTimestamp, soldTokens } = await getCollectionActivity(
       collectionSymbol,
       lastSeenTimestamp
     );
@@ -437,7 +474,7 @@ async function processCounterBidLoop(item: CollectionData) {
     const latestOffers = offers
       .filter((offer) => ourBids.includes(offer.tokenId))
       .sort((a, b) => b.listedPrice - a.listedPrice)
-      .map((item) => ({ collectionSymbol: item.collectionSymbol, tokenId: item.tokenId, buyerPaymentAddress: item.buyerPaymentAddress, price: item.listedPrice, createdAt: item.createdAt }))
+      .map((item) => ({ collectionSymbol: item.collectionSymbol, tokenId: item.tokenId, buyerPaymentAddress: item.buyerPaymentAddress, price: item.listedPrice, createdAt: new Date(item.createdAt).toISOString() }))
       .reduce((accumulator: Offer[], currentOffer: Offer) => {
         const existingItemIndex = accumulator.findIndex(item => item.tokenId === currentOffer.tokenId);
         if (existingItemIndex !== -1) {
@@ -460,9 +497,41 @@ async function processCounterBidLoop(item: CollectionData) {
       }
     })
 
+    const sold = soldTokens
+      .filter((offer) => ourBids.includes(offer.tokenId))
+      .sort((a, b) => b.listedPrice - a.listedPrice)
+      .map((item) => ({ collectionSymbol: item.collectionSymbol, tokenId: item.tokenId, buyerPaymentAddress: item.buyerPaymentAddress, price: item.listedPrice, createdAt: item.createdAt }))
+      .reduce((accumulator: Offer[], currentOffer: Offer) => {
+        const existingItemIndex = accumulator.findIndex(item => item.tokenId === currentOffer.tokenId);
+        if (existingItemIndex !== -1) {
+          if (new Date(currentOffer.createdAt).getTime() > new Date(accumulator[existingItemIndex].createdAt).getTime()) {
+            accumulator[existingItemIndex] = currentOffer;
+          }
+        } else {
+          accumulator.push(currentOffer);
+        }
+        return accumulator;
+      }, []);
+
+    // if (sold.length > 0) {
+
+    //   for (const token of sold) {
+    //     delete bidHistory[collectionSymbol].ourBids[token.tokenId]
+    //     delete bidHistory[collectionSymbol].topBids[token.tokenId]
+    //     delete bidHistory[collectionSymbol].topOffers[token.tokenId]
+
+    //   }
+    // }
+
     console.log('-------------------------------------------------------------------------------');
     console.log('LATEST OFFERS');
     console.table(latestOffers);
+    console.log('-------------------------------------------------------------------------------');
+
+    console.log('-------------------------------------------------------------------------------');
+    console.log('SOLD TOKENS');
+    console.table(sold);
+    console.table(soldTokens)
     console.log('-------------------------------------------------------------------------------');
 
     const counterOffers = offers
@@ -490,7 +559,22 @@ async function processCounterBidLoop(item: CollectionData) {
           if (listedPrice > ourBidPrice) {
             await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
             if (bidPrice <= maxPrice) {
-              await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
+              try {
+                await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
+
+                bidHistory[collectionSymbol].ourBids[tokenId] = {
+                  price: bidPrice,
+                  expiration: expiration
+                }
+                bidHistory[collectionSymbol].topOffers[tokenId] = {
+                  price: bidPrice,
+                  buyerPaymentAddress: buyerPaymentAddress
+                }
+                bidHistory[collectionSymbol].topBids[tokenId] = true
+
+              } catch (error) {
+                console.log(error);
+              }
             } else {
               console.log('-----------------------------------------------------------------------------------------------------------------------------');
               console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxPrice} FOR ${collectionSymbol} ${tokenId}`);
@@ -573,17 +657,18 @@ process.on('SIGINT', () => {
 async function getCollectionActivity(
   collectionSymbol: string,
   lastSeenTimestamp: number | null = null
-): Promise<{ lists: OfferPlaced[]; offers: OfferPlaced[]; latestTimestamp: number | null }> {
+): Promise<{ lists: OfferPlaced[]; offers: OfferPlaced[]; soldTokens: OfferPlaced[]; latestTimestamp: number | null }> {
   const url = "https://nfttools.pro/magiceden/v2/ord/btc/activities";
   const params: any = {
     limit: 100,
     collectionSymbol,
-    kind: ["list", "offer_placed"],
+    kind: ["list", "offer_placed", "buying_broadcasted", "offer_accepted_broadcasted"],
   };
 
   try {
     let lists: OfferPlaced[] = [];
     let offers: OfferPlaced[] = [];
+    let soldTokens: OfferPlaced[] = [];
     let response;
     let offset = 0;
     let latestTimestamp = lastSeenTimestamp;
@@ -599,13 +684,15 @@ async function getCollectionActivity(
 
         if (lastSeenTimestamp !== null && activityTimestamp <= lastSeenTimestamp) {
           // Activity has already been seen, break the loop
-          return { lists, offers, latestTimestamp };
+          return { lists, offers, soldTokens, latestTimestamp };
         }
 
         if (activity.kind === "list") {
           lists.push(activity);
         } else if (activity.kind === "offer_placed") {
           offers.push(activity);
+        } else if (activity.kind === "buying_broadcasted" || activity.kind === "offer_accepted_broadcasted") {
+          soldTokens.push(activity)
         }
 
         // Update the latestTimestamp with the timestamp of the current activity
@@ -619,25 +706,23 @@ async function getCollectionActivity(
       offset += response.data.activities.length;
     } while (lists.length + offers.length < params.limit);
 
-    return { lists, offers, latestTimestamp };
+    return { lists, offers, soldTokens, latestTimestamp };
   } catch (error: any) {
     console.error("Error fetching collection activity:", error.response);
-    return { lists: [], offers: [], latestTimestamp: lastSeenTimestamp };
+    return { lists: [], offers: [], soldTokens: [], latestTimestamp: lastSeenTimestamp };
   }
 }
 
 async function cancelBid(offer: IOffer, privateKey: string, collectionSymbol: string, tokenId: string, buyerPaymentAddress: string) {
   try {
-    if (offer.buyerPaymentAddress === buyerPaymentAddress && offer.expirationDate > Date.now() + 10000 && offer.isValid === true) {
-      const offerFormat = await retrieveCancelOfferFormat(offer.id)
-      if (offerFormat) {
-        const signedOfferFormat = signData(offerFormat, privateKey)
-        if (signedOfferFormat) {
-          await submitCancelOfferData(offer.id, signedOfferFormat)
-          console.log('--------------------------------------------------------------------------------');
-          console.log(`CANCELLED OFFER FOR ${collectionSymbol} ${tokenId}`);
-          console.log('--------------------------------------------------------------------------------');
-        }
+    const offerFormat = await retrieveCancelOfferFormat(offer.id)
+    if (offerFormat) {
+      const signedOfferFormat = signData(offerFormat, privateKey)
+      if (signedOfferFormat) {
+        await submitCancelOfferData(offer.id, signedOfferFormat)
+        console.log('--------------------------------------------------------------------------------');
+        console.log(`CANCELLED OFFER FOR ${collectionSymbol} ${tokenId}`);
+        console.log('--------------------------------------------------------------------------------');
       }
     }
   } catch (error) {
@@ -645,15 +730,7 @@ async function cancelBid(offer: IOffer, privateKey: string, collectionSymbol: st
   }
 }
 
-// function findTokensToCancel(previousBottomListings: Token[], newBottomListings: Token[]): Token[] {
-//   const tokensToCancel: Token[] = [];
-//   for (const token of previousBottomListings) {
-//     if (!newBottomListings.some(newToken => newToken.id === token.id)) {
-//       tokensToCancel.push(token);
-//     }
-//   }
-//   return tokensToCancel;
-// }
+
 
 function findTokensToCancel(tokens: ITokenData[], ourBids: string[]): string[] {
   const missingBids = ourBids.filter(bid =>
@@ -717,6 +794,39 @@ function removeDuplicateTokens(newBottomListings: Token[]): Token[] {
 
   return uniqueTokens;
 }
+
+function combineBidsAndListings(userBids: UserBid[], bottomListings: BottomListing[]) {
+  const combinedArray = userBids
+    .map(bid => {
+      const matchedListing = bottomListings.find(listing => listing.id === bid.tokenId);
+      if (matchedListing) {
+        return {
+          bidId: bid.tokenId.slice(-8),
+          bottomListingId: matchedListing.id.slice(-8),
+          expiration: bid.expiration,
+          price: bid.price,
+          listedPrice: matchedListing.price
+        };
+      }
+      return null;
+    })
+    .filter(entry => entry !== null);
+
+  return combinedArray.sort((a: any, b: any) => a.price - b.price);
+}
+
+interface UserBid {
+  collectionSymbol: string;
+  tokenId: string;
+  price: number;
+  expiration: string;
+}
+
+interface BottomListing {
+  id: string;
+  price: number;
+}
+
 interface Listing {
   id: string
   price: number
@@ -747,3 +857,24 @@ interface Offer {
   price: number;
   createdAt: string;
 }
+
+
+// TOKENS TO CANCEL
+// ┌─────────┬─────────────────────────────────────────────────────────────────────────┐
+// │ (index) │                                 Values                                  │
+// ├─────────┼─────────────────────────────────────────────────────────────────────────┤
+// │    0    │ '3d19c12db788dbd8f2ea0fe2704e4c8609fdb9619cc189824a203d2a16ed7691i951'  │
+// │    1    │ '6dd462b45bcd6ebea0e7deb2255269c049271751fe6cff6af5690d0a3561b3e6i1149' │
+// │    2    │ '6dd462b45bcd6ebea0e7deb2255269c049271751fe6cff6af5690d0a3561b3e6i1148' │
+// │    3    │ '3d19c12db788dbd8f2ea0fe2704e4c8609fdb9619cc189824a203d2a16ed7691i139'  │
+// │    4    │ 'd694bca7c91d2f977bcb64a41c722bca79d711e7024657f60e107dc5dab86517i131'  │
+// │    5    │ '5b13bdbaf478204ede24bb5bfef048f0f218c6f84cf7c4cba8450b6a76ece6bai1028' │
+// │    6    │ '39cd37ef304beb83b74d4c28dd908a0c2bc31e6626ec291c810911c305136ae5i1012' │
+// │    7    │ '3d19c12db788dbd8f2ea0fe2704e4c8609fdb9619cc189824a203d2a16ed7691i901'  │
+// │    8    │ '3d19c12db788dbd8f2ea0fe2704e4c8609fdb9619cc189824a203d2a16ed7691i1350' │
+// │    9    │ '68c2b80824383b5f361ee49207bc56ff8af78612b6994c09bd0c0737fcd164f4i1062' │
+// │   10    │ '39cd37ef304beb83b74d4c28dd908a0c2bc31e6626ec291c810911c305136ae5i763'  │
+// │   11    │ 'a2ebe021cace26ff98de1abd0b455f1778a21ed0ab9c2eea8215ba62aed92f2ai755'  │
+// │   12    │ '78604bcb9048f401a8895d6cce43192e06aae3b90fd85bcd50713a6a17b2baeci1140' │
+// │   13    │ '04f2a2ecb8f769e5253b73fad143a770af512b246a0c8c792a21db24da2c8d48i1611' │
+// └─────────┴─────────────────────────────────────────────────────────────────────────┘

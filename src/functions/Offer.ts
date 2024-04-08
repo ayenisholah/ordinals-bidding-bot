@@ -2,9 +2,6 @@ import axiosInstance from "../axios/axiosInstance";
 import * as bitcoin from "bitcoinjs-lib"
 import { ECPairInterface, ECPairFactory, ECPairAPI, TinySecp256k1Interface } from 'ecpair';
 import { config } from "dotenv"
-import Bid from "../models/offer.model";
-import OfferModel from "../models/offer.model";
-import Bottleneck from "bottleneck"
 import limiter from "../bottleneck";
 
 const tinysecp: TinySecp256k1Interface = require('tiny-secp256k1');
@@ -46,7 +43,7 @@ export async function createOffer(
 
     return data
   } catch (error: any) {
-    console.log(error.response.data);
+    console.log("createOfferError: ", error.response.data);
   }
 }
 
@@ -95,7 +92,6 @@ export async function submitSignedOfferOrder(
     const response = await limiter.schedule(() => axiosInstance.post(url, data, { headers }))
     return response.data;
   } catch (error: any) {
-    console.log(JSON.stringify(error.response));
   }
 }
 
@@ -114,7 +110,7 @@ export async function getBestOffer(tokenId: string) {
     const { data } = await limiter.schedule(() => axiosInstance.get<OfferData>(url, { params, headers }));
     return data
   } catch (error: any) {
-    console.log(error.response);
+    console.log('getBestOffer: ', error.response);
   }
 }
 
@@ -147,7 +143,7 @@ export async function cancelAllUserOffers(buyerTokenReceiveAddress: string, priv
       }
     }
   } catch (error) {
-    console.log(error);
+    console.log("cancelAllUserOffers: ", error);
   }
 }
 
@@ -169,6 +165,7 @@ export async function cancelBulkTokenOffers(tokenIds: string[], buyerTokenReceiv
       }
     }
   } catch (error) {
+    console.log('cancelBulkTokenOffers: ', error);
 
   }
 
@@ -200,7 +197,7 @@ export async function getOffers(tokenId: string, buyerTokenReceiveAddress?: stri
     const { data } = await limiter.schedule(() => axiosInstance.get<OfferData>(url, { params, headers }))
     return data
   } catch (error: any) {
-    console.log(JSON.stringify(error.response.data));
+    console.log("getOffers ", error.response.data);
   }
 }
 
@@ -214,7 +211,7 @@ export async function retrieveCancelOfferFormat(offerId: string) {
     );
     return data
   } catch (error: any) {
-    console.log(error.response.data);
+    console.log("retrieveCancelOfferFormat: ", error.response.data);
   }
 }
 
@@ -228,7 +225,7 @@ export async function submitCancelOfferData(offerId: string, signedPSBTBase64: s
     const response = await limiter.schedule(() => axiosInstance.post(url, data, { headers }))
     return response.data.ok
   } catch (error: any) {
-    console.log(error.response.data);
+    console.log('submitCancelOfferData: ', error.response.data);
   }
 }
 
@@ -305,7 +302,7 @@ export async function getUserOffers(buyerPaymentAddress: string) {
     const { data } = await limiter.schedule(() => axiosInstance.get<UserOffer>(url, { params, headers }))
     return data
   } catch (error) {
-    console.log(error);
+    console.log('getUserOffers: ', error);
   }
 }
 
