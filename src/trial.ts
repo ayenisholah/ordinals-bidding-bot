@@ -127,11 +127,11 @@ async function processScheduledLoop(item: CollectionData) {
       RESTART = false
     }
 
-    const tokens = await retrieveTokens(collectionSymbol, bidCount)
+    let tokens = await retrieveTokens(collectionSymbol, bidCount)
+    tokens = tokens.slice(0, bidCount)
 
     bidHistory[collectionSymbol].bottomListings = tokens.map(item => ({ id: item.id, price: item.listedPrice }))
       .sort((a, b) => a.price - b.price)
-      .slice(0, bidCount)
 
     const bottomListings = bidHistory[collectionSymbol].bottomListings
 

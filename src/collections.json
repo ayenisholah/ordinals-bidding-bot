@@ -3,7 +3,7 @@
 		"collectionSymbol": "the-prophecy",
 		"minBid": 0.00019,
 		"maxBid": 0.00028,
-		"bidCount": 20,
+		"bidCount": 17,
 		"duration": 10,
 		"counterbidLoop": 10,
 		"outBidMargin": 1e-8,

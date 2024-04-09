@@ -47,15 +47,19 @@ async function main() {
       const unsignedOffer = await createOffer(token.id, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, FEE_RATE_TIER)
 
       console.log({ unsignedOffer });
-
-      const signedOfferData = signData(unsignedOffer, privateKey)
-
-      console.log({ signedOfferData });
+      const modifiedPSBTBase64 = await modifyPublicKeyInPSBT(unsignedOffer.psbtBase64, buyerPaymentAddress2, publicKey2)
 
 
-      if (signedOfferData) {
-        await submitSignedOfferOrder(signedOfferData, token.id, price, expiration, buyerPaymentAddress2, buyerTokenReceiveAddress, publicKey2, FEE_RATE_TIER);
-      }
+      console.log({ modifiedPSBTBase64 });
+
+
+      const signedData = signData({ psbtBase64: modifiedPSBTBase64 }, privateKey2)
+
+      console.log({ signedData });
+
+      if (signedData)
+
+        await submitSignedOfferOrder(signedData, token.id, price, expiration, buyerPaymentAddress2, buyerTokenReceiveAddress, publicKey2, FEE_RATE_TIER)
 
 
     }
@@ -67,28 +71,41 @@ async function main() {
 
 main().catch(error => console.log(error))
 
+function findOutputIndex(psbt: any, address: any) {
+  try {
+    for (let i = 0; i < psbt.data.outputs.length; i++) {
+      const output = psbt.data.outputs[i];
+      const outputAddress = bitcoin.address.fromOutputScript(output.script, psbt.data.globalMap.unsignedTx.network);
+      if (outputAddress === address) {
+        return i;
+      }
+    }
+    return -1; // Output not found
+  } catch (error) {
+    throw error;
+  }
+}
 
-// const psbt = bitcoin.Psbt.fromBase64(unsignedOffer.psbtBase64);
+async function modifyPublicKeyInPSBT(psbtBase64: string, targetAddress: string, newPublicKeyHex: string) {
+  // Decode base64 string to obtain PSBT object
+  const psbt = bitcoin.Psbt.fromBase64(psbtBase64);
 
-// psbt.data.outputs.forEach((output, index) => {
-//   if (output.bip32Derivation && output.bip32Derivation.length > 0) {
-//     const { pubkey, path } = output.bip32Derivation[0];
-//     if (pubkey.toString('hex') === publicKey2) {
-//       output.bip32Derivation[0].pubkey = Buffer.from(publicKey, 'hex');
-//     }
-//   }
-// });
-// psbt.data.outputs.forEach((output, index) => {
-//   const targetScript = bitcoin.address.toOutputScript(buyerPaymentAddress2);
-//   if (output.redeemScript && output.redeemScript.equals(targetScript)) {
-//     const newOutputUpdate = {
-//       redeemScript: bitcoin.address.toOutputScript(buyerPaymentAddress),
-//     };
-//     psbt.updateOutput(index, newOutputUpdate);
-//   }
-// });
+  // Find the index of the output to modify
+  const outputIndex = findOutputIndex(psbt, targetAddress);
+  if (outputIndex === -1) {
+    throw new Error("Output not found.");
+  }
 
-// const modifiedUnsignedOffer = psbt.toBase64().toString()
-// console.log(`Modified unsigned offer: ${modifiedUnsignedOffer}`);
+  // Update the public key at the specified index
+  const output = psbt.data.outputs[outputIndex];
+  if (output.bip32Derivation) {
+    output.bip32Derivation[0].pubkey = Buffer.from(newPublicKeyHex, 'hex');
+  } else {
+    throw new Error("No bip32Derivation information found for the output.");
+  }
 
-// const newPsbt = bitcoin.Psbt.fromBase64(modifiedUnsignedOffer);
+  // Encode the modified PSBT object back to base64
+  const modifiedPSBTBase64 = psbt.toBase64();
+
+  return modifiedPSBTBase64;
+}
