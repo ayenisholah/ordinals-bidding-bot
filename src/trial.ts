@@ -158,7 +158,7 @@ async function processScheduledLoop(item: CollectionData) {
     console.log("FLOOR PRICE: ", floorPrice);
     console.log('--------------------------------------------------------------------------------');
 
-    const maxFloorBid = item.maxFloorBid < 100 ? item.maxFloorBid : 100
+    const maxFloorBid = item.maxFloorBid <= 100 ? item.maxFloorBid : 100
     const minFloorBid = item.maxFloorBid
 
 
@@ -249,7 +249,7 @@ async function processScheduledLoop(item: CollectionData) {
             if (topOffer.buyerPaymentAddress !== buyerPaymentAddress) {
               const currentPrice = topOffer.price
               const bidPrice = currentPrice + (outBidMargin * CONVERSION_RATE)
-              if (bidPrice <= maxPrice) {
+              if (bidPrice <= maxOffer) {
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
                 console.log(`OUTBID CURRENT OFFER ${currentPrice} OUR OFFER ${bidPrice} FOR ${collectionSymbol} ${tokenId}`);
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
@@ -266,7 +266,7 @@ async function processScheduledLoop(item: CollectionData) {
                 }
               } else {
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxPrice} FOR ${collectionSymbol} ${tokenId}`);
+                console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
                 // add token to skip
@@ -281,7 +281,7 @@ async function processScheduledLoop(item: CollectionData) {
           else {
             const bidPrice = Math.max(listedPrice * 0.5, minOffer)
 
-            if (bidPrice <= maxPrice) {
+            if (bidPrice <= maxOffer) {
 
               try {
                 await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
@@ -296,7 +296,7 @@ async function processScheduledLoop(item: CollectionData) {
               }
             } else {
               console.log('-----------------------------------------------------------------------------------------------------------------------------');
-              console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxPrice} FOR ${collectionSymbol} ${tokenId}`);
+              console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
               console.log('-----------------------------------------------------------------------------------------------------------------------------');
             }
           }
@@ -333,7 +333,7 @@ async function processScheduledLoop(item: CollectionData) {
               const currentPrice = topOffer.price
               const bidPrice = currentPrice + (outBidMargin * CONVERSION_RATE)
 
-              if (bidPrice <= maxPrice) {
+              if (bidPrice <= maxOffer) {
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
                 console.log(`OUTBID CURRENT OFFER ${currentPrice} OUR OFFER ${bidPrice} FOR ${collectionSymbol} ${tokenId}`);
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
@@ -352,7 +352,7 @@ async function processScheduledLoop(item: CollectionData) {
 
               } else {
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxPrice} FOR ${collectionSymbol} ${tokenId}`);
+                console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
               }
 
@@ -373,7 +373,7 @@ async function processScheduledLoop(item: CollectionData) {
                     console.log(error);
                   }
 
-                  if (bidPrice <= maxPrice) {
+                  if (bidPrice <= maxOffer) {
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
                     console.log(`ADJUST OUR CURRENT OFFER ${bestPrice} TO ${bidPrice} FOR ${collectionSymbol} ${tokenId}`);
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
@@ -392,7 +392,7 @@ async function processScheduledLoop(item: CollectionData) {
                     }
                   } else {
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                    console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxPrice} FOR ${collectionSymbol} ${tokenId}`);
+                    console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
                   }
                 }
@@ -412,7 +412,7 @@ async function processScheduledLoop(item: CollectionData) {
                   console.log(`ADJUST OUR CURRENT OFFER ${bestPrice} TO ${bidPrice} FOR ${collectionSymbol} ${tokenId}`);
                   console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
-                  if (bidPrice <= maxPrice) {
+                  if (bidPrice <= maxOffer) {
 
                     try {
                       await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
@@ -427,7 +427,7 @@ async function processScheduledLoop(item: CollectionData) {
                     }
                   } else {
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                    console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxPrice} FOR ${collectionSymbol} ${tokenId}`);
+                    console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
                   }
 
