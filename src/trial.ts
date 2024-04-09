@@ -158,6 +158,22 @@ async function processScheduledLoop(item: CollectionData) {
     console.log("FLOOR PRICE: ", floorPrice);
     console.log('--------------------------------------------------------------------------------');
 
+    const maxFloorBid = item.maxFloorBid < 100 ? item.maxFloorBid : 100
+    const minFloorBid = item.maxFloorBid
+
+
+
+    console.log('--------------------------------------------------------------------------------');
+    console.log('BID RANGE AS A PERCENTAGE FLOOR PRICE');
+
+    console.log("MAX PRICE PERCENTAGE OF FLOOR: ", Math.round(maxFloorBid * floorPrice / 100));
+    console.log("MIN PRICE PERCENTAGE OF FLOOR: ", Math.round(minFloorBid * floorPrice / 100));
+    console.log('--------------------------------------------------------------------------------');
+
+
+    const minOffer = Math.max(minPrice, Math.round(minFloorBid * floorPrice / 100))
+    const maxOffer = Math.max(maxPrice, Math.round(minFloorBid * floorPrice / 100))
+
 
     const userBids = Object.entries(bidHistory).flatMap(([collectionSymbol, bidData]) => {
       return Object.entries(bidData.ourBids).map(([tokenId, bidInfo]) => ({
@@ -263,7 +279,7 @@ async function processScheduledLoop(item: CollectionData) {
            * we bid the minimum on that token
           */
           else {
-            const bidPrice = Math.max(listedPrice * 0.5, minPrice)
+            const bidPrice = Math.max(listedPrice * 0.5, minOffer)
 
             if (bidPrice <= maxPrice) {
 
@@ -381,7 +397,7 @@ async function processScheduledLoop(item: CollectionData) {
                   }
                 }
               } else {
-                const bidPrice = Math.max(minPrice, listedPrice * 0.5)
+                const bidPrice = Math.max(minOffer, listedPrice * 0.5)
                 if (bestPrice > bidPrice) {
 
                   try {
@@ -861,6 +877,8 @@ export interface CollectionData {
   collectionSymbol: string;
   minBid: number;
   maxBid: number;
+  minFloorBid: number;
+  maxFloorBid: number;
   outBidMargin: number;
   bidCount: number;
   duration: number;

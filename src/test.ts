@@ -40,72 +40,33 @@ async function main() {
   const buyerPaymentAddress2 = bitcoin.payments.p2wpkh({ pubkey: keyPair2.publicKey, network: network }).address as string
 
   try {
-    const tokens = await retrieveTokens(collectionSymbol, bidCount)
 
-    for (const token of tokens) {
-      const price = token.listedPrice * 0.5
-      const unsignedOffer = await createOffer(token.id, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, FEE_RATE_TIER)
+    const tokenId = '6e7428d6b70e27497fab40e9c90d676826a12401b29a87bd688a5739097e92e3i0'
+    const price = 25000
+    const duration = 30
+    const currentTime = new Date().getTime();
+    const expiration = currentTime + (duration * 60 * 1000);
+    const expiryB = expiration + (5 * 60 * 1000)
 
-      console.log({ unsignedOffer });
-      const modifiedPSBTBase64 = await modifyPublicKeyInPSBT(unsignedOffer.psbtBase64, buyerPaymentAddress2, publicKey2)
+    const unsignedOffer = await createOffer(tokenId, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, FEE_RATE_TIER)
 
+    const signedData = await signData(unsignedOffer, privateKey)
 
-      console.log({ modifiedPSBTBase64 });
+    console.log({ signedData });
 
-
-      const signedData = signData({ psbtBase64: modifiedPSBTBase64 }, privateKey2)
-
-      console.log({ signedData });
-
-      if (signedData)
-
-        await submitSignedOfferOrder(signedData, token.id, price, expiration, buyerPaymentAddress2, buyerTokenReceiveAddress, publicKey2, FEE_RATE_TIER)
-
-
+    if (signedData) {
+      const res = await submitSignedOfferOrder(signedData, tokenId, price, expiryB, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, FEE_RATE_TIER)
+      console.log({ res });
     }
 
   } catch (error) {
-    throw error
+    console.log(error);
   }
 }
 
 main().catch(error => console.log(error))
 
-function findOutputIndex(psbt: any, address: any) {
-  try {
-    for (let i = 0; i < psbt.data.outputs.length; i++) {
-      const output = psbt.data.outputs[i];
-      const outputAddress = bitcoin.address.fromOutputScript(output.script, psbt.data.globalMap.unsignedTx.network);
-      if (outputAddress === address) {
-        return i;
-      }
-    }
-    return -1; // Output not found
-  } catch (error) {
-    throw error;
-  }
-}
 
-async function modifyPublicKeyInPSBT(psbtBase64: string, targetAddress: string, newPublicKeyHex: string) {
-  // Decode base64 string to obtain PSBT object
-  const psbt = bitcoin.Psbt.fromBase64(psbtBase64);
+// generate , sign and submit psbt with expiry A
 
-  // Find the index of the output to modify
-  const outputIndex = findOutputIndex(psbt, targetAddress);
-  if (outputIndex === -1) {
-    throw new Error("Output not found.");
-  }
 
-  // Update the public key at the specified index
-  const output = psbt.data.outputs[outputIndex];
-  if (output.bip32Derivation) {
-    output.bip32Derivation[0].pubkey = Buffer.from(newPublicKeyHex, 'hex');
-  } else {
-    throw new Error("No bip32Derivation information found for the output.");
-  }
-
-  // Encode the modified PSBT object back to base64
-  const modifiedPSBTBase64 = psbt.toBase64();
-
-  return modifiedPSBTBase64;
-}
