@@ -158,8 +158,6 @@ async function processScheduledLoop(item: CollectionData) {
     console.log("FLOOR PRICE: ", floorPrice);
     console.log('--------------------------------------------------------------------------------');
 
-    const ourBids = Object.keys(bidHistory[collectionSymbol].ourBids);
-    const tokensToCancel = findTokensToCancel(tokens, ourBids)
 
     const userBids = Object.entries(bidHistory).flatMap(([collectionSymbol, bidData]) => {
       return Object.entries(bidData.ourBids).map(([tokenId, bidInfo]) => ({
@@ -168,7 +166,10 @@ async function processScheduledLoop(item: CollectionData) {
         price: bidInfo.price,
         expiration: new Date(bidInfo.expiration).toISOString(),
       }));
-    });
+    }).sort((a, b) => a.price - b.price)
+
+    const ourBids = userBids.map((item) => item.tokenId)
+    const tokensToCancel = findTokensToCancel(tokens, ourBids)
 
     console.log('--------------------------------------------------------------------------------');
     console.log('USER BIDS');
