@@ -190,6 +190,7 @@ async function processScheduledLoop(item: CollectionData) {
 
     if (tokensToCancel.length > 0) {
       for (const tokenId of tokensToCancel) {
+
         const offerData = await getOffers(tokenId, buyerTokenReceiveAddress)
         if (offerData && Number(offerData.total) > 0) {
           const offer = offerData.offers[0]
@@ -200,11 +201,6 @@ async function processScheduledLoop(item: CollectionData) {
         delete bidHistory[collectionSymbol].topBids[tokenId]
       }
     }
-
-    // also I tried setting outbid margin to 1 sat
-    // improvement would be how the current users bids are displayed, would be good to display maybe with listed price sorted the same as bottomlistedtokens , to compare
-
-
 
     await queue.addAll(
       bottomListings.map(token => async () => {
@@ -308,7 +304,15 @@ async function processScheduledLoop(item: CollectionData) {
               if (offerData && Number(offerData.total) > 0) {
                 const offer = offerData.offers[0]
 
-                await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
+                try {
+                  await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
+                  delete bidHistory[collectionSymbol].ourBids[tokenId]
+                  delete bidHistory[collectionSymbol].topBids[tokenId]
+
+                } catch (error) {
+                  console.log(error);
+                }
+
               }
               const currentPrice = topOffer.price
               const bidPrice = currentPrice + (outBidMargin * CONVERSION_RATE)
@@ -326,7 +330,6 @@ async function processScheduledLoop(item: CollectionData) {
                     price: bidPrice,
                     expiration: expiration
                   }
-
                 } catch (error) {
                   console.log(error);
                 }
@@ -344,7 +347,15 @@ async function processScheduledLoop(item: CollectionData) {
                 if (bestPrice - secondBestPrice > outBidAmount) {
                   const bidPrice = secondBestPrice + outBidAmount
 
-                  await cancelBid(topOffer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
+                  try {
+
+                    await cancelBid(topOffer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
+                    delete bidHistory[collectionSymbol].ourBids[tokenId]
+                    delete bidHistory[collectionSymbol].topBids[tokenId]
+
+                  } catch (error) {
+                    console.log(error);
+                  }
 
                   if (bidPrice <= maxPrice) {
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
@@ -372,7 +383,14 @@ async function processScheduledLoop(item: CollectionData) {
               } else {
                 const bidPrice = Math.max(minPrice, listedPrice * 0.5)
                 if (bestPrice > bidPrice) {
-                  await cancelBid(topOffer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
+
+                  try {
+                    await cancelBid(topOffer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
+                    delete bidHistory[collectionSymbol].ourBids[tokenId]
+                    delete bidHistory[collectionSymbol].topBids[tokenId]
+                  } catch (error) {
+                    console.log(error);
+                  }
 
                   console.log('-----------------------------------------------------------------------------------------------------------------------------');
                   console.log(`ADJUST OUR CURRENT OFFER ${bestPrice} TO ${bidPrice} FOR ${collectionSymbol} ${tokenId}`);
@@ -558,7 +576,14 @@ async function processCounterBidLoop(item: CollectionData) {
           const offer = offerData.offers[0]
 
           if (listedPrice > ourBidPrice) {
-            await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
+
+            try {
+              await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
+              delete bidHistory[collectionSymbol].ourBids[tokenId]
+              delete bidHistory[collectionSymbol].topBids[tokenId]
+            } catch (error) {
+              console.log(error);
+            }
             if (bidPrice <= maxPrice) {
               try {
                 await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
