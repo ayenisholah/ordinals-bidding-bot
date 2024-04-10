@@ -830,26 +830,11 @@ async function placeBid(
   try {
     const price = Math.round(offerPrice)
     const unsignedOffer = await createOffer(tokenId, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, FEE_RATE_TIER)
-
-    console.log({ unsignedOffer });
-
     const signedOffer = await signData(unsignedOffer, privateKey)
     if (signedOffer) {
-
       await submitSignedOfferOrder(signedOffer, tokenId, offerPrice, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, FEE_RATE_TIER)
-
-      console.log({
-        collectionSymbol,
-        tokenId,
-        price,
-        buyerTokenReceiveAddress,
-        buyerPaymentAddress,
-        bid: true,
-      });
-
       return true
     }
-
   } catch (error) {
     console.log(error);
     return false

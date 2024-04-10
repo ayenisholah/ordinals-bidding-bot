@@ -48,11 +48,6 @@ export async function createOffer(
 }
 
 export function signData(unsignedData: any, privateKey: string) {
-  console.log('--------------------------------------------------------------------------------');
-  console.log('SIGNING DATA............');
-  console.log('--------------------------------------------------------------------------------');
-
-
   if (typeof unsignedData !== "undefined") {
     const psbt = bitcoin.Psbt.fromBase64(unsignedData.psbtBase64);
 
@@ -60,7 +55,6 @@ export function signData(unsignedData: any, privateKey: string) {
     const signedPSBTBase64 = psbt.signInput(1, keyPair).toBase64()
     return signedPSBTBase64;
   }
-
 }
 
 export async function submitSignedOfferOrder(
@@ -87,9 +81,6 @@ export async function submitSignedOfferOrder(
   };
 
   try {
-    console.log('--------------------------------------------------------------------------------');
-    console.log("SUBMITTING SIGNED OFFER .....");
-    console.log('--------------------------------------------------------------------------------');
     const response = await limiter.schedule(() => axiosInstance.post(url, data, { headers }))
     return response.data;
   } catch (error: any) {
