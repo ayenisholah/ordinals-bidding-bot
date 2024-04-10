@@ -204,9 +204,9 @@ async function processScheduledLoop(item: CollectionData) {
     console.table(tokensToCancel)
     console.log('--------------------------------------------------------------------------------');
 
+
     if (tokensToCancel.length > 0) {
       for (const tokenId of tokensToCancel) {
-
         const offerData = await getOffers(tokenId, buyerTokenReceiveAddress)
         if (offerData && Number(offerData.total) > 0) {
           const offer = offerData.offers[0]
@@ -255,11 +255,14 @@ async function processScheduledLoop(item: CollectionData) {
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
                 try {
-                  await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
-                  bidHistory[collectionSymbol].topBids[tokenId] = true
-                  bidHistory[collectionSymbol].ourBids[tokenId] = {
-                    price: bidPrice,
-                    expiration: expiration
+                  const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
+
+                  if (status === true) {
+                    bidHistory[collectionSymbol].topBids[tokenId] = true
+                    bidHistory[collectionSymbol].ourBids[tokenId] = {
+                      price: bidPrice,
+                      expiration: expiration
+                    }
                   }
                 } catch (error) {
                   console.log(error);
@@ -284,11 +287,14 @@ async function processScheduledLoop(item: CollectionData) {
             if (bidPrice <= maxOffer) {
 
               try {
-                await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
-                bidHistory[collectionSymbol].topBids[tokenId] = true
-                bidHistory[collectionSymbol].ourBids[tokenId] = {
-                  price: bidPrice,
-                  expiration: expiration
+                const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
+
+                if (status === true) {
+                  bidHistory[collectionSymbol].topBids[tokenId] = true
+                  bidHistory[collectionSymbol].ourBids[tokenId] = {
+                    price: bidPrice,
+                    expiration: expiration
+                  }
                 }
 
               } catch (error) {
@@ -339,12 +345,15 @@ async function processScheduledLoop(item: CollectionData) {
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
                 try {
-                  await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
+                  const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
 
-                  bidHistory[collectionSymbol].topBids[tokenId] = true
-                  bidHistory[collectionSymbol].ourBids[tokenId] = {
-                    price: bidPrice,
-                    expiration: expiration
+
+                  if (status === true) {
+                    bidHistory[collectionSymbol].topBids[tokenId] = true
+                    bidHistory[collectionSymbol].ourBids[tokenId] = {
+                      price: bidPrice,
+                      expiration: expiration
+                    }
                   }
                 } catch (error) {
                   console.log(error);
@@ -380,12 +389,14 @@ async function processScheduledLoop(item: CollectionData) {
 
                     try {
 
-                      await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
+                      const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
 
-                      bidHistory[collectionSymbol].topBids[tokenId] = true
-                      bidHistory[collectionSymbol].ourBids[tokenId] = {
-                        price: bidPrice,
-                        expiration: expiration
+                      if (status === true) {
+                        bidHistory[collectionSymbol].topBids[tokenId] = true
+                        bidHistory[collectionSymbol].ourBids[tokenId] = {
+                          price: bidPrice,
+                          expiration: expiration
+                        }
                       }
                     } catch (error) {
                       console.log(error);
@@ -415,12 +426,14 @@ async function processScheduledLoop(item: CollectionData) {
                   if (bidPrice <= maxOffer) {
 
                     try {
-                      await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
+                      const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
 
-                      bidHistory[collectionSymbol].topBids[tokenId] = true
-                      bidHistory[collectionSymbol].ourBids[tokenId] = {
-                        price: bidPrice,
-                        expiration: expiration
+                      if (status === true) {
+                        bidHistory[collectionSymbol].topBids[tokenId] = true
+                        bidHistory[collectionSymbol].ourBids[tokenId] = {
+                          price: bidPrice,
+                          expiration: expiration
+                        }
                       }
                     } catch (error) {
                       console.log(error);
@@ -450,7 +463,6 @@ async function processCounterBidLoop(item: CollectionData) {
   console.log('----------------------------------------------------------------------');
 
   const collectionSymbol = item.collectionSymbol
-  const minBid = item.minBid
   const maxBid = item.maxBid
   const bidCount = item.bidCount ?? 20
   const duration = item.duration ?? DEFAULT_OFFER_EXPIRATION
@@ -497,6 +509,25 @@ async function processCounterBidLoop(item: CollectionData) {
   }
 
   try {
+
+    const collectionData = await collectionDetails(collectionSymbol)
+
+
+    const maxFloorBid = item.maxFloorBid <= 100 ? item.maxFloorBid : 100
+    const minFloorBid = item.minFloorBid
+
+    const floorPrice = Number(collectionData?.floorPrice) ?? 0
+
+
+    console.log('--------------------------------------------------------------------------------');
+    console.log('BID RANGE AS A PERCENTAGE FLOOR PRICE');
+
+    console.log("MAX PRICE PERCENTAGE OF FLOOR: ", Math.round(maxFloorBid * floorPrice / 100));
+    console.log("MIN PRICE PERCENTAGE OF FLOOR: ", Math.round(minFloorBid * floorPrice / 100));
+    console.log('--------------------------------------------------------------------------------');
+
+    const maxOffer = Math.max(maxPrice, Math.round(minFloorBid * floorPrice / 100))
+
     const lastSeenTimestamp = bidHistory[collectionSymbol]?.lastSeenActivity || null;
     const { offers, latestTimestamp, soldTokens } = await getCollectionActivity(
       collectionSymbol,
@@ -600,26 +631,25 @@ async function processCounterBidLoop(item: CollectionData) {
             } catch (error) {
               console.log(error);
             }
-            if (bidPrice <= maxPrice) {
+            if (bidPrice <= maxOffer) {
               try {
-                await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
+                const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
 
-                bidHistory[collectionSymbol].ourBids[tokenId] = {
-                  price: bidPrice,
-                  expiration: expiration
+
+                if (status === true) {
+                  bidHistory[collectionSymbol].topBids[tokenId] = true
+                  bidHistory[collectionSymbol].ourBids[tokenId] = {
+                    price: bidPrice,
+                    expiration: expiration
+                  }
                 }
-                bidHistory[collectionSymbol].topOffers[tokenId] = {
-                  price: bidPrice,
-                  buyerPaymentAddress: buyerPaymentAddress
-                }
-                bidHistory[collectionSymbol].topBids[tokenId] = true
 
               } catch (error) {
                 console.log(error);
               }
             } else {
               console.log('-----------------------------------------------------------------------------------------------------------------------------');
-              console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxPrice} FOR ${collectionSymbol} ${tokenId}`);
+              console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
               console.log('-----------------------------------------------------------------------------------------------------------------------------');
             }
           } else {
@@ -810,10 +840,13 @@ async function placeBid(
         buyerPaymentAddress,
         bid: true,
       });
+
+      return true
     }
 
   } catch (error) {
     console.log(error);
+    return false
   }
 }
 
