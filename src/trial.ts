@@ -230,7 +230,7 @@ async function processScheduledLoop(item: CollectionData) {
         const currentExpiry = bidHistory[collectionSymbol]?.ourBids[tokenId]?.expiration
         const newExpiry = duration * 60 * 1000
 
-        if (currentExpiry - Date.now() > newExpiry) {
+        if (currentExpiry - Date.now() > newExpiry || listedPrice > maxOffer) {
           console.log('\x1b[31m%s\x1b[0m', '🛑 REMAINING TIME GREATER THAN NEW DURATION, EXPIRE BID!!! 🛑');
           const offerData = await getOffers(tokenId, buyerTokenReceiveAddress)
           const offer = offerData?.offers[0]
@@ -243,8 +243,8 @@ async function processScheduledLoop(item: CollectionData) {
           }
         }
 
-        // 1712766267079
-        // 1712766444629
+        // IF CURRENT PRICE > MAX OFFER CANCEL
+
 
 
         /*
@@ -654,7 +654,6 @@ async function processCounterBidLoop(item: CollectionData) {
             const offer = offerData.offers[0]
 
             if (listedPrice > ourBidPrice) {
-
               try {
                 cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
                 delete bidHistory[collectionSymbol].ourBids[tokenId]
@@ -665,8 +664,6 @@ async function processCounterBidLoop(item: CollectionData) {
               if (bidPrice <= maxOffer) {
                 try {
                   const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
-
-
                   if (status === true) {
                     bidHistory[collectionSymbol].topBids[tokenId] = true
                     bidHistory[collectionSymbol].ourBids[tokenId] = {
