@@ -212,7 +212,7 @@ export async function retrieveCancelOfferFormat(offerId: string) {
     );
     return data
   } catch (error: any) {
-    console.log("retrieveCancelOfferFormat: ", error.response);
+    // console.log("retrieveCancelOfferFormat: ", error.response.data.error);
   }
 }
 
