@@ -42,7 +42,7 @@ async function main() {
   try {
 
     const tokenId = '6e7428d6b70e27497fab40e9c90d676826a12401b29a87bd688a5739097e92e3i0'
-    const price = 25000
+    const price = 30000
     const duration = 30
     const currentTime = new Date().getTime();
     const expiration = currentTime + (duration * 60 * 1000);
@@ -55,7 +55,7 @@ async function main() {
     console.log({ signedData });
 
     if (signedData) {
-      const res = await submitSignedOfferOrder(signedData, tokenId, price, expiryB, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, FEE_RATE_TIER)
+      const res = await submitSignedOfferOrder(signedData, tokenId, price, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, FEE_RATE_TIER)
       console.log({ res });
     }
 

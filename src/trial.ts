@@ -159,7 +159,7 @@ async function processScheduledLoop(item: CollectionData) {
     console.log('--------------------------------------------------------------------------------');
 
     const maxFloorBid = item.maxFloorBid <= 100 ? item.maxFloorBid : 100
-    const minFloorBid = item.maxFloorBid
+    const minFloorBid = item.minFloorBid
 
 
 
