@@ -230,7 +230,7 @@ async function processScheduledLoop(item: CollectionData) {
         const currentExpiry = bidHistory[collectionSymbol]?.ourBids[tokenId]?.expiration
         const newExpiry = duration * 60 * 1000
 
-        if (currentExpiry - Date.now() > newExpiry || listedPrice > maxOffer) {
+        if (currentExpiry - Date.now() > newExpiry) {
           const offerData = await getOffers(tokenId, buyerTokenReceiveAddress)
           const offer = offerData?.offers[0]
 
