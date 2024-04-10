@@ -231,7 +231,6 @@ async function processScheduledLoop(item: CollectionData) {
         const newExpiry = duration * 60 * 1000
 
         if (currentExpiry - Date.now() > newExpiry || listedPrice > maxOffer) {
-          console.log('\x1b[31m%s\x1b[0m', '🛑 REMAINING TIME GREATER THAN NEW DURATION, EXPIRE BID!!! 🛑');
           const offerData = await getOffers(tokenId, buyerTokenReceiveAddress)
           const offer = offerData?.offers[0]
 
