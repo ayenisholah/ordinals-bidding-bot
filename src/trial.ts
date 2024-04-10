@@ -90,8 +90,8 @@ async function processScheduledLoop(item: CollectionData) {
   const buyerPaymentAddress = bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: network }).address as string
 
   try {
+    balance = await getBitcoinBalance(buyerPaymentAddress)
     const collectionData = await collectionDetails(collectionSymbol)
-
 
     if (!bidHistory[collectionSymbol]) {
       bidHistory[collectionSymbol] = {
@@ -104,7 +104,6 @@ async function processScheduledLoop(item: CollectionData) {
     }
 
     if (RESTART) {
-      balance = 50000
       const offerData = await getUserOffers(buyerTokenReceiveAddress)
       if (offerData && offerData.offers.length > 0) {
         const offers = offerData.offers
@@ -163,8 +162,6 @@ async function processScheduledLoop(item: CollectionData) {
     const maxFloorBid = item.maxFloorBid <= 100 ? item.maxFloorBid : 100
     const minFloorBid = item.minFloorBid
 
-
-
     console.log('--------------------------------------------------------------------------------');
     console.log('BID RANGE AS A PERCENTAGE FLOOR PRICE');
 
@@ -174,7 +171,7 @@ async function processScheduledLoop(item: CollectionData) {
 
 
     const minOffer = Math.max(minPrice, Math.round(minFloorBid * floorPrice / 100))
-    const maxOffer = Math.min(maxPrice, Math.round(minFloorBid * floorPrice / 100))
+    const maxOffer = Math.min(maxPrice, Math.round(maxFloorBid * floorPrice / 100))
 
 
     const userBids = Object.entries(bidHistory).flatMap(([collectionSymbol, bidData]) => {
@@ -228,6 +225,28 @@ async function processScheduledLoop(item: CollectionData) {
         const ourExistingOffer = bidHistory[collectionSymbol].ourBids[tokenId]?.expiration > Date.now()
         const currentBidCount = Object.values(bidHistory[collectionSymbol].topBids).length;
 
+        // const old duration and 
+
+        const currentExpiry = bidHistory[collectionSymbol]?.ourBids[tokenId]?.expiration
+        const newExpiry = duration * 60 * 1000
+
+        if (currentExpiry - Date.now() > newExpiry) {
+          console.log('\x1b[31m%s\x1b[0m', '🛑 REMAINING TIME GREATER THAN NEW DURATION, EXPIRE BID!!! 🛑');
+          const offerData = await getOffers(tokenId, buyerTokenReceiveAddress)
+          const offer = offerData?.offers[0]
+
+          if (offer) {
+            cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
+            delete bidHistory[collectionSymbol].ourBids[tokenId]
+            delete bidHistory[collectionSymbol].topBids[tokenId]
+            delete bidHistory[collectionSymbol].topOffers[tokenId]
+          }
+        }
+
+        // 1712766267079
+        // 1712766444629
+
+
         /*
         * This condition executes in a scenario where we're not currently bidding on a token,
         * and our total bids for that collection are less than the desired bid count.
@@ -239,6 +258,8 @@ async function processScheduledLoop(item: CollectionData) {
         * If there's no existing offer on the token:
         *   - We place a minimum bid on the token.
         */
+
+        // expire bid if configuration has changed and we are not trying to outbid
         if (!ourExistingOffer) {
 
           if (bestOffer && Number(bestOffer.total) > 0) {
@@ -273,7 +294,8 @@ async function processScheduledLoop(item: CollectionData) {
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
                 console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
-
+                delete bidHistory[collectionSymbol].topBids[tokenId]
+                delete bidHistory[collectionSymbol].ourBids[tokenId]
                 // add token to skip
               }
             }
@@ -287,10 +309,8 @@ async function processScheduledLoop(item: CollectionData) {
             const bidPrice = Math.max(listedPrice * 0.5, minOffer)
 
             if (bidPrice <= maxOffer) {
-
               try {
                 const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
-
                 if (status === true) {
                   bidHistory[collectionSymbol].topBids[tokenId] = true
                   bidHistory[collectionSymbol].ourBids[tokenId] = {
@@ -306,6 +326,9 @@ async function processScheduledLoop(item: CollectionData) {
               console.log('-----------------------------------------------------------------------------------------------------------------------------');
               console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
               console.log('-----------------------------------------------------------------------------------------------------------------------------');
+
+              delete bidHistory[collectionSymbol].topBids[tokenId]
+              delete bidHistory[collectionSymbol].ourBids[tokenId]
             }
           }
         }
@@ -329,7 +352,7 @@ async function processScheduledLoop(item: CollectionData) {
                 const offer = offerData.offers[0]
 
                 try {
-                  await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
+                  cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
                   delete bidHistory[collectionSymbol].ourBids[tokenId]
                   delete bidHistory[collectionSymbol].topBids[tokenId]
 
@@ -365,6 +388,9 @@ async function processScheduledLoop(item: CollectionData) {
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
                 console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
+
+                delete bidHistory[collectionSymbol].topBids[tokenId]
+                delete bidHistory[collectionSymbol].ourBids[tokenId]
               }
 
             } else {
@@ -375,8 +401,7 @@ async function processScheduledLoop(item: CollectionData) {
                   const bidPrice = secondBestPrice + outBidAmount
 
                   try {
-
-                    await cancelBid(topOffer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
+                    cancelBid(topOffer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
                     delete bidHistory[collectionSymbol].ourBids[tokenId]
                     delete bidHistory[collectionSymbol].topBids[tokenId]
 
@@ -407,11 +432,14 @@ async function processScheduledLoop(item: CollectionData) {
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
                     console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
+
+                    delete bidHistory[collectionSymbol].topBids[tokenId]
+                    delete bidHistory[collectionSymbol].ourBids[tokenId]
                   }
                 }
               } else {
                 const bidPrice = Math.max(minOffer, listedPrice * 0.5)
-                if (bestPrice > bidPrice) {
+                if (bestPrice !== bidPrice) { // self adjust bids.
 
                   try {
                     await cancelBid(topOffer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
@@ -444,6 +472,9 @@ async function processScheduledLoop(item: CollectionData) {
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
                     console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
+
+                    delete bidHistory[collectionSymbol].topBids[tokenId]
+                    delete bidHistory[collectionSymbol].ourBids[tokenId]
                   }
 
                 }
@@ -489,7 +520,6 @@ async function processCounterBidLoop(item: CollectionData) {
   }
 
   if (RESTART) {
-    balance = 50000
     const offerData = await getUserOffers(buyerTokenReceiveAddress)
     if (offerData && offerData.offers.length > 0) {
       const offers = offerData.offers
@@ -511,24 +541,12 @@ async function processCounterBidLoop(item: CollectionData) {
   }
 
   try {
-
+    balance = await getBitcoinBalance(buyerPaymentAddress)
     const collectionData = await collectionDetails(collectionSymbol)
 
 
     const maxFloorBid = item.maxFloorBid <= 100 ? item.maxFloorBid : 100
     const minFloorBid = item.minFloorBid
-
-    const floorPrice = Number(collectionData?.floorPrice) ?? 0
-
-
-    console.log('--------------------------------------------------------------------------------');
-    console.log('BID RANGE AS A PERCENTAGE FLOOR PRICE');
-
-    console.log("MAX PRICE PERCENTAGE OF FLOOR: ", Math.round(maxFloorBid * floorPrice / 100));
-    console.log("MIN PRICE PERCENTAGE OF FLOOR: ", Math.round(minFloorBid * floorPrice / 100));
-    console.log('--------------------------------------------------------------------------------');
-
-    const maxOffer = Math.max(maxPrice, Math.round(minFloorBid * floorPrice / 100))
 
     const lastSeenTimestamp = bidHistory[collectionSymbol]?.lastSeenActivity || null;
     const { offers, latestTimestamp, soldTokens } = await getCollectionActivity(
@@ -615,6 +633,15 @@ async function processCounterBidLoop(item: CollectionData) {
     bidHistory[collectionSymbol].lastSeenActivity = lastSeenActivity
 
     if (counterOffers.length > 0) {
+      const floorPrice = Number(collectionData?.floorPrice) ?? 0
+
+      console.log('--------------------------------------------------------------------------------');
+      console.log('BID RANGE AS A PERCENTAGE FLOOR PRICE');
+      console.log("MAX PRICE PERCENTAGE OF FLOOR: ", Math.round(maxFloorBid * floorPrice / 100));
+      console.log("MIN PRICE PERCENTAGE OF FLOOR: ", Math.round(minFloorBid * floorPrice / 100));
+      console.log('--------------------------------------------------------------------------------');
+
+      const maxOffer = Math.max(maxPrice, Math.round(maxFloorBid * floorPrice / 100))
 
       await queue.addAll(
         counterOffers.map((offers) => async () => {
@@ -629,7 +656,7 @@ async function processCounterBidLoop(item: CollectionData) {
             if (listedPrice > ourBidPrice) {
 
               try {
-                await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
+                cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
                 delete bidHistory[collectionSymbol].ourBids[tokenId]
                 delete bidHistory[collectionSymbol].topBids[tokenId]
               } catch (error) {
@@ -655,11 +682,15 @@ async function processCounterBidLoop(item: CollectionData) {
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
                 console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
+                delete bidHistory[collectionSymbol].topBids[tokenId]
+                delete bidHistory[collectionSymbol].ourBids[tokenId]
               }
             } else {
               console.log('-----------------------------------------------------------------------------------------------------------------------------');
               console.log(`YOU CURRENTLY HAVE THE HIGHEST OFFER ${ourBidPrice} FOR ${collectionSymbol} ${tokenId}`);
               console.log('-----------------------------------------------------------------------------------------------------------------------------');
+
+              // check those conditions
             }
           }
 
