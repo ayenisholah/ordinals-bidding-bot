@@ -187,7 +187,9 @@ async function processScheduledLoop(item: CollectionData) {
     const tokensToCancel = findTokensToCancel(tokens, ourBids)
 
     const meBids = await getUserOffers(buyerTokenReceiveAddress)
-    const meOffers = meBids?.offers.map((item) => ({ collectionSymbol: item.token.collectionSymbol, tokenId: item.tokenId, price: item.price, expiration: new Date(item.expirationDate).toISOString() }))
+    const meOffers = meBids?.offers
+      .map((item) => ({ collectionSymbol: item.token.collectionSymbol, tokenId: item.tokenId, price: item.price, expiration: new Date(item.expirationDate).toISOString() }))
+      .sort((a, b) => a.price - b.price)
 
     console.log('--------------------------------------------------------------------------------');
     console.log('MAGIC EDEN BIDS');
