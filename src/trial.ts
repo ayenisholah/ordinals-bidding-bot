@@ -676,6 +676,11 @@ async function processCounterBidLoop(item: CollectionData) {
             const offer = offerData.offers[0]
 
             if (listedPrice > ourBidPrice) {
+              console.log('-------------------------------------------------------------------------');
+              console.log('COUNTERBIDDING!!!!');
+              console.log('-------------------------------------------------------------------------');
+
+
               try {
                 await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
                 delete bidHistory[collectionSymbol].ourBids[tokenId]
