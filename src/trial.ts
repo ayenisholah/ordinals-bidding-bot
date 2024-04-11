@@ -215,15 +215,18 @@ async function processScheduledLoop(item: CollectionData) {
 
 
     if (tokensToCancel.length > 0) {
-      for (const tokenId of tokensToCancel) {
-        const offerData = await getOffers(tokenId, buyerTokenReceiveAddress)
-        if (offerData && Number(offerData.total) > 0) {
-          const offer = offerData.offers[0]
-          await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
-        }
-        delete bidHistory[collectionSymbol].ourBids[tokenId]
-        delete bidHistory[collectionSymbol].topBids[tokenId]
-      }
+
+      await queue.addAll(
+        tokensToCancel.map(tokenId => async () => {
+          const offerData = await getOffers(tokenId, buyerTokenReceiveAddress)
+          if (offerData && Number(offerData.total) > 0) {
+            const offer = offerData.offers[0]
+            await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
+          }
+          delete bidHistory[collectionSymbol].ourBids[tokenId]
+          delete bidHistory[collectionSymbol].topBids[tokenId]
+        })
+      )
     }
 
     await queue.addAll(
@@ -667,7 +670,7 @@ async function processCounterBidLoop(item: CollectionData) {
           const { tokenId, price: listedPrice } = offers
           const bidPrice = listedPrice + (outBidMargin * CONVERSION_RATE)
 
-          const ourBidPrice = bidHistory[collectionSymbol].ourBids[tokenId].price
+          const ourBidPrice = bidHistory[collectionSymbol]?.ourBids[tokenId]?.price
           const offerData = await getOffers(tokenId, buyerTokenReceiveAddress)
           if (offerData && offerData.offers && +offerData.total > 0) {
             const offer = offerData.offers[0]
