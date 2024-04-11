@@ -219,8 +219,7 @@ async function processScheduledLoop(item: CollectionData) {
         const offerData = await getOffers(tokenId, buyerTokenReceiveAddress)
         if (offerData && Number(offerData.total) > 0) {
           const offer = offerData.offers[0]
-
-          cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
+          await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
         }
         delete bidHistory[collectionSymbol].ourBids[tokenId]
         delete bidHistory[collectionSymbol].topBids[tokenId]
@@ -245,11 +244,10 @@ async function processScheduledLoop(item: CollectionData) {
           const offer = offerData?.offers[0]
 
           if (offer) {
-            cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
-            delete bidHistory[collectionSymbol].ourBids[tokenId]
-            delete bidHistory[collectionSymbol].topBids[tokenId]
-            delete bidHistory[collectionSymbol].topOffers[tokenId]
+            await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
           }
+          delete bidHistory[collectionSymbol].ourBids[tokenId]
+          delete bidHistory[collectionSymbol].topBids[tokenId]
         }
 
         // IF CURRENT PRICE > MAX OFFER CANCEL
@@ -361,7 +359,7 @@ async function processScheduledLoop(item: CollectionData) {
                 const offer = offerData.offers[0]
 
                 try {
-                  cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
+                  await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
                   delete bidHistory[collectionSymbol].ourBids[tokenId]
                   delete bidHistory[collectionSymbol].topBids[tokenId]
 
@@ -410,7 +408,7 @@ async function processScheduledLoop(item: CollectionData) {
                   const bidPrice = secondBestPrice + outBidAmount
 
                   try {
-                    cancelBid(topOffer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
+                    await cancelBid(topOffer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
                     delete bidHistory[collectionSymbol].ourBids[tokenId]
                     delete bidHistory[collectionSymbol].topBids[tokenId]
 
@@ -493,7 +491,7 @@ async function processScheduledLoop(item: CollectionData) {
                   const offer = offerData?.offers[0]
 
                   if (offer) {
-                    cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
+                    await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
                   }
 
                   delete bidHistory[collectionSymbol].ourBids[tokenId]
@@ -676,7 +674,7 @@ async function processCounterBidLoop(item: CollectionData) {
 
             if (listedPrice > ourBidPrice) {
               try {
-                cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
+                await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
                 delete bidHistory[collectionSymbol].ourBids[tokenId]
                 delete bidHistory[collectionSymbol].topBids[tokenId]
               } catch (error) {
