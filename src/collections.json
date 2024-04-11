@@ -1,10 +1,10 @@
 [
 	{
-		"collectionSymbol": "the-prophecy",
-		"minBid": 0.00014,
+		"collectionSymbol": "bitx_runes_dex",
+		"minBid": 0.00027,
 		"minFloorBid": 50,
-		"maxFloorBid": 100,
-		"maxBid": 0.00018,
+		"maxFloorBid": 60,
+		"maxBid": 0.00031,
 		"bidCount": 20,
 		"duration": 10,
 		"counterbidLoop": 10,

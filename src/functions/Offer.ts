@@ -40,7 +40,6 @@ export async function createOffer(
 
   try {
     const { data } = await limiter.schedule(() => axiosInstance.get(baseURL, { params, headers }))
-
     return data
   } catch (error: any) {
     console.log("createOfferError: ", error.response.data);
@@ -50,12 +49,19 @@ export async function createOffer(
 export function signData(unsignedData: any, privateKey: string) {
   if (typeof unsignedData !== "undefined") {
     const psbt = bitcoin.Psbt.fromBase64(unsignedData.psbtBase64);
-
     const keyPair: ECPairInterface = ECPair.fromWIF(privateKey, network)
-    const signedPSBTBase64 = psbt.signInput(1, keyPair).toBase64()
-    return signedPSBTBase64;
+
+    for (let index of unsignedData.toSignInputs) {
+      psbt.signInput(index, keyPair);
+      psbt.finalizeInput(index);
+    }
+    psbt.signAllInputs(keyPair)
+
+    const signedBuyingPSBTBase64 = psbt.toBase64();
+    return signedBuyingPSBTBase64;
   }
 }
+
 
 export async function submitSignedOfferOrder(
   signedPSBTBase64: string,
@@ -84,6 +90,8 @@ export async function submitSignedOfferOrder(
     const response = await limiter.schedule(() => axiosInstance.post(url, data, { headers }))
     return response.data;
   } catch (error: any) {
+    console.log(error.response.data);
+
   }
 }
 
