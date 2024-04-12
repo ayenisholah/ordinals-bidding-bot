@@ -581,7 +581,6 @@ async function processCounterBidLoop(item: CollectionData) {
     const ourBids = Object.keys(bidHistory[collectionSymbol].ourBids);
     const latestOffers = offers
       .filter((offer) => ourBids.includes(offer.tokenId))
-      .sort((a, b) => b.listedPrice - a.listedPrice)
       .map((item) => ({ collectionSymbol: item.collectionSymbol, tokenId: item.tokenId, buyerPaymentAddress: item.buyerPaymentAddress, price: item.listedPrice, createdAt: new Date(item.createdAt).toISOString() }))
       .reduce((accumulator: Offer[], currentOffer: Offer) => {
         const existingItemIndex = accumulator.findIndex(item => item.tokenId === currentOffer.tokenId);
