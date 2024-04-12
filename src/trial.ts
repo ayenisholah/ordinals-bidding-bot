@@ -827,9 +827,6 @@ async function getCollectionActivity(
           soldTokens.push(activity)
         }
 
-        // Update the latestTimestamp with the timestamp of the current activity
-        latestTimestamp = activityTimestamp;
-
         if (lists.length + offers.length === params.limit) {
           break;
         }
@@ -837,6 +834,10 @@ async function getCollectionActivity(
 
       offset += response.data.activities.length;
     } while (lists.length + offers.length < params.limit);
+
+    if (response.data.activities.length > 0) {
+      latestTimestamp = new Date(response.data.activities[0].createdAt).getTime();
+    }
 
     return { lists, offers, soldTokens, latestTimestamp };
   } catch (error: any) {
