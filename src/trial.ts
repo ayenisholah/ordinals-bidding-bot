@@ -814,7 +814,7 @@ async function getCollectionActivity(
       for (const activity of response.data.activities) {
         const activityTimestamp = new Date(activity.createdAt).getTime();
 
-        if (lastSeenTimestamp !== null && activityTimestamp <= lastSeenTimestamp) {
+        if (lastSeenTimestamp !== null && activityTimestamp <= (lastSeenTimestamp - 1 * 1000)) {
           // Activity has already been seen, break the loop
           return { lists, offers, soldTokens, latestTimestamp };
         }
