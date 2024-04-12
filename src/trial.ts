@@ -745,7 +745,6 @@ async function startProcessing() {
           }
         })(),
         (async () => {
-          await delay(item.scheduledLoop || DEFAULT_LOOP); // Wait for the first scheduled loop delay
           while (true) {
             if (!isScheduledLoopRunning) {
               await processCounterBidLoop(item);
