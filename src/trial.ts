@@ -739,7 +739,7 @@ async function startProcessing() {
         (async () => {
           while (true) {
             isScheduledLoopRunning = true;
-            await processScheduledLoop(item);
+            //await processScheduledLoop(item);
             isScheduledLoopRunning = false;
             await delay(item.scheduledLoop || DEFAULT_LOOP);
           }
@@ -813,7 +813,7 @@ async function getCollectionActivity(
       for (const activity of response.data.activities) {
         const activityTimestamp = new Date(activity.createdAt).getTime();
 
-        if (lastSeenTimestamp !== null && activityTimestamp <= (lastSeenTimestamp - 1 * 1000)) {
+        if (lastSeenTimestamp !== null && activityTimestamp <= (lastSeenTimestamp - 1 * 10000)) {
           // Activity has already been seen, break the loop
           return { lists, offers, soldTokens, latestTimestamp };
         }
