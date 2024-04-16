@@ -819,7 +819,7 @@ async function getCollectionActivity(
       for (const activity of response.data.activities) {
         const activityTimestamp = new Date(activity.createdAt).getTime();
 
-        if (lastSeenTimestamp !== null && activityTimestamp <= (lastSeenTimestamp - 1 * 10000)) {
+        if (lastSeenTimestamp !== null && activityTimestamp <= (lastSeenTimestamp - 10 * 1000)) {
           // Activity has already been seen, break the loop
           return { lists, offers, soldTokens, latestTimestamp };
         }
@@ -985,24 +985,3 @@ interface Offer {
   price: number;
   createdAt: string;
 }
-
-
-// TOKENS TO CANCEL
-// ┌─────────┬─────────────────────────────────────────────────────────────────────────┐
-// │ (index) │                                 Values                                  │
-// ├─────────┼─────────────────────────────────────────────────────────────────────────┤
-// │    0    │ '3d19c12db788dbd8f2ea0fe2704e4c8609fdb9619cc189824a203d2a16ed7691i951'  │
-// │    1    │ '6dd462b45bcd6ebea0e7deb2255269c049271751fe6cff6af5690d0a3561b3e6i1149' │
-// │    2    │ '6dd462b45bcd6ebea0e7deb2255269c049271751fe6cff6af5690d0a3561b3e6i1148' │
-// │    3    │ '3d19c12db788dbd8f2ea0fe2704e4c8609fdb9619cc189824a203d2a16ed7691i139'  │
-// │    4    │ 'd694bca7c91d2f977bcb64a41c722bca79d711e7024657f60e107dc5dab86517i131'  │
-// │    5    │ '5b13bdbaf478204ede24bb5bfef048f0f218c6f84cf7c4cba8450b6a76ece6bai1028' │
-// │    6    │ '39cd37ef304beb83b74d4c28dd908a0c2bc31e6626ec291c810911c305136ae5i1012' │
-// │    7    │ '3d19c12db788dbd8f2ea0fe2704e4c8609fdb9619cc189824a203d2a16ed7691i901'  │
-// │    8    │ '3d19c12db788dbd8f2ea0fe2704e4c8609fdb9619cc189824a203d2a16ed7691i1350' │
-// │    9    │ '68c2b80824383b5f361ee49207bc56ff8af78612b6994c09bd0c0737fcd164f4i1062' │
-// │   10    │ '39cd37ef304beb83b74d4c28dd908a0c2bc31e6626ec291c810911c305136ae5i763'  │
-// │   11    │ 'a2ebe021cace26ff98de1abd0b455f1778a21ed0ab9c2eea8215ba62aed92f2ai755'  │
-// │   12    │ '78604bcb9048f401a8895d6cce43192e06aae3b90fd85bcd50713a6a17b2baeci1140' │
-// │   13    │ '04f2a2ecb8f769e5253b73fad143a770af512b246a0c8c792a21db24da2c8d48i1611' │
-// └─────────┴─────────────────────────────────────────────────────────────────────────┘
