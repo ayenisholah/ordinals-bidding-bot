@@ -641,8 +641,14 @@ async function processCounterBidLoop(item: CollectionData) {
     console.table(soldTokens)
     console.log('-------------------------------------------------------------------------------');
 
+    const bottomListings = bidHistory[collectionSymbol].bottomListings
+    const bottomBids = bottomListings.map((item) => item.id)
+
     const counterOffers = offers
-      .filter((offer) => ourBids.includes(offer.tokenId) && offer.buyerPaymentAddress !== buyerPaymentAddress)
+      .filter((offer) =>
+        ourBids.includes(offer.tokenId)
+        && bottomBids.includes(offer.tokenId)
+        && offer.buyerPaymentAddress !== buyerPaymentAddress)
       .map((item) => ({ collectionSymbol: item.collectionSymbol, tokenId: item.tokenId, buyerPaymentAddress: item.buyerPaymentAddress, price: item.listedPrice, createdAt: item.createdAt }))
 
     console.log('-------------------------------------------------------------------------------');
