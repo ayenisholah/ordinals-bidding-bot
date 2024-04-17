@@ -1,10 +1,10 @@
 [
 	{
 		"collectionSymbol": "the-prophecy",
-		"minBid": 0.00005,
+		"minBid": 0.000065,
 		"minFloorBid": 50,
 		"maxFloorBid": 80,
-		"maxBid": 0.0003,
+		"maxBid": 0.0001,
 		"bidCount": 20,
 		"duration": 10,
 		"scheduledLoop": 60000,

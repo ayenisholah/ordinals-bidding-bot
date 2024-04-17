@@ -186,16 +186,6 @@ async function processScheduledLoop(item: CollectionData) {
     const ourBids = userBids.map((item) => item.tokenId)
     const tokensToCancel = findTokensToCancel(tokens, ourBids)
 
-    const meBids = await getUserOffers(buyerTokenReceiveAddress)
-    const meOffers = meBids?.offers
-      .map((item) => ({ collectionSymbol: item.token.collectionSymbol, tokenId: item.tokenId, price: item.price, expiration: new Date(item.expirationDate).toISOString() }))
-      .sort((a, b) => a.price - b.price)
-
-    console.log('--------------------------------------------------------------------------------');
-    console.log('MAGIC EDEN BIDS');
-    console.table(meOffers)
-    console.log('--------------------------------------------------------------------------------');
-
     console.log('--------------------------------------------------------------------------------');
     console.log('USER BIDS');
     console.table(userBids)
@@ -237,8 +227,6 @@ async function processScheduledLoop(item: CollectionData) {
         const ourExistingOffer = bidHistory[collectionSymbol].ourBids[tokenId]?.expiration > Date.now()
         const currentBidCount = Object.values(bidHistory[collectionSymbol].topBids).length;
 
-        // const old duration and 
-
         const currentExpiry = bidHistory[collectionSymbol]?.ourBids[tokenId]?.expiration
         const newExpiry = duration * 60 * 1000
 
@@ -252,9 +240,6 @@ async function processScheduledLoop(item: CollectionData) {
           delete bidHistory[collectionSymbol].ourBids[tokenId]
           delete bidHistory[collectionSymbol].topBids[tokenId]
         }
-
-        // IF CURRENT PRICE > MAX OFFER CANCEL
-
 
 
         /*
@@ -638,7 +623,6 @@ async function processCounterBidLoop(item: CollectionData) {
     console.log('-------------------------------------------------------------------------------');
     console.log('SOLD TOKENS');
     console.table(sold);
-    console.table(soldTokens)
     console.log('-------------------------------------------------------------------------------');
 
     const bottomListings = bidHistory[collectionSymbol].bottomListings
@@ -739,22 +723,32 @@ async function startProcessing() {
   await Promise.all(
     collections.map(async (item) => {
       let isScheduledLoopRunning = false;
+      let isCounterBidLoopRunning = false;
+      let mutex = new Mutex();
 
       // Start processScheduledLoop and processCounterBidLoop loops concurrently for the item
       await Promise.all([
+        // (async () => {
+        //   while (true) {
+        //     await mutex.acquire();
+        //     if (!isCounterBidLoopRunning) {
+        //       isScheduledLoopRunning = true;
+        //       await processScheduledLoop(item);
+        //       isScheduledLoopRunning = false;
+        //     }
+        //     mutex.release();
+        //     await delay(item.scheduledLoop || DEFAULT_LOOP);
+        //   }
+        // })(),
         (async () => {
           while (true) {
-            isScheduledLoopRunning = true;
-            //await processScheduledLoop(item);
-            isScheduledLoopRunning = false;
-            await delay(item.scheduledLoop || DEFAULT_LOOP);
-          }
-        })(),
-        (async () => {
-          while (true) {
+            await mutex.acquire();
             if (!isScheduledLoopRunning) {
+              isCounterBidLoopRunning = true;
               await processCounterBidLoop(item);
+              isCounterBidLoopRunning = false;
             }
+            mutex.release();
             await delay(item.counterbidLoop || DEFAULT_COUNTER_BID_LOOP_TIME);
           }
         })(),
@@ -763,8 +757,35 @@ async function startProcessing() {
   );
 }
 
+// Simple Mutex implementation
+class Mutex {
+  private locked: boolean;
+  private waitQueue: (() => void)[];
+
+  constructor() {
+    this.locked = false;
+    this.waitQueue = [];
+  }
+
+  async acquire() {
+    if (this.locked) {
+      await new Promise<void>((resolve) => this.waitQueue.push(resolve));
+    }
+    this.locked = true;
+  }
+
+  release() {
+    if (this.waitQueue.length > 0) {
+      const resolve = this.waitQueue.shift();
+      resolve?.();
+    } else {
+      this.locked = false;
+    }
+  }
+}
 
 startProcessing();
+
 
 
 function delay(ms: number) {
