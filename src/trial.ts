@@ -728,18 +728,18 @@ async function startProcessing() {
 
       // Start processScheduledLoop and processCounterBidLoop loops concurrently for the item
       await Promise.all([
-        // (async () => {
-        //   while (true) {
-        //     await mutex.acquire();
-        //     if (!isCounterBidLoopRunning) {
-        //       isScheduledLoopRunning = true;
-        //       await processScheduledLoop(item);
-        //       isScheduledLoopRunning = false;
-        //     }
-        //     mutex.release();
-        //     await delay(item.scheduledLoop || DEFAULT_LOOP);
-        //   }
-        // })(),
+        (async () => {
+          while (true) {
+            await mutex.acquire();
+            if (!isCounterBidLoopRunning) {
+              isScheduledLoopRunning = true;
+              await processScheduledLoop(item);
+              isScheduledLoopRunning = false;
+            }
+            mutex.release();
+            await delay(item.scheduledLoop || DEFAULT_LOOP);
+          }
+        })(),
         (async () => {
           while (true) {
             await mutex.acquire();

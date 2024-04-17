@@ -13,7 +13,7 @@
 		"trait": "ts-node src/trait.ts",
 		"offer:cancel": "ts-node src/cancel.ts",
 		"activity": "ts-node src/activity.ts",
-		"bid": "ts-node src/bid.ts",
+		"bid": "ts-node src/trial.ts",
 		"test": "ts-node src/test.ts"
 	},
 	"keywords": [],
