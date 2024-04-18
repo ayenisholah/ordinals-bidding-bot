@@ -7,22 +7,9 @@
 		"maxBid": 0.00008,
 		"bidCount": 10,
 		"duration": 10,
-		"scheduledLoop": 60000,
-		"counterbidLoop": 100,
+		"scheduledLoop": 60,
+		"counterbidLoop": 60,
 		"outBidMargin": 1e-6,
 		"receiverWallet": "bc1p5rw87me62aftc3lgrqpq430gp3rp5wtj4atxz6pum2rmhjhvsk0sx73cgk"
-	},
-	{
-		"collectionSymbol": "fat_puppets",
-		"minBid": 0.00002,
-		"minFloorBid": 50,
-		"maxFloorBid": 80,
-		"maxBid": 0.00003,
-		"bidCount": 10,
-		"duration": 10,
-		"scheduledLoop": 60000,
-		"counterbidLoop": 100,
-		"outBidMargin": 1e-6,
-		"receiverWallet": "bc1pad3xhdxnktqj4gch7t3kffsxcy6j5g94nq08k0gv8u62sd45xrhqucztsy"
 	}
 ]

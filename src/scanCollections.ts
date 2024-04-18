@@ -1,34 +1,15 @@
-import yargs, { Arguments } from "yargs"
 import fs from "fs"
 
 import { fetchCollections } from './functions/Collection';
 import { retrieveTokens } from './functions/Tokens';
-import { getOffers } from './functions/Offer';
-
-interface Options {
-  api_key: string;
-}
-
-const options = yargs
-  .usage(
-    'Usage: -a <api_key>'
-  )
-  .option('a', {
-    alias: 'api_key',
-    describe: 'NFTTOOLS API Key',
-    type: 'string',
-    demandOption: true
-  }).argv as unknown as Arguments<Options>
-
-const { api_key } = options
-
+import { getOffers } from './functions/Offer'
+import path from "path";
 
 async function run() {
   try {
-    const collections = await fetchCollections(api_key)
+    const collections = await fetchCollections()
     let count = 0;
 
-    const collectionData = []
     for (const collection of collections) {
       const collectionSymbol = collection.collectionSymbol
 
@@ -36,7 +17,7 @@ async function run() {
       const image = collection.image
       const floorPrice = collection.fp
 
-      const tokens = await retrieveTokens(collectionSymbol, 10)
+      const tokens = await retrieveTokens(collectionSymbol, 100)
       const scannedTokens = tokens.length
 
       console.log({ collectionSymbol, count });
@@ -94,7 +75,7 @@ async function run() {
       });
 
 
-      collectionData.push({
+      const collectionData = {
         name,
         collectionSymbol,
         image,
@@ -108,22 +89,26 @@ async function run() {
         tokensWithNoOffers: tokensWithNoOffersCount,
         tokensWithOffers: tokensWithOffersCount,
         offers
-      })
-      count += 1
-    }
-
-    const collectionJSON = JSON.stringify(collectionData, null, 2);
-
-    fs.writeFile(`${__dirname}/collections.json`, collectionJSON, "utf-8", (err) => {
-      if (err) {
-        console.error("Error writing JSON to file:", err);
-        return;
       }
-      console.log(`Wallet created and saved to wallet.json`);
-    });
+      count += 1
+      const collectionJSON = JSON.stringify(collectionData, null, 2);
+      const collectionDir = path.join(__dirname, 'collections');
 
+      // Create the directory if it doesn't exist
+      if (!fs.existsSync(collectionDir)) {
+        fs.mkdirSync(collectionDir, { recursive: true });
+      }
 
-    // write to json
+      const filePath = path.join(collectionDir, `${collectionSymbol}.json`);
+
+      fs.writeFile(filePath, collectionJSON, "utf-8", (err) => {
+        if (err) {
+          console.error("Error writing JSON to file:", err);
+          return;
+        }
+        console.log(`Collection created and saved to ${filePath}`);
+      });
+    }
   } catch (error) {
     console.log(error);
   }

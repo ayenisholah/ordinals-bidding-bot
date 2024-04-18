@@ -16,9 +16,9 @@ OR
 
 ### COLLECTION SCANNER
 
-`yarn scan:collections -a <NFT TOOLS API KEY>`
+`yarn scan:collections`
 
-### ACCOUNT MANAGEMENT
+### ACCOUNT MANAGEMENT (coming soon)
 
 #### Create Test Wallets
 
@@ -30,21 +30,45 @@ OR
 
 #### Create Offers
 
-- Create env and set TOKEN_RECEIVE_ADDRESS
+- Set env variables
 
 `cp .env.example .env`
 
-- Edit the offer.csv files to put collections you want
+- Edit the collections.json and set bidding configurations
 
-`yarn offer -p <wallet private key> -a <NFT Tools api key> -l src/offer.csv`
+```
+[
+  	{
+		"collectionSymbol": "fat_puppets",
+		"minBid": 0.00002,
+		"minFloorBid": 50,
+		"maxFloorBid": 80,
+		"maxBid": 0.00003,
+		"bidCount": 10,
+		"duration": 10,
+		"scheduledLoop": 60,
+		"counterbidLoop": 60,
+		"outBidMargin": 1e-6,
+		"fundingWalletWIF": "L28cGRxowPCWm6eCoZGAxmfENfrMCYnGzX4jayFrEMG3HQWipZdi",
+		"receiverWallet": "bc1pad3xhdxnktqj4gch7t3kffsxcy6j5g94nq08k0gv8u62sd45xrhqucztsy"
+	}
+]
+```
 
-You can spin up workers to make 4 concurrent bidding
-`yarn start`
+| Field            | Description                                                           |
+| ---------------- | --------------------------------------------------------------------- |
+| collectionSymbol | The symbol of the collection to bid on.                               |
+| minBid           | The minimum bid amount.                                               |
+| minFloorBid      | The minimum percentage of the floor price to bid.                     |
+| maxFloorBid      | The maximum percentage of the floor price to bid.                     |
+| maxBid           | The maximum bid amount.                                               |
+| bidCount         | The number of bids to place.                                          |
+| duration         | The duration of the bidding process.                                  |
+| scheduledLoop    | The interval (in seconds) at which to run the scheduled bidding loop. |
+| counterbidLoop   | The interval (in seconds) at which to run the counterbid loop.        |
+
+`yarn bid`
 
 #### Bulk cancel offers
 
-`yarn cancel -p <wallet private key> -a <NFT Tools api key>`
-
-#### Example of traits in JSON
-
-`"[{""value"":""Mutant Operator"",""trait_type"":""Common Pieces""}]"`
+`yarn cancel`
