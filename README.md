@@ -49,7 +49,7 @@ OR
 		"scheduledLoop": 60,
 		"counterbidLoop": 60,
 		"outBidMargin": 1e-6,
-		"fundingWalletWIF": "L28cGRxowPCWm6eCoZGAxmfENfrMCYnGzX4jayFrEMG3HQWipZdi",
+		"fundingWalletWIF": "<WALLET PRIVATEKEY>",
 		"receiverWallet": "bc1pad3xhdxnktqj4gch7t3kffsxcy6j5g94nq08k0gv8u62sd45xrhqucztsy"
 	}
 ]
