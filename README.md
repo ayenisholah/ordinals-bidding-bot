@@ -50,22 +50,24 @@ OR
 		"counterbidLoop": 60,
 		"outBidMargin": 1e-6,
 		"fundingWalletWIF": "<WALLET PRIVATEKEY>",
-		"receiverWallet": "bc1pad3xhdxnktqj4gch7t3kffsxcy6j5g94nq08k0gv8u62sd45xrhqucztsy"
+		"tokenReceiveAddress": "bc1pad3xhdxnktqj4gch7t3kffsxcy6j5g94nq08k0gv8u62sd45xrhqucztsy"
 	}
 ]
 ```
 
-| Field            | Description                                                           |
-| ---------------- | --------------------------------------------------------------------- |
-| collectionSymbol | The symbol of the collection to bid on.                               |
-| minBid           | The minimum bid amount.                                               |
-| minFloorBid      | The minimum percentage of the floor price to bid.                     |
-| maxFloorBid      | The maximum percentage of the floor price to bid.                     |
-| maxBid           | The maximum bid amount.                                               |
-| bidCount         | The number of bids to place.                                          |
-| duration         | The duration of the bidding process.                                  |
-| scheduledLoop    | The interval (in seconds) at which to run the scheduled bidding loop. |
-| counterbidLoop   | The interval (in seconds) at which to run the counterbid loop.        |
+| Field                          | Description                                                           |
+| ------------------------------ | --------------------------------------------------------------------- |
+| collectionSymbol               | The symbol of the collection to bid on.                               |
+| minBid                         | The minimum bid amount.                                               |
+| minFloorBid                    | The minimum percentage of the floor price to bid.                     |
+| maxFloorBid                    | The maximum percentage of the floor price to bid.                     |
+| maxBid                         | The maximum bid amount.                                               |
+| bidCount                       | The number of bids to place.                                          |
+| duration                       | The duration of the bidding process.                                  |
+| scheduledLoop                  | The interval (in seconds) at which to run the scheduled bidding loop. |
+| counterbidLoop                 | The interval (in seconds) at which to run the counterbid loop.        |
+| fundingWalletWIF (OPTIONAL)    | WIF (Wallet Import Format). This overrides the value set in the env   |
+| tokenReceiveAddress (OPTIONAL) | Token receive address. This overrides the value set in the env        |
 
 `yarn bid`
 

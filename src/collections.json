@@ -1,15 +1,14 @@
 [
 	{
 		"collectionSymbol": "the-prophecy",
-		"minBid": 0.00006,
+		"minBid": 0.00004,
 		"minFloorBid": 50,
 		"maxFloorBid": 80,
-		"maxBid": 0.00008,
+		"maxBid": 0.00006,
 		"bidCount": 10,
 		"duration": 10,
 		"scheduledLoop": 60,
 		"counterbidLoop": 60,
-		"outBidMargin": 1e-6,
-		"receiverWallet": "bc1p5rw87me62aftc3lgrqpq430gp3rp5wtj4atxz6pum2rmhjhvsk0sx73cgk"
+		"outBidMargin": 1e-6
 	}
 ]

@@ -7,7 +7,7 @@ import { ECPairFactory, ECPairAPI, TinySecp256k1Interface } from 'ecpair';
 
 config()
 
-const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
+const FUNDING_WIF = process.env.FUNDING_WIF as string;
 const TOKEN_RECEIVE_ADDRESS = process.env.TOKEN_RECEIVE_ADDRESS as string
 const network = bitcoin.networks.bitcoin;
 
@@ -20,7 +20,7 @@ const ECPair: ECPairAPI = ECPairFactory(tinysecp);
 
 const uniqueCollections = collections.filter(
   (collection, index, self) =>
-    index === self.findIndex((c) => c.receiverWallet === collection.receiverWallet)
+    index === self.findIndex((c) => c.tokenReceiveAddress === collection.tokenReceiveAddress)
 );
 
 
@@ -29,8 +29,8 @@ uniqueCollections.forEach((item) => {
 })
 
 async function main(item: CollectionData) {
-  const privateKey = item.fundingWalletWIF ?? PRIVATE_KEY;
-  const buyerTokenReceiveAddress = item.receiverWallet ?? TOKEN_RECEIVE_ADDRESS;
+  const privateKey = item.fundingWalletWIF ?? FUNDING_WIF;
+  const buyerTokenReceiveAddress = item.tokenReceiveAddress ?? TOKEN_RECEIVE_ADDRESS;
 
   const keyPair = ECPair.fromWIF(privateKey, network);
   const buyerPaymentAddress = bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: network }).address as string
@@ -88,7 +88,7 @@ export interface CollectionData {
   bidCount: number;
   duration: number;
   fundingWalletWIF?: string;
-  receiverWallet?: string;
+  tokenReceiveAddress?: string;
   scheduledLoop?: number;
   counterbidLoop?: number
 }

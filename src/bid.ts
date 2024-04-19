@@ -13,10 +13,10 @@ import limiter from "./bottleneck";
 config()
 
 const TOKEN_RECEIVE_ADDRESS = process.env.TOKEN_RECEIVE_ADDRESS as string
-const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
+const FUNDING_WIF = process.env.FUNDING_WIF as string;
 const DEFAULT_OUTBID_MARGIN = Number(process.env.DEFAULT_OUTBID_MARGIN) || 0.00001
 const API_KEY = process.env.API_KEY as string;
-const RATE_LIMIT = Number(process.env.RATE_LIMIT) ?? 8
+const RATE_LIMIT = Number(process.env.RATE_LIMIT) ?? 32
 const DEFAULT_OFFER_EXPIRATION = 30
 const FEE_RATE_TIER = 'halfHourFee'
 const CONVERSION_RATE = 100000000
@@ -25,8 +25,8 @@ const network = bitcoin.networks.bitcoin;
 const tinysecp: TinySecp256k1Interface = require('tiny-secp256k1');
 const ECPair: ECPairAPI = ECPairFactory(tinysecp);
 
-const DEFAULT_COUNTER_BID_LOOP_TIME = 30
-const DEFAULT_LOOP = 30
+const DEFAULT_COUNTER_BID_LOOP_TIME = Number(process.env.DEFAULT_COUNTER_BID_LOOP_TIME) ?? 30
+const DEFAULT_LOOP = Number(process.env.DEFAULT_LOOP) ?? 30
 let RESTART = true
 
 const headers = {
@@ -82,8 +82,8 @@ async function processScheduledLoop(item: CollectionData) {
   const bidCount = item.bidCount ?? 20
   const duration = item.duration ?? DEFAULT_OFFER_EXPIRATION
   const outBidMargin = item.outBidMargin ?? DEFAULT_OUTBID_MARGIN
-  const buyerTokenReceiveAddress = item.receiverWallet ?? TOKEN_RECEIVE_ADDRESS;
-  const privateKey = item.fundingWalletWIF ?? PRIVATE_KEY;
+  const buyerTokenReceiveAddress = item.tokenReceiveAddress ?? TOKEN_RECEIVE_ADDRESS;
+  const privateKey = item.fundingWalletWIF ?? FUNDING_WIF;
   const keyPair = ECPair.fromWIF(privateKey, network);
   const publicKey = keyPair.publicKey.toString('hex');
 
@@ -507,8 +507,8 @@ async function processCounterBidLoop(item: CollectionData) {
   const bidCount = item.bidCount ?? 20
   const duration = item.duration ?? DEFAULT_OFFER_EXPIRATION
   const outBidMargin = item.outBidMargin ?? DEFAULT_OUTBID_MARGIN
-  const buyerTokenReceiveAddress = item.receiverWallet ?? TOKEN_RECEIVE_ADDRESS;
-  const privateKey = item.fundingWalletWIF ?? PRIVATE_KEY;
+  const buyerTokenReceiveAddress = item.tokenReceiveAddress ?? TOKEN_RECEIVE_ADDRESS;
+  const privateKey = item.fundingWalletWIF ?? FUNDING_WIF;
   const keyPair = ECPair.fromWIF(privateKey, network);
   const publicKey = keyPair.publicKey.toString('hex');
   const currentTime = new Date().getTime();
@@ -626,7 +626,19 @@ async function processCounterBidLoop(item: CollectionData) {
     console.log('-------------------------------------------------------------------------------');
 
     const bottomListings = bidHistory[collectionSymbol].bottomListings
-    const bottomBids = bottomListings.map((item) => item.id)
+
+
+    const userBids = Object.entries(bidHistory).flatMap(([collectionSymbol, bidData]) => {
+      return Object.entries(bidData.ourBids).map(([tokenId, bidInfo]) => ({
+        collectionSymbol,
+        tokenId,
+        price: bidInfo.price,
+        expiration: new Date(bidInfo.expiration).toISOString(),
+      }));
+    }).sort((a, b) => a.price - b.price)
+
+    const bottomListingBids = combineBidsAndListings(userBids, bottomListings)
+    const bottomBids = bottomListingBids.map((item) => item?.bidId)
 
     const counterOffers = offers
       .filter((offer) =>
@@ -988,7 +1000,7 @@ export interface CollectionData {
   bidCount: number;
   duration: number;
   fundingWalletWIF?: string;
-  receiverWallet?: string;
+  tokenReceiveAddress?: string;
   scheduledLoop?: number;
   counterbidLoop?: number
 }
