@@ -183,8 +183,10 @@ async function processScheduledLoop(item: CollectionData) {
       }));
     }).sort((a, b) => a.price - b.price)
 
-    const ourBids = userBids.map((item) => item.tokenId)
-    const tokensToCancel = findTokensToCancel(tokens, ourBids)
+    const ourBids = userBids.map((item) => ({ tokenId: item.tokenId, collectionSymbol: item.collectionSymbol })).filter((item) => item.collectionSymbol === collectionSymbol)
+
+    const collectionBottomBids: CollectionBottomBid[] = tokens.map((item) => ({ tokenId: item.id, collectionSymbol: item.collectionSymbol })).filter((item) => item.collectionSymbol === collectionSymbol)
+    const tokensToCancel = findTokensToCancel(collectionBottomBids, ourBids)
 
     console.log('--------------------------------------------------------------------------------');
     console.log('USER BIDS');
@@ -193,13 +195,13 @@ async function processScheduledLoop(item: CollectionData) {
 
     const bottomListingBids = combineBidsAndListings(userBids, bottomListings)
     console.log('--------------------------------------------------------------------------------');
-    console.log('BOTTOM LISTING BIDS');
+    console.log(`BOTTOM LISTING BIDS FOR ${collectionSymbol}`);
     console.table(bottomListingBids)
     console.log('--------------------------------------------------------------------------------');
 
 
     console.log('--------------------------------------------------------------------------------');
-    console.log('TOKENS TO CANCEL');
+    console.log(`TOKENS TO CANCEL ${collectionSymbol}`);
     console.table(tokensToCancel)
     console.log('--------------------------------------------------------------------------------');
 
@@ -207,14 +209,14 @@ async function processScheduledLoop(item: CollectionData) {
     if (tokensToCancel.length > 0) {
 
       await queue.addAll(
-        tokensToCancel.map(tokenId => async () => {
-          const offerData = await getOffers(tokenId, buyerTokenReceiveAddress)
+        tokensToCancel.map(token => async () => {
+          const offerData = await getOffers(token.tokenId, buyerTokenReceiveAddress)
           if (offerData && Number(offerData.total) > 0) {
             const offer = offerData.offers[0]
-            await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
+            await cancelBid(offer, privateKey, collectionSymbol, token.tokenId, buyerPaymentAddress)
           }
-          delete bidHistory[collectionSymbol].ourBids[tokenId]
-          delete bidHistory[collectionSymbol].topBids[tokenId]
+          delete bidHistory[collectionSymbol].ourBids[token.tokenId]
+          delete bidHistory[collectionSymbol].topBids[token.tokenId]
         })
       )
     }
@@ -616,12 +618,12 @@ async function processCounterBidLoop(item: CollectionData) {
     }
 
     console.log('-------------------------------------------------------------------------------');
-    console.log('LATEST OFFERS');
+    console.log(`LATEST OFFERS ${collectionSymbol}`);
     console.table(latestOffers);
     console.log('-------------------------------------------------------------------------------');
 
     console.log('-------------------------------------------------------------------------------');
-    console.log('SOLD TOKENS');
+    console.log(`SOLD TOKENS ${collectionSymbol}`);
     console.table(sold);
     console.log('-------------------------------------------------------------------------------');
 
@@ -903,11 +905,20 @@ async function cancelBid(offer: IOffer, privateKey: string, collectionSymbol: st
 
 
 
-function findTokensToCancel(tokens: ITokenData[], ourBids: string[]): string[] {
+function findTokensToCancel(tokens: CollectionBottomBid[], ourBids: { tokenId: string, collectionSymbol: string }[]): {
+  tokenId: string;
+  collectionSymbol: string;
+}[] {
+
   const missingBids = ourBids.filter(bid =>
-    !tokens.some(token => token.id === bid)
+    !tokens.some(token => token.tokenId === bid.tokenId && token.collectionSymbol === bid.collectionSymbol)
   );
   return missingBids;
+}
+
+interface CollectionBottomBid {
+  tokenId: string;
+  collectionSymbol: string
 }
 
 async function placeBid(
