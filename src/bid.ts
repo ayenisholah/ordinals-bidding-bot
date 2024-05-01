@@ -4,7 +4,7 @@ import * as bitcoin from "bitcoinjs-lib";
 import { ECPairFactory, ECPairAPI, TinySecp256k1Interface } from 'ecpair';
 import PQueue from "p-queue"
 import { getBitcoinBalance } from "./utils";
-import { IOffer, createOffer, getBestOffer, getOffers, getUserOffers, retrieveCancelOfferFormat, signData, submitCancelOfferData, submitSignedOfferOrder } from "./functions/Offer";
+import { IOffer, createCollectionOffer, createOffer, getBestOffer, getOffers, getUserOffers, retrieveCancelOfferFormat, signCollectionOffer, signData, submitCancelOfferData, submitCollectionOffer, submitSignedOfferOrder } from "./functions/Offer";
 import { OfferPlaced, collectionDetails } from "./functions/Collection";
 import { ITokenData, getToken, retrieveTokens } from "./functions/Tokens";
 import axiosInstance from "./axios/axiosInstance";
@@ -77,6 +77,9 @@ async function processScheduledLoop(item: CollectionData) {
   console.log('----------------------------------------------------------------------');
 
   const collectionSymbol = item.collectionSymbol
+  const quantity = item.quantity
+  const feeSatsPerVbyte = item.feeSatsPerVbyte
+  const offerType = item.offerType
   const minBid = item.minBid
   const maxBid = item.maxBid
   const bidCount = item.bidCount ?? 20
@@ -275,7 +278,7 @@ async function processScheduledLoop(item: CollectionData) {
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
                 try {
-                  const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
+                  const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, offerType, collectionSymbol, quantity, feeSatsPerVbyte)
 
                   if (status === true) {
                     bidHistory[collectionSymbol].topBids[tokenId] = true
@@ -307,7 +310,7 @@ async function processScheduledLoop(item: CollectionData) {
 
             if (bidPrice <= maxOffer) {
               try {
-                const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
+                const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, offerType, collectionSymbol, quantity, feeSatsPerVbyte)
                 if (status === true) {
                   bidHistory[collectionSymbol].topBids[tokenId] = true
                   bidHistory[collectionSymbol].ourBids[tokenId] = {
@@ -367,8 +370,7 @@ async function processScheduledLoop(item: CollectionData) {
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
                 try {
-                  const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
-
+                  const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, offerType, collectionSymbol, quantity, feeSatsPerVbyte)
 
                   if (status === true) {
                     bidHistory[collectionSymbol].topBids[tokenId] = true
@@ -413,7 +415,7 @@ async function processScheduledLoop(item: CollectionData) {
 
                     try {
 
-                      const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
+                      const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, offerType, collectionSymbol, quantity, feeSatsPerVbyte)
 
                       if (status === true) {
                         bidHistory[collectionSymbol].topBids[tokenId] = true
@@ -453,7 +455,7 @@ async function processScheduledLoop(item: CollectionData) {
                   if (bidPrice <= maxOffer) {
 
                     try {
-                      const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
+                      const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, offerType, collectionSymbol, quantity, feeSatsPerVbyte)
 
                       if (status === true) {
                         bidHistory[collectionSymbol].topBids[tokenId] = true
@@ -505,6 +507,9 @@ async function processCounterBidLoop(item: CollectionData) {
   console.log('----------------------------------------------------------------------');
 
   const collectionSymbol = item.collectionSymbol
+  const quantity = item.quantity
+  const feeSatsPerVbyte = item.feeSatsPerVbyte
+  const offerType = item.offerType
   const maxBid = item.maxBid
   const bidCount = item.bidCount ?? 20
   const duration = item.duration ?? DEFAULT_OFFER_EXPIRATION
@@ -693,7 +698,7 @@ async function processCounterBidLoop(item: CollectionData) {
               }
               if (bidPrice <= maxOffer) {
                 try {
-                  const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, collectionSymbol)
+                  const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey, offerType, collectionSymbol, quantity, feeSatsPerVbyte)
                   if (status === true) {
                     bidHistory[collectionSymbol].topBids[tokenId] = true
                     bidHistory[collectionSymbol].ourBids[tokenId] = {
@@ -929,15 +934,35 @@ async function placeBid(
   buyerPaymentAddress: string,
   publicKey: string,
   privateKey: string,
-  collectionSymbol: string
+  offerType: "ITEM" | "COLLECTION",
+  collectionSymbol?: string,
+  quantity?: number,
+  feeSatsPerVbyte?: number
 ) {
   try {
-    const price = Math.round(offerPrice)
-    const unsignedOffer = await createOffer(tokenId, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, FEE_RATE_TIER)
-    const signedOffer = await signData(unsignedOffer, privateKey)
-    if (signedOffer) {
-      await submitSignedOfferOrder(signedOffer, tokenId, offerPrice, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, FEE_RATE_TIER)
-      return true
+    console.log('----------------------------------------------------------------------');
+    console.log(`MAKING COLLECTION OFFER FOR ${collectionSymbol}`);
+    console.log('----------------------------------------------------------------------');
+
+
+    if (offerType.toUpperCase() === "COLLECTION" && collectionSymbol && feeSatsPerVbyte && quantity) {
+      const priceSats = Math.ceil(offerPrice)
+      // const priceSats = 150000
+      const expirationAt = new Date(expiration).toISOString();
+      const unsignedCollectionOffer = await createCollectionOffer(collectionSymbol, quantity, priceSats, expirationAt, feeSatsPerVbyte, publicKey, buyerTokenReceiveAddress)
+      if (unsignedCollectionOffer) {
+        const { signedOfferPSBTBase64, signedCancelledPSBTBase64 } = signCollectionOffer(unsignedCollectionOffer, privateKey)
+        await submitCollectionOffer(signedOfferPSBTBase64, signedCancelledPSBTBase64, collectionSymbol, quantity, priceSats, expirationAt, publicKey, buyerTokenReceiveAddress)
+      }
+
+    } else {
+      const price = Math.round(offerPrice)
+      const unsignedOffer = await createOffer(tokenId, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, FEE_RATE_TIER)
+      const signedOffer = await signData(unsignedOffer, privateKey)
+      if (signedOffer) {
+        await submitSignedOfferOrder(signedOffer, tokenId, offerPrice, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, FEE_RATE_TIER)
+        return true
+      }
     }
   } catch (error) {
     console.log(error);
@@ -1013,7 +1038,10 @@ export interface CollectionData {
   fundingWalletWIF?: string;
   tokenReceiveAddress?: string;
   scheduledLoop?: number;
-  counterbidLoop?: number
+  counterbidLoop?: number;
+  offerType: "ITEM" | "COLLECTION";
+  quantity?: number;
+  feeSatsPerVbyte?: number;
 }
 
 interface Token {

@@ -1,0 +1,46 @@
+GET COLLECTION FORMAT
+curl 'https://api-mainnet.magiceden.io/v2/ord/btc/collection-offers/psbt/create?collectionSymbol=runestone&quantity=1&priceSats=1200000&expirationAt=2024-05-01T04:45:00.000Z&feeSatsPerVbyte=25&makerPublicKey=031da4242f5d72c21acd558aafccf0595897568b8bc314899fbc4d92eafa0c6ca0&makerPaymentType=p2wpkh&makerReceiveAddress=bc1pg0zkzgn645qz98dys6h25sdwtmfsneeuawxk63fzz7zsztkp4jyssfgqq5'
+
+RESPONSE
+{
+    "offers": [
+        {
+            "psbtBase64": "cHNidP8BAH0CAAAAAaKZewLWdOARILxIVQF5bhLRbEPFkmPHlLwtVOKBdLMfAgAAAAD/////AvBmEgAAAAAAIgAgmtVCX0C6ygqxzsWGwB1GqDQn2w2pWlh5WdDOV+p33ZXcZV8AAAAAABYAFPgwKJI+FIX+npWsXT6vfLSLBMfyAAAAAAj8Am1lA3NpZ0DWz7W4zcrh7C3UT5cO9mYo23t8nFkTuLiopBpfzhgQLxpr9QIi2SEvQkXWcPtl1QBqppRmX57ZgC1YpW/JRYv7C/wCbWUGc2lnZXhwCEJ48yRuiiAAGfwCbWUUbWQtY29sbGVjdGlvbjpzeW1ib2wJcnVuZXN0b25lAAEBH5fOcQAAAAAAFgAU+DAokj4Uhf6elaxdPq98tIsEx/IAAAA=",
+            "transactionFeeSats": 459,
+            "cancelPsbtBase64": "cHNidP8BAFICAAAAAaKZewLWdOARILxIVQF5bhLRbEPFkmPHlLwtVOKBdLMfAgAAAAD/////AdnDcQAAAAAAFgAU+DAokj4Uhf6elaxdPq98tIsEx/IAAAAACPwCbWUDc2lnQBOvODAxbRQsz7Ud3dEYAeTlYX8jRoVcaTzzqXZMlOW/AZVUyoZlC6+eEhKlOJELSFKjb3jwd5XnCcJFmYV6/MYL/AJtZQZzaWdleHAIQnjzJG6KMAAZ/AJtZRRtZC1jb2xsZWN0aW9uOnN5bWJvbAlydW5lc3RvbmUAAQEfl85xAAAAAAAWABT4MCiSPhSF/p6VrF0+r3y0iwTH8gAA",
+            "cancelTransactionFeeSats": 2750
+        }
+    ]
+}
+
+YOU NEED TO SIGN BOTH PSBTs
+
+SUBMIT COLLECTION OFFER
+curl 'https://api-mainnet.magiceden.io/v2/ord/btc/collection-offers/psbt/create' \
+  -H 'content-type: application/json' \
+  --data-raw '{"collectionSymbol":"runestone","quantity":1,"priceSats":1200000,"expirationAt":"2024-05-01T04:45:00.000Z","makerPublicKey":"031da4242f5d72c21acd558aafccf0595897568b8bc314899fbc4d92eafa0c6ca0","makerPaymentType":"p2wpkh","makerReceiveAddress":"bc1pg0zkzgn645qz98dys6h25sdwtmfsneeuawxk63fzz7zsztkp4jyssfgqq5","offers":[{"signedPsbtBase64":"cHNidP8BAH0CAAfdsfKZewLWdOARILxIVQF5bhLRbEPFkmPHlLwtVOKBdLMfAgAAAAD/////AvBmEgAAAAAAIgAgmtVCX0C6ygqxzsWGwB1fsdfQn2w2pWlh5WdDOV+p33ZXcZV8AAAAAABYAFPgwKJI+FIX+npWsXT6vfLSLBMfyAAAAAAj8Am1lA3NpZ0DWz7W4zcrh7C3UT5cO9mYo23t8nFkTuLiopBpfzhgQLxpr9QIi2SEvQkXWcPtl1QBqppRmX57ZgCsdfW/JRYv7C/wCbWUGc2lnZXhwCEJ48yRuiiAAGfwfsdUbWQtY29sbGVjdGlvbjpzeW1ib2wJcnVuZXN0b25lAAEBH5fOcQAAAAAAFgAU+DAokj4Uhf6elaxdPq98tIsEx/IiAgMdpCQvXXLCGs1Viq/M8FlYl1aLi8MUiZ+8TZLq+gxsoEcwRAIgUhN8dM/lnLIq7MnDo6h5UvpA0pcxcq3Vuk7SflqZZwgCIHvkyYqGcvxoN4pjLW3BJQ8Jwl3AXGVH87kZGqIgiBwDAQAAAA==","signedCancelPsbtBase64":"cHNidP8BAFICAAAAAaKZewLWdOARILxIVQF5bhLRbEPFkmPHlLwtVOKBdLMfAgAAAAD/////AdnDcQAAAAAAFfsdAokj4Uhf6elaxdPq98tIsEx/IAAAAACPwCbWUDc2lnQBOvODAxbsdfsz7Ud3dEYAeTlYX8jRoVcaTzzqXZMlOW/AZVUyoZlC6+eEhKlOJELSFKjb3jwd5XnCcJFmYV6/MYL/AJtZQZzaWdleHAIQnjzJG6KMAAZ/AJtZRRtZC1jb2xsZWN0aW9uOnN5bWJvbAlydW5lc3RvbmUAAQEfl85xAAAAAAAWABT4MCiSPhSF/p6VrF0+r3y0iwTH8iICAx2kJC9dcsIazVWKr8zwWViXVouLwxSJn7xNkur6DGygSDBFAiEAwVxClQemzHa3XNeBlgzw+gqbvISmuChbgo8UrxoTRSkCIFTWtrekpCVDLVDZonGBOjEaV9csDh6wpZGle4SLuIcEAQAA"}]}'
+
+RESPONSE
+{"offerIds":["4ba12885-0870-49f8-ab43-2f090ec1b905"]}
+
+
+
+
+CANCEL OFFER FORMAT
+curl 'https://api-mainnet.magiceden.io/v2/ord/btc/collection-offers/psbt/cancel?offerIds\[\]=4ba12885-0870-49f8-ab43-2f090ec1b905&makerPublicKey=031da4242f5d72c21acd558aafccf0595897568b8bc314899fbc4d92eafa0c6ca0&makerPaymentType=p2wpkh'
+
+REPSONSE
+{
+    "offerIds": [
+        "4ba12885-0870-49f8-ab43-2f090ec1b905"
+    ],
+    "psbtBase64": "cHNidP8BAFICAAAAAfwQq/yC2gF7xUGCUKvjoJIxmFOuciMb1eOlq6APohxQAAAAAAD/////AbAEAAAAAAAAFgAU+DAokj4fsdflaxdPq98tIsEx/IAAAAACPwCbWUDc2lnQK7KvvW+7OD/4B7qf7yiA7LI6fhNJbEL2RQrmIHS1VUULQ5afsdf3p0tdILc5XCe/ryM1EcIgEL3GrZ5w16oJAL/AJtZQZzaWdleHAIQnjzJJywkAAZ/AJtZRRtZC1jb2xsZWN0aW9uOnN5bWJvbAfsdfWwAAQEfsAQAAAAAAAAWABT4MCiSPhSF/p6VrF0+r3y0iwTH8gAA"
+}
+
+SUMBIT CANCEL
+curl 'https://api-mainnet.magiceden.io/v2/ord/btc/collection-offers/psbt/cancel' \
+  -H 'content-type: application/json' \
+  --data-raw '{"makerPublicKey":"031da4242f5d72c21acd558aafccf0595897568b8bc314899fbc4d92eafa0c6ca0","offerIds":["4ba12885-0870-49f8-ab43-2f090ec1b905"],"signedPsbtBase64":"cHNidP8BAFICAAAAAfwQq/yC2gF7xUGCUKvjoJIfsdfb1eOlq6APohxQAAAAAAD/////AbAEAAAAAAAAFgAU+DAokj4Uhf6elaxdPq98tIsEx/IAAAAACPwCbWUDc2lnQK7KvvW+7OD/4B7qf7yiA7LI6fhNJbEL2RQrmIHS1VUULQ5fsdfr3p0tdILc5XCe/ryM1EcIgEL3GrZ5w16oJAL/AJtZQZzaWdleHAIQnjzJJywkAAZ/AJtZRRtZC1jb2xsZWN0aW9uOnN5bWJvbAZjYfsdfwAAQEfsAQAAAAAAAAWABT4MCiSPhSF/p6VrF0+r3y0iwTH8iICAx2kJC9dcsIazVWKr8zwWViXVouLwxSJn7xNkur6DGygSDBFAiEA5A1GR5yXoVHfao9nDRCKbyY8/J2dbtm6X3Gg/T1Q9IgCIEXlLB9K1eFExFLr0MG5ADf6c+b9Pjst3UBTksRmFOwdAQAA","makerPaymentType":"p2wpkh"}'
+
+RESPONSE
+{"offerIds":["4ba12885-0870-49f8-ab43-2f090ec1b905"],"ok":true}

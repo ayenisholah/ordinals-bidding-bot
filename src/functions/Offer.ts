@@ -18,6 +18,105 @@ const headers = {
   'X-NFT-API-Key': api_key,
 }
 
+
+export async function createCollectionOffer(
+  collectionSymbol: string,
+  quantity: number,
+  priceSats: number,
+  expirationAt: string,
+  feeSatsPerVbyte: number,
+  makerPublicKey: string,
+  makerReceiveAddress: string,
+) {
+  const requestData = {
+    collectionSymbol,
+    quantity,
+    priceSats,
+    expirationAt,
+    feeSatsPerVbyte,
+    makerPublicKey,
+    makerPaymentType: 'p2wpkh',
+    makerReceiveAddress
+  };
+
+  try {
+    const url = 'https://nfttools.pro/magiceden/v2/ord/btc/collection-offers/psbt/create'
+
+    const { data } = await limiter.schedule(() => axiosInstance.post<ICollectionOfferResponseData>(url, requestData, { headers }))
+
+    return data
+
+  } catch (error: any) {
+    console.log(error.data);
+  }
+}
+
+
+// submit collection offer
+
+
+export async function submitCollectionOffer(
+  signedPsbtBase64: string,
+  signedCancelPsbtBase64: string,
+  collectionSymbol: string,
+  quantity: number,
+  priceSats: number,
+  expirationAt: string,
+  makerPublicKey: string,
+  makerReceiveAddress: string
+) {
+
+  const requestData = {
+    collectionSymbol,
+    quantity,
+    priceSats,
+    expirationAt,
+    makerPublicKey,
+    makerPaymentType: 'p2wpkh',
+    makerReceiveAddress,
+    offers: [
+      {
+        signedPsbtBase64,
+        signedCancelPsbtBase64
+      }
+    ]
+  };
+
+  const url = 'https://nfttools.pro/magiceden/v2/ord/btc/collection-offers/psbt/create'
+
+  try {
+    const { data } = await limiter.schedule(() => axiosInstance.post<ISubmitCollectionOfferResponse>(url, requestData, { headers }))
+    return data
+
+  } catch (error) {
+    console.log(error);
+  }
+}
+// sign collection offerData
+
+export function signCollectionOffer(unsignedData: ICollectionOfferResponseData, privateKey: string) {
+  const offers = unsignedData.offers[0]
+
+  const offerPsbt = bitcoin.Psbt.fromBase64(offers.psbtBase64);
+  const cancelPsbt = bitcoin.Psbt.fromBase64(offers.cancelPsbtBase64);
+  const keyPair: ECPairInterface = ECPair.fromWIF(privateKey, network)
+  const toSignInputs = [1]
+
+  for (let index of toSignInputs) {
+    offerPsbt.signInput(index, keyPair);
+    offerPsbt.finalizeInput(index);
+    cancelPsbt.signInput(index, keyPair);
+    cancelPsbt.finalizeInput(index);
+  }
+
+  offerPsbt.signAllInputs(keyPair)
+  cancelPsbt.signAllInputs(keyPair)
+
+  const signedOfferPSBTBase64 = offerPsbt.toBase64();
+  const signedCancelledPSBTBase64 = cancelPsbt.toBase64();
+  return { signedOfferPSBTBase64, signedCancelledPSBTBase64 };
+}
+
 export async function createOffer(
   tokenId: string,
   price: number,
@@ -166,9 +265,7 @@ export async function cancelBulkTokenOffers(tokenIds: string[], buyerTokenReceiv
     }
   } catch (error) {
     console.log('cancelBulkTokenOffers: ', error);
-
   }
-
 }
 
 export async function getOffers(tokenId: string, buyerTokenReceiveAddress?: string) {
@@ -379,4 +476,19 @@ export interface IOffer {
 interface UserOffer {
   total: string,
   offers: IOffer[]
+}
+
+export interface ICollectionOfferData {
+  psbtBase64: string;
+  transactionFeeSats: number;
+  cancelPsbtBase64: string;
+  cancelTransactionFeeSats: number;
+}
+
+export interface ICollectionOfferResponseData {
+  offers: ICollectionOfferData[];
+}
+
+interface ISubmitCollectionOfferResponse {
+  offerIds: string[];
 }

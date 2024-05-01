@@ -1,14 +1,17 @@
 [
 	{
-		"collectionSymbol": "the-prophecy",
-		"minBid": 0.00004,
+		"collectionSymbol": "bitmap",
+		"minBid": 0.000645,
 		"minFloorBid": 50,
-		"maxFloorBid": 80,
-		"maxBid": 0.00006,
-		"bidCount": 10,
+		"maxFloorBid": 75,
+		"maxBid": 0.0009675,
+		"bidCount": 20,
 		"duration": 10,
 		"scheduledLoop": 60,
 		"counterbidLoop": 60,
-		"outBidMargin": 1e-6
+		"outBidMargin": 1e-6,
+		"offerType": "COLLECTION",
+		"quantity": 1,
+		"feeSatsPerVbyte": 28
 	}
 ]
