@@ -44,7 +44,7 @@ export async function createCollectionOffer(
 
     console.log({ headers });
 
-    const { data } = await limiter.schedule(() => axiosInstance.post<ICollectionOfferResponseData>(url, { params, headers }))
+    const { data } = await limiter.schedule(() => axiosInstance.get<ICollectionOfferResponseData>(url, { params, headers }))
 
     console.log({ data });
 
