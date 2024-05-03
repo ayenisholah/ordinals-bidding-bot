@@ -47,7 +47,7 @@ export async function createCollectionOffer(
     return data
 
   } catch (error: any) {
-    console.log(error.data);
+    console.log(error.response.data);
   }
 }
 
