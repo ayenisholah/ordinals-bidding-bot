@@ -41,6 +41,9 @@ export async function createCollectionOffer(
 
   try {
     const url = 'https://nfttools.pro/magiceden/v2/ord/btc/collection-offers/psbt/create'
+
+    console.log({ headers });
+
     const { data } = await limiter.schedule(() => axiosInstance.post<ICollectionOfferResponseData>(url, { params, headers }))
 
     console.log({ data });
