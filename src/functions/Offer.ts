@@ -55,6 +55,9 @@ export async function createCollectionOffer(
 
     const { data } = await limiter.schedule(() => axiosInstance.post<ICollectionOfferResponseData>(url, requestData, { headers }))
 
+    console.log({ data });
+
+
     return data
 
   } catch (error: any) {
