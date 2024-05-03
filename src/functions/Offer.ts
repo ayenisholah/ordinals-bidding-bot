@@ -19,9 +19,79 @@ const headers = {
 }
 
 
+export async function cancelCollectionOfferRequest(offerIds: string[], makerPublicKey: string) {
+  const url = 'https://nfttools.pro/magiceden/v2/ord/btc/collection-offers/psbt/cancel';
+  const params = {
+    offerIds,
+    makerPublicKey,
+    makerPaymentType: 'p2wpkh'
+  };
+  try {
+    const { data } = await limiter.schedule(() => axiosInstance.get<ICancelCollectionOfferRequest>(url, { params, headers }))
+
+    console.log({ data });
+    return data
+
+  } catch (error: any) {
+    console.log(error.response.data);
+  }
+}
+
+export function signCancelCollectionOfferRequest(unsignedData: ICancelCollectionOfferRequest, privateKey: string) {
+  const psbtBase64 = unsignedData.psbtBase64
+  const offerPsbt = bitcoin.Psbt.fromBase64(psbtBase64);
+  const keyPair: ECPairInterface = ECPair.fromWIF(privateKey, network)
+
+  offerPsbt.signInput(0, keyPair);
+  const signedPsbtBase64 = offerPsbt.toBase64();
+
+  return signedPsbtBase64
+}
+
+export async function submitCancelCollectionOffer(
+  offerIds: string[],
+  makerPublicKey: string,
+  signedPsbtBase64: string
+) {
+  try {
+    const url = 'https://nfttools.pro/magiceden/v2/ord/btc/collection-offers/psbt/cancel';
+    const data = {
+      makerPublicKey,
+      offerIds,
+      signedPsbtBase64,
+      makerPaymentType: 'p2wpkh'
+    };
+
+    const response = await limiter.schedule(() => axiosInstance.post<ICancelOfferResponse>(url, data, { headers }))
+
+    console.log(response.data);
+
+    return response
+
+  } catch (error: any) {
+    console.log(error.response.data);
+  }
+}
+
+export async function cancelCollectionOffer(
+  offerIds: string[],
+  makerPublicKey: string,
+  privateKey: string
+) {
+  try {
+    const unsignedData = await cancelCollectionOfferRequest(offerIds, makerPublicKey)
+
+    if (unsignedData) {
+      const signedData = signCancelCollectionOfferRequest(unsignedData, privateKey)
+      await submitCancelCollectionOffer(offerIds, makerPublicKey, signedData)
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 export async function createCollectionOffer(
   collectionSymbol: string,
-  quantity: number,
   priceSats: number,
   expirationAt: string,
   feeSatsPerVbyte: number,
@@ -30,7 +100,7 @@ export async function createCollectionOffer(
 ) {
   const params = {
     collectionSymbol,
-    quantity,
+    quantity: 1,
     priceSats,
     expirationAt,
     feeSatsPerVbyte,
@@ -41,29 +111,17 @@ export async function createCollectionOffer(
 
   try {
     const url = 'https://nfttools.pro/magiceden/v2/ord/btc/collection-offers/psbt/create'
-
-    console.log({ headers });
-
     const { data } = await limiter.schedule(() => axiosInstance.get<ICollectionOfferResponseData>(url, { params, headers }))
-
-    console.log({ offers: data.offers, line: 49 });
-
     return data
-
   } catch (error: any) {
     console.log(error.response.data);
   }
 }
 
-
-// submit collection offer
-
-
 export async function submitCollectionOffer(
   signedPsbtBase64: string,
   signedCancelPsbtBase64: string,
   collectionSymbol: string,
-  quantity: number,
   priceSats: number,
   expirationAt: string,
   makerPublicKey: string,
@@ -72,7 +130,7 @@ export async function submitCollectionOffer(
 
   const requestData = {
     collectionSymbol,
-    quantity,
+    quantity: 1,
     priceSats,
     expirationAt,
     makerPublicKey,
@@ -99,41 +157,17 @@ export async function submitCollectionOffer(
 // sign collection offerData
 
 export function signCollectionOffer(unsignedData: ICollectionOfferResponseData, privateKey: string) {
-
-  console.log({ unsignedData, line: 103 });
-
   const offers = unsignedData.offers[0]
-
-  console.log({ offers, line: 107 });
-
-
   const offerPsbt = bitcoin.Psbt.fromBase64(offers.psbtBase64);
   const cancelPsbt = bitcoin.Psbt.fromBase64(offers.cancelPsbtBase64);
-
-  console.log({ offerPsbt, cancelPsbt, line: 113 });
-
-
   const keyPair: ECPairInterface = ECPair.fromWIF(privateKey, network)
-  const toSignInputs = [1]
 
 
   offerPsbt.signInput(0, keyPair);
   cancelPsbt.signInput(0, keyPair);
 
-  // for (let index of toSignInputs) {
-  //   offerPsbt.signInput(index, keyPair);
-  //   offerPsbt.finalizeInput(index);
-  //   cancelPsbt.signInput(index, keyPair);
-  //   cancelPsbt.finalizeInput(index);
-  // }
-
-  // offerPsbt.signAllInputs(keyPair)
-  // cancelPsbt.signAllInputs(keyPair)
-
   const signedOfferPSBTBase64 = offerPsbt.toBase64();
   const signedCancelledPSBTBase64 = cancelPsbt.toBase64();
-
-  console.log({ signedOfferPSBTBase64, signedCancelledPSBTBase64 });
 
   return { signedOfferPSBTBase64, signedCancelledPSBTBase64 };
 }
@@ -215,6 +249,25 @@ export async function submitSignedOfferOrder(
   }
 }
 
+export async function getBestCollectionOffer(collectionSymbol: string) {
+  const url = `https://nfttools.pro/magiceden/v2/ord/btc/collection-offers/collection/${collectionSymbol}`;
+  const params = {
+    sort: 'priceDesc',
+    status: ['valid'],
+    limit: 2,
+    offset: 0
+  };
+
+  try {
+
+    const { data } = await limiter.schedule(() => axiosInstance.get<CollectionOfferData>(url, { params, headers }));
+    return data
+  } catch (error: any) {
+    console.log('getBestCollectionOffer: ', error.response.data);
+  }
+
+}
+
 export async function getBestOffer(tokenId: string) {
   const url = 'https://nfttools.pro/magiceden/v2/ord/btc/offers/';
   const params = {
@@ -226,12 +279,12 @@ export async function getBestOffer(tokenId: string) {
   };
 
   try {
-
     const { data } = await limiter.schedule(() => axiosInstance.get<OfferData>(url, { params, headers }));
     return data
   } catch (error: any) {
     console.log('getBestOffer: ', error.response);
   }
+
 }
 
 
@@ -442,6 +495,39 @@ interface OfferData {
   offers: Offer[];
 }
 
+interface OfferData {
+  total: string;
+  offers: Offer[];
+}
+
+interface CollectionOfferData {
+  total: string;
+  offers: ICollectionOffer[];
+}
+
+export interface ICollectionOffer {
+  chain: string;
+  id: string;
+  collectionSymbol: string;
+  status: string;
+  quantity: number;
+  price: {
+    amount: number;
+    currency: string;
+    decimals: number;
+  };
+  maker: string;
+  expiresAt: string;
+  createdAt: string;
+  updatedAt: string;
+  fees: any[]; // Adjust this type based on the actual structure of the 'fees' property
+  btcParams: {
+    makerOrdinalReceiveAddress: string;
+    makerPaymentAddress: string;
+    pendingDeposits: any[]; // Adjust this type based on the actual structure of the 'pendingDeposits' property
+  };
+}
+
 interface Token {
   id: string;
   contentURI: string;
@@ -512,4 +598,14 @@ export interface ICollectionOfferResponseData {
 
 interface ISubmitCollectionOfferResponse {
   offerIds: string[];
+}
+
+interface ICancelCollectionOfferRequest {
+  offerIds: string[];
+  psbtBase64: string;
+}
+
+interface ICancelOfferResponse {
+  offerIds: string[];
+  ok: boolean;
 }

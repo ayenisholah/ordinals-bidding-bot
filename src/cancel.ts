@@ -2,7 +2,7 @@ import fs from "fs"
 import * as bitcoin from "bitcoinjs-lib"
 import { config } from "dotenv"
 
-import { IOffer, getUserOffers, retrieveCancelOfferFormat, signData, submitCancelOfferData } from "./functions/Offer";
+import { ICollectionOffer, IOffer, cancelCollectionOffer, getBestCollectionOffer, getUserOffers, retrieveCancelOfferFormat, signData, submitCancelOfferData } from "./functions/Offer";
 import { ECPairFactory, ECPairAPI, TinySecp256k1Interface } from 'ecpair';
 
 config()
@@ -33,38 +33,46 @@ async function main(item: CollectionData) {
   const buyerTokenReceiveAddress = item.tokenReceiveAddress ?? TOKEN_RECEIVE_ADDRESS;
 
   const keyPair = ECPair.fromWIF(privateKey, network);
+  const publicKey = keyPair.publicKey.toString('hex');
   const buyerPaymentAddress = bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: network }).address as string
 
 
-  try {
-    const offerData = await getUserOffers(buyerTokenReceiveAddress)
+  if (item.offerType === "ITEM") {
+    try {
+      const offerData = await getUserOffers(buyerTokenReceiveAddress)
 
-    if (offerData && offerData.offers && offerData.offers.length > 0) {
-      const offers = offerData.offers
+      if (offerData && offerData.offers && offerData.offers.length > 0) {
+        const offers = offerData.offers
 
-      console.log('--------------------------------------------------------------------------------');
-      console.log(`${offers.length} OFFERS FOUND FOR ${buyerTokenReceiveAddress}`);
-      console.log('--------------------------------------------------------------------------------');
-      const cancelOps = []
+        console.log('--------------------------------------------------------------------------------');
+        console.log(`${offers.length} OFFERS FOUND FOR ${buyerTokenReceiveAddress}`);
+        console.log('--------------------------------------------------------------------------------');
+        const cancelOps = []
 
-      for (const offer of offers) {
-        const collectionSymbol = offer.token.collectionSymbol
-        const tokenId = offer.token.id
-        const cancelOperation = cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
+        for (const offer of offers) {
+          const collectionSymbol = offer.token.collectionSymbol
+          const tokenId = offer.token.id
+          const cancelOperation = cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
 
-        cancelOps.push(cancelOperation)
+          cancelOps.push(cancelOperation)
+        }
+
+        Promise.all(cancelOps)
       }
 
-      Promise.all(cancelOps)
+    } catch (error) {
+      console.log(error);
     }
+  } else if (item.offerType === "COLLECTION") {
 
-  } catch (error) {
-    console.log(error);
+    const bestOffers = await getBestCollectionOffer(item.collectionSymbol)
+    const ourOffers = bestOffers?.offers.find((item) => item.btcParams.makerPaymentAddress.toLowerCase() === buyerPaymentAddress.toLowerCase()) as ICollectionOffer
+    const offerIds = [ourOffers.id]
+    await cancelCollectionOffer(offerIds, publicKey, privateKey)
   }
 }
 
 async function cancelBid(offer: IOffer, privateKey: string, collectionSymbol: string, tokenId: string, buyerPaymentAddress: string) {
-
   if (offer.buyerPaymentAddress === buyerPaymentAddress) {
     const offerFormat = await retrieveCancelOfferFormat(offer.id)
     const signedOfferFormat = signData(offerFormat, privateKey)
@@ -76,7 +84,6 @@ async function cancelBid(offer: IOffer, privateKey: string, collectionSymbol: st
     }
   }
 }
-
 
 export interface CollectionData {
   collectionSymbol: string;
@@ -90,5 +97,7 @@ export interface CollectionData {
   fundingWalletWIF?: string;
   tokenReceiveAddress?: string;
   scheduledLoop?: number;
-  counterbidLoop?: number
+  counterbidLoop?: number;
+  offerType: "ITEM" | "COLLECTION";
+  feeSatsPerVbyte?: number;
 }
