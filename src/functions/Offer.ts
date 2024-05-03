@@ -39,6 +39,17 @@ export async function createCollectionOffer(
     makerReceiveAddress
   };
 
+  console.log({
+    collectionSymbol,
+    quantity,
+    priceSats,
+    expirationAt,
+    feeSatsPerVbyte,
+    makerPaymentType: 'p2wpkh',
+    makerReceiveAddress
+  });
+
+
   try {
     const url = 'https://nfttools.pro/magiceden/v2/ord/btc/collection-offers/psbt/create'
 
