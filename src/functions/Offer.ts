@@ -46,7 +46,7 @@ export async function createCollectionOffer(
 
     const { data } = await limiter.schedule(() => axiosInstance.get<ICollectionOfferResponseData>(url, { params, headers }))
 
-    console.log({ data });
+    console.log({ offers: data.offers, line: 49 });
 
     return data
 
@@ -99,10 +99,20 @@ export async function submitCollectionOffer(
 // sign collection offerData
 
 export function signCollectionOffer(unsignedData: ICollectionOfferResponseData, privateKey: string) {
+
+  console.log({ unsignedData, line: 103 });
+
   const offers = unsignedData.offers[0]
+
+  console.log({ offers, line: 107 });
+
 
   const offerPsbt = bitcoin.Psbt.fromBase64(offers.psbtBase64);
   const cancelPsbt = bitcoin.Psbt.fromBase64(offers.cancelPsbtBase64);
+
+  console.log({ offerPsbt, cancelPsbt, line: 113 });
+
+
   const keyPair: ECPairInterface = ECPair.fromWIF(privateKey, network)
   const toSignInputs = [1]
 
@@ -118,6 +128,9 @@ export function signCollectionOffer(unsignedData: ICollectionOfferResponseData, 
 
   const signedOfferPSBTBase64 = offerPsbt.toBase64();
   const signedCancelledPSBTBase64 = cancelPsbt.toBase64();
+
+  console.log({ signedOfferPSBTBase64, signedCancelledPSBTBase64 });
+
   return { signedOfferPSBTBase64, signedCancelledPSBTBase64 };
 }
 
