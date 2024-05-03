@@ -514,8 +514,11 @@ async function processScheduledLoop(item: CollectionData) {
         if (topOffer.btcParams.makerPaymentAddress !== buyerPaymentAddress) {
           try {
 
-            const offerIds = [ourOffer.id]
-            await cancelCollectionOffer(offerIds, publicKey, privateKey)
+
+            if (ourOffer) {
+              const offerIds = [ourOffer.id]
+              await cancelCollectionOffer(offerIds, publicKey, privateKey)
+            }
           } catch (error) {
             console.log(error);
           }
@@ -550,8 +553,10 @@ async function processScheduledLoop(item: CollectionData) {
               const bidPrice = secondBestPrice + outBidAmount
 
               try {
-                const offerIds = [ourOffer.id]
-                await cancelCollectionOffer(offerIds, publicKey, privateKey)
+                if (ourOffer) {
+                  const offerIds = [ourOffer.id]
+                  await cancelCollectionOffer(offerIds, publicKey, privateKey)
+                }
 
               } catch (error) {
                 console.log(error);
@@ -578,8 +583,10 @@ async function processScheduledLoop(item: CollectionData) {
             const bidPrice = minOffer
             if (bestPrice !== bidPrice) {
               try {
-                const offerIds = [ourOffer.id]
-                await cancelCollectionOffer(offerIds, publicKey, privateKey)
+                if (ourOffer) {
+                  const offerIds = [ourOffer.id]
+                  await cancelCollectionOffer(offerIds, publicKey, privateKey)
+                }
               } catch (error) {
                 console.log(error);
               }
