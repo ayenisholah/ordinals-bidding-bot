@@ -117,8 +117,8 @@ export function signCollectionOffer(unsignedData: ICollectionOfferResponseData, 
   const toSignInputs = [1]
 
 
-  offerPsbt.signInput(1, keyPair);
-  cancelPsbt.signInput(1, keyPair);
+  offerPsbt.signInput(0, keyPair);
+  cancelPsbt.signInput(0, keyPair);
 
   // for (let index of toSignInputs) {
   //   offerPsbt.signInput(index, keyPair);
