@@ -116,15 +116,19 @@ export function signCollectionOffer(unsignedData: ICollectionOfferResponseData, 
   const keyPair: ECPairInterface = ECPair.fromWIF(privateKey, network)
   const toSignInputs = [1]
 
-  for (let index of toSignInputs) {
-    offerPsbt.signInput(index, keyPair);
-    offerPsbt.finalizeInput(index);
-    cancelPsbt.signInput(index, keyPair);
-    cancelPsbt.finalizeInput(index);
-  }
 
-  offerPsbt.signAllInputs(keyPair)
-  cancelPsbt.signAllInputs(keyPair)
+  offerPsbt.signInput(1, keyPair);
+  cancelPsbt.signInput(1, keyPair);
+
+  // for (let index of toSignInputs) {
+  //   offerPsbt.signInput(index, keyPair);
+  //   offerPsbt.finalizeInput(index);
+  //   cancelPsbt.signInput(index, keyPair);
+  //   cancelPsbt.finalizeInput(index);
+  // }
+
+  // offerPsbt.signAllInputs(keyPair)
+  // cancelPsbt.signAllInputs(keyPair)
 
   const signedOfferPSBTBase64 = offerPsbt.toBase64();
   const signedCancelledPSBTBase64 = cancelPsbt.toBase64();
