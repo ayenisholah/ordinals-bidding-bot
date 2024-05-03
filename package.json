@@ -7,7 +7,8 @@
 		"account:destroy": "ts-node src/account/destroy.ts",
 		"bid": "ts-node src/bid.ts",
 		"cancel": "ts-node src/cancel.ts",
-		"scan:collections": "ts-node src/scanCollections.ts"
+		"scan:collections": "ts-node src/scanCollections.ts",
+		"test": "ts-node src/test.ts"
 	},
 	"keywords": [],
 	"author": "",

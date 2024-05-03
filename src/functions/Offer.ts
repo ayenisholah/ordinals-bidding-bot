@@ -28,7 +28,7 @@ export async function createCollectionOffer(
   makerPublicKey: string,
   makerReceiveAddress: string,
 ) {
-  const requestData = {
+  const params = {
     collectionSymbol,
     quantity,
     priceSats,
@@ -39,24 +39,13 @@ export async function createCollectionOffer(
     makerReceiveAddress
   };
 
-  console.log({
-    collectionSymbol,
-    quantity,
-    priceSats,
-    expirationAt,
-    feeSatsPerVbyte,
-    makerPaymentType: 'p2wpkh',
-    makerReceiveAddress
-  });
-
 
   try {
     const url = 'https://nfttools.pro/magiceden/v2/ord/btc/collection-offers/psbt/create'
 
-    const { data } = await limiter.schedule(() => axiosInstance.post<ICollectionOfferResponseData>(url, requestData, { headers }))
+    const { data } = await limiter.schedule(() => axiosInstance.post<ICollectionOfferResponseData>(url, { params, headers }))
 
     console.log({ data });
-
 
     return data
 
