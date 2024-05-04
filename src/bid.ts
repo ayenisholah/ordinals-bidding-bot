@@ -80,7 +80,7 @@ async function processScheduledLoop(item: CollectionData) {
 
   const collectionSymbol = item.collectionSymbol
   const feeSatsPerVbyte = item.feeSatsPerVbyte
-  const offerType = item.offerType
+  const offerType = item.offerType.toUpperCase()
   const minBid = item.minBid
   const maxBid = item.maxBid
   const bidCount = item.bidCount ?? 20
@@ -228,7 +228,7 @@ async function processScheduledLoop(item: CollectionData) {
     }
 
 
-    if (offerType === "ITEM") {
+    if (offerType.toUpperCase() === "ITEM") {
       await queue.addAll(
         bottomListings.map(token => async () => {
           const { id: tokenId, price: listedPrice } = token
@@ -501,7 +501,7 @@ async function processScheduledLoop(item: CollectionData) {
           }
         })
       )
-    } else if (offerType === "COLLECTION") {
+    } else if (offerType.toUpperCase() === "COLLECTION") {
 
       const bestOffer = await getBestCollectionOffer(collectionSymbol)
       if (bestOffer && bestOffer.offers.length > 0) {
@@ -633,7 +633,7 @@ async function processCounterBidLoop(item: CollectionData) {
 
   const collectionSymbol = item.collectionSymbol
   const feeSatsPerVbyte = item.feeSatsPerVbyte
-  const offerType = item.offerType
+  const offerType = item.offerType.toUpperCase()
   const maxBid = item.maxBid
   const bidCount = item.bidCount ?? 20
   const duration = item.duration ?? DEFAULT_OFFER_EXPIRATION
