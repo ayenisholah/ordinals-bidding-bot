@@ -945,7 +945,9 @@ async function processCounterBidLoop(item: CollectionData, ws: WebSocket) {
 
               if (!currentHighestCollectionOfferPrice) {
                 // bid minimum
-                const bidPrice = minOffer
+                const outBidMargin = item.outBidMargin ?? DEFAULT_OUTBID_MARGIN
+                const outBidAmount = outBidMargin * CONVERSION_RATE
+                const bidPrice = outBidAmount + Number(message.listedPrice)
 
                 // BID
                 await placeCollectionBid(bidPrice, expiration, collectionSymbol, buyerTokenReceiveAddress, publicKey, privateKey, feeSatsPerVbyte)
