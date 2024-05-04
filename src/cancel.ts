@@ -61,9 +61,8 @@ async function main(item: CollectionData) {
       console.log(error);
     }
   } else if (item.offerType === "COLLECTION") {
-
     const bestOffers = await getBestCollectionOffer(item.collectionSymbol)
-    const ourOffers = bestOffers?.offers.find((item) => item.btcParams.makerPaymentAddress.toLowerCase() === buyerPaymentAddress.toLowerCase()) as ICollectionOffer
+    const ourOffers = bestOffers?.offers.find((item) => item.btcParams.makerOrdinalReceiveAddress.toLowerCase() === buyerTokenReceiveAddress.toLowerCase()) as ICollectionOffer
 
     if (ourOffers) {
       const offerIds = [ourOffers.id]
