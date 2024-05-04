@@ -546,6 +546,11 @@ async function processScheduledLoop(item: CollectionData) {
               await placeCollectionBid(bidPrice, expiration, collectionSymbol, buyerTokenReceiveAddress, publicKey, privateKey, feeSatsPerVbyte)
               bidHistory[collectionSymbol].offerType = "COLLECTION"
 
+              bidHistory[collectionSymbol].highestCollectionOffer = {
+                price: bidPrice,
+                buyerPaymentAddress: buyerPaymentAddress
+              }
+
             } catch (error) {
               console.log(error);
             }
@@ -581,6 +586,10 @@ async function processScheduledLoop(item: CollectionData) {
 
                   await placeCollectionBid(bidPrice, expiration, collectionSymbol, buyerTokenReceiveAddress, publicKey, privateKey, feeSatsPerVbyte)
                   bidHistory[collectionSymbol].offerType = "COLLECTION"
+                  bidHistory[collectionSymbol].highestCollectionOffer = {
+                    price: bidPrice,
+                    buyerPaymentAddress: buyerPaymentAddress
+                  }
                 } catch (error) {
                   console.log(error);
                 }
@@ -611,6 +620,10 @@ async function processScheduledLoop(item: CollectionData) {
                 try {
                   await placeCollectionBid(bidPrice, expiration, collectionSymbol, buyerTokenReceiveAddress, publicKey, privateKey, feeSatsPerVbyte)
                   bidHistory[collectionSymbol].offerType = "COLLECTION"
+                  bidHistory[collectionSymbol].highestCollectionOffer = {
+                    price: bidPrice,
+                    buyerPaymentAddress: buyerPaymentAddress
+                  }
                 } catch (error) {
                   console.log(error);
                 }
@@ -628,6 +641,11 @@ async function processScheduledLoop(item: CollectionData) {
         if (bidPrice <= maxOffer && bidPrice < floorPrice) {
           await placeCollectionBid(bidPrice, expiration, collectionSymbol, buyerTokenReceiveAddress, publicKey, privateKey, feeSatsPerVbyte)
           bidHistory[collectionSymbol].offerType = "COLLECTION"
+
+          bidHistory[collectionSymbol].highestCollectionOffer = {
+            price: bidPrice,
+            buyerPaymentAddress: buyerPaymentAddress
+          }
         }
       }
     }
@@ -648,6 +666,7 @@ async function processCounterBidLoop(item: CollectionData, ws: WebSocket) {
   const feeSatsPerVbyte = item.feeSatsPerVbyte
   const offerType = item.offerType.toUpperCase()
   const maxBid = item.maxBid
+  const minBid = item.minBid
   const bidCount = item.bidCount ?? 20
   const duration = item.duration ?? DEFAULT_OFFER_EXPIRATION
   const outBidMargin = item.outBidMargin ?? DEFAULT_OUTBID_MARGIN
@@ -659,6 +678,12 @@ async function processCounterBidLoop(item: CollectionData, ws: WebSocket) {
   const expiration = currentTime + (duration * 60 * 1000);
   const buyerPaymentAddress = bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: network }).address as string
   const maxPrice = Math.round(maxBid * CONVERSION_RATE)
+
+
+  const minPrice = Math.round(minBid * CONVERSION_RATE)
+  const minFloorBid = item.minFloorBid
+
+
 
   if (!bidHistory[collectionSymbol]) {
     bidHistory[collectionSymbol] = {
@@ -878,6 +903,12 @@ async function processCounterBidLoop(item: CollectionData, ws: WebSocket) {
   }
 
   else if (offerType === "COLLECTION") {
+    const collectionData = await collectionDetails(collectionSymbol)
+    const floorPrice = Number(collectionData?.floorPrice) ?? 0
+
+    const minOffer = Math.max(minPrice, Math.round(minFloorBid * floorPrice / 100))
+
+
     console.log('-------------------------------------------------------------------------');
     console.log(`COLLECTION OFFER COUNTER BID SCHEDULE FOR ${collectionSymbol}`);
     console.log('-------------------------------------------------------------------------');
@@ -911,7 +942,22 @@ async function processCounterBidLoop(item: CollectionData, ws: WebSocket) {
 
 
               // CHECK IF NEW COLLECTION OFFER PRICE IS GREATER THAN HIGHEST COLLECT OFFER
-              if (currentHighestCollectionOfferPrice && +newCollectionOffer > currentHighestCollectionOfferPrice) {
+
+              if (!currentHighestCollectionOfferPrice) {
+                // bid minimum
+                const bidPrice = minOffer
+
+                // BID
+                await placeCollectionBid(bidPrice, expiration, collectionSymbol, buyerTokenReceiveAddress, publicKey, privateKey, feeSatsPerVbyte)
+                bidHistory[collectionSymbol].offerType = "COLLECTION"
+
+                // UPDATE RECORD
+                bidHistory[collectionSymbol].highestCollectionOffer = {
+                  price: bidPrice,
+                  buyerPaymentAddress: buyerPaymentAddress
+                }
+              }
+              else if (currentHighestCollectionOfferPrice && +newCollectionOffer > currentHighestCollectionOfferPrice) {
                 // IF WE DONE OWN THE INCOMING HIGHEST COLLECTION OFFER, OUTBID
                 if (ownerOfHighestOffer !== buyerPaymentAddress) {
                   const outBidMargin = item.outBidMargin ?? DEFAULT_OUTBID_MARGIN
