@@ -33,6 +33,7 @@
 		"secp256k1": "^5.0.0",
 		"taproot": "^0.4.1",
 		"tiny-secp256k1": "^2.2.3",
+		"ws": "^8.17.0",
 		"yargs": "^17.7.2"
 	},
 	"devDependencies": {
@@ -40,6 +41,7 @@
 		"@types/jsonlint": "^1.6.3",
 		"@types/node": "^20.11.30",
 		"@types/readline-sync": "^1.4.8",
+		"@types/ws": "^8.5.10",
 		"@types/yargs": "^17.0.32",
 		"nodemon": "^3.1.0",
 		"ts-node": "^10.9.2",

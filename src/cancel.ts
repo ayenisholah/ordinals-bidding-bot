@@ -40,7 +40,7 @@ async function main(item: CollectionData) {
       const offerData = await getUserOffers(buyerTokenReceiveAddress)
 
       if (offerData && offerData.offers && offerData.offers.length > 0) {
-        const offers = offerData.offers.filter((item => item.token.collectionSymbol === collectionSymbol))
+        const offers = offerData.offers
         console.log('--------------------------------------------------------------------------------');
         console.log(`${offers.length} OFFERS FOUND FOR ${buyerTokenReceiveAddress}`);
         console.log('--------------------------------------------------------------------------------');
