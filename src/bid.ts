@@ -1088,8 +1088,6 @@ async function placeCollectionBid(
   const priceSats = Math.ceil(offerPrice)
   const expirationAt = new Date(expiration).toISOString();
 
-  console.log({ collectionSymbol, priceSats, expirationAt, feeSatsPerVbyte, publicKey, buyerTokenReceiveAddress });
-
   const unsignedCollectionOffer = await createCollectionOffer(collectionSymbol, priceSats, expirationAt, feeSatsPerVbyte, publicKey, buyerTokenReceiveAddress)
   if (unsignedCollectionOffer) {
     const { signedOfferPSBTBase64, signedCancelledPSBTBase64 } = signCollectionOffer(unsignedCollectionOffer, privateKey)

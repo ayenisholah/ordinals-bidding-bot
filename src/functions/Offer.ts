@@ -500,7 +500,7 @@ interface OfferData {
   offers: Offer[];
 }
 
-interface CollectionOfferData {
+export interface CollectionOfferData {
   total: string;
   offers: ICollectionOffer[];
 }

@@ -18,18 +18,16 @@ const collections: CollectionData[] = JSON.parse(fs.readFileSync(filePath, "utf-
 const tinysecp: TinySecp256k1Interface = require('tiny-secp256k1');
 const ECPair: ECPairAPI = ECPairFactory(tinysecp);
 
-const uniqueCollections = collections.filter(
-  (collection, index, self) =>
-    index === self.findIndex((c) => c.tokenReceiveAddress === collection.tokenReceiveAddress)
-);
 
 
-uniqueCollections.forEach((item) => {
+
+collections.forEach((item) => {
   main(item)
 })
 
 async function main(item: CollectionData) {
   const privateKey = item.fundingWalletWIF ?? FUNDING_WIF;
+  const collectionSymbol = item.collectionSymbol;
   const buyerTokenReceiveAddress = item.tokenReceiveAddress ?? TOKEN_RECEIVE_ADDRESS;
 
   const keyPair = ECPair.fromWIF(privateKey, network);
@@ -42,8 +40,7 @@ async function main(item: CollectionData) {
       const offerData = await getUserOffers(buyerTokenReceiveAddress)
 
       if (offerData && offerData.offers && offerData.offers.length > 0) {
-        const offers = offerData.offers
-
+        const offers = offerData.offers.filter((item => item.token.collectionSymbol === collectionSymbol))
         console.log('--------------------------------------------------------------------------------');
         console.log(`${offers.length} OFFERS FOUND FOR ${buyerTokenReceiveAddress}`);
         console.log('--------------------------------------------------------------------------------');
