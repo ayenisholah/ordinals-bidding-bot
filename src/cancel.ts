@@ -64,8 +64,11 @@ async function main(item: CollectionData) {
 
     const bestOffers = await getBestCollectionOffer(item.collectionSymbol)
     const ourOffers = bestOffers?.offers.find((item) => item.btcParams.makerPaymentAddress.toLowerCase() === buyerPaymentAddress.toLowerCase()) as ICollectionOffer
-    const offerIds = [ourOffers.id]
-    await cancelCollectionOffer(offerIds, publicKey, privateKey)
+
+    if (ourOffers) {
+      const offerIds = [ourOffers.id]
+      await cancelCollectionOffer(offerIds, publicKey, privateKey)
+    }
   }
 }
 
