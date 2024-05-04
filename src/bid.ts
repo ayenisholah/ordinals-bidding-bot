@@ -903,15 +903,10 @@ async function processCounterBidLoop(item: CollectionData, ws: WebSocket) {
   }
 
   else if (offerType === "COLLECTION") {
-    const collectionData = await collectionDetails(collectionSymbol)
-    const floorPrice = Number(collectionData?.floorPrice) ?? 0
-
-    const minOffer = Math.max(minPrice, Math.round(minFloorBid * floorPrice / 100))
-
-
     console.log('-------------------------------------------------------------------------');
     console.log(`COLLECTION OFFER COUNTER BID SCHEDULE FOR ${collectionSymbol}`);
     console.log('-------------------------------------------------------------------------');
+
 
     try {
       const subscriptionMessage = {
@@ -926,7 +921,19 @@ async function processCounterBidLoop(item: CollectionData, ws: WebSocket) {
       if (isWsConnected) {
         ws.send(JSON.stringify(subscriptionMessage));
 
+        let isProcessingMessage = false;
+
         ws.on('message', async (data: WebSocket.Data) => {
+
+          // Check if a message is already being processed
+          if (isProcessingMessage) {
+            // Skip processing if a message is already being processed
+            return;
+          }
+
+          // Set the flag to indicate that a message is being processed
+          isProcessingMessage = true;
+
           try {
             const message: CollectOfferActivity = JSON.parse(data.toString());
             // GET ONLY COLLECTION OFFERS
@@ -980,11 +987,16 @@ async function processCounterBidLoop(item: CollectionData, ws: WebSocket) {
             }
           } catch (error) {
           }
+          finally {
+            // Reset the flag after processing the message
+            isProcessingMessage = false;
+          }
         });
       }
     } catch (error) {
       console.log(error);
     }
+
   }
 }
 
