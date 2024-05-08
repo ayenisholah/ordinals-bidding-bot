@@ -79,7 +79,39 @@ const queue = new PQueue({
 });
 
 
+let ws: WebSocket;
+
+(async function () {
+  try {
+    const socketUri = 'wss://wss-mainnet.magiceden.io/CJMw7IPrGPUb13adEQYW2ASbR%2FIWToagGUCr02hWp1oWyLAtf5CS0XF69WNXj0MbO6LEQLrFQMQoEqlX7%2Fny2BP08wjFc9MxzEmM5v2c5huTa3R1DPqGSbuO2TXKEEneIc4FMEm5ZJruhU8y4cyfIDzGqhWDhxK3iRnXtYzI0FGG1%2BMKyx9WWOpp3lLA3Gm2BgNpHHp3wFEas5TqVdJn0GtBrptg8ZEveG8c44CGqfWtEsS0iI8LZDR7tbrZ9fZpbrngDaimEYEH6MgvhWPTlKrsGw%3D%3D'
+    ws = new WebSocket(socketUri);
+  } catch (error) {
+    console.log(error);
+  }
+})()
+
+
 async function processScheduledLoop(item: CollectionData) {
+
+  let isWsConnected = false;
+
+  ws.on('open', () => {
+    isWsConnected = true;
+  });
+
+  ws.on('close', () => {
+    console.log('WebSocket connection closed');
+    isWsConnected = false;
+  });
+
+  const subscriptionMessage = {
+    type: 'subscribeCollection',
+    constraint: {
+      chain: 'bitcoin',
+      collectionSymbol: item.collectionSymbol
+    }
+  };
+
   console.log('----------------------------------------------------------------------');
   console.log(`START AUTOBID SCHEDULE FOR ${item.collectionSymbol}`);
   console.log('----------------------------------------------------------------------');
@@ -196,6 +228,7 @@ async function processScheduledLoop(item: CollectionData) {
     }).sort((a, b) => a.price - b.price)
 
     const ourBids = userBids.map((item) => ({ tokenId: item.tokenId, collectionSymbol: item.collectionSymbol })).filter((item) => item.collectionSymbol === collectionSymbol)
+    const ourBidsIds = ourBids.map((item) => item.tokenId)
 
     const collectionBottomBids: CollectionBottomBid[] = tokens.map((item) => ({ tokenId: item.id, collectionSymbol: item.collectionSymbol })).filter((item) => item.collectionSymbol === collectionSymbol)
     const tokensToCancel = findTokensToCancel(collectionBottomBids, ourBids)
@@ -507,6 +540,96 @@ async function processScheduledLoop(item: CollectionData) {
           }
         })
       )
+      let counterBidQueue: CollectOfferActivity[] = []
+      try {
+        const subscriptionMessage = {
+          type: 'subscribeCollection',
+          constraint: {
+            chain: 'bitcoin',
+            collectionSymbol: item.collectionSymbol
+          }
+        };
+
+        if (isWsConnected) {
+          ws.send(JSON.stringify(subscriptionMessage));
+          ws.on('message', async (data: WebSocket.Data) => {
+            if (isValidJSON(data.toString())) {
+              const message: CollectOfferActivity = JSON.parse(data.toString());
+
+              const tokenId = message.tokenId;
+              if (message.kind === "offer_placed" && ourBidsIds.includes(tokenId) && message.buyerPaymentAddress !== buyerPaymentAddress) {
+                if (!counterBidQueue.some((item) => item.tokenId === message.tokenId)) {
+                  counterBidQueue.push(message)
+                }
+                processCounterBidQueue(counterBidQueue);
+              }
+            }
+          });
+
+          async function processCounterBidQueue(counterBidQueue: CollectOfferActivity[]) {
+            const counterOffers = counterBidQueue.map((item) => ({ listedPrice: item.listedPrice, tokenId: item.tokenId, buyerPaymentAddress: item.buyerPaymentAddress, createdAt: item.createdAt }))
+            console.log('--------------------------------------------------------------------------');
+            console.log('COUNTER OFFERS FOUND VIA WEB SOCKET');
+            console.table(counterOffers);
+            console.log('--------------------------------------------------------------------------');
+
+            queue.addAll(
+              counterBidQueue.map((offer) => async () => {
+                const { tokenId, listedPrice, buyerPaymentAddress } = offer
+
+                const bidPrice = +listedPrice + (outBidMargin * CONVERSION_RATE)
+                const ourBidPrice = bidHistory[collectionSymbol]?.ourBids[tokenId]?.price
+                const offerData = await getOffers(tokenId, buyerTokenReceiveAddress)
+                if (offerData && offerData.offers && +offerData.total > 0) {
+                  const offer = offerData.offers[0]
+
+                  if (+listedPrice > ourBidPrice) {
+                    console.log('-------------------------------------------------------------------------');
+                    console.log('COUNTERBIDDING!!!!');
+                    console.log('-------------------------------------------------------------------------');
+
+                    try {
+                      await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
+                      delete bidHistory[collectionSymbol].ourBids[tokenId]
+                      delete bidHistory[collectionSymbol].topBids[tokenId]
+                    } catch (error) {
+                      console.log(error);
+                    }
+                    if (bidPrice <= maxOffer) {
+                      try {
+                        const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey)
+                        if (status === true) {
+                          bidHistory[collectionSymbol].topBids[tokenId] = true
+                          bidHistory[collectionSymbol].ourBids[tokenId] = {
+                            price: bidPrice,
+                            expiration: expiration
+                          }
+                        }
+
+                      } catch (error) {
+                        console.log(error);
+                      }
+                    } else {
+                      console.log('-----------------------------------------------------------------------------------------------------------------------------');
+                      console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
+                      console.log('-----------------------------------------------------------------------------------------------------------------------------');
+                      delete bidHistory[collectionSymbol].topBids[tokenId]
+                      delete bidHistory[collectionSymbol].ourBids[tokenId]
+                    }
+                  } else {
+                    console.log('-----------------------------------------------------------------------------------------------------------------------------');
+                    console.log(`YOU CURRENTLY HAVE THE HIGHEST OFFER ${ourBidPrice} FOR ${collectionSymbol} ${tokenId}`);
+                    console.log('-----------------------------------------------------------------------------------------------------------------------------');
+                  }
+                }
+                counterBidQueue = counterBidQueue.filter(item => item.tokenId !== tokenId);
+              })
+            )
+          }
+        }
+      } catch (error) {
+        console.log(error);
+      }
     } else if (offerType.toUpperCase() === "COLLECTION") {
 
       const bestOffer = await getBestCollectionOffer(collectionSymbol)
@@ -648,6 +771,78 @@ async function processScheduledLoop(item: CollectionData) {
           }
         }
       }
+
+      const counterBidQueue: CollectOfferActivity[] = []
+
+      if (isWsConnected) {
+        ws.send(JSON.stringify(subscriptionMessage));
+        ws.on('message', async (data: WebSocket.Data) => {
+          try {
+            if (isValidJSON(data.toString())) {
+              const message: CollectOfferActivity = JSON.parse(data.toString());
+
+              // GET ONLY COLLECTION OFFERS
+
+              if (message.kind === 'coll_offer_created') {
+                counterBidQueue.push(message)
+                processCounterBidQueue(counterBidQueue);
+              }
+
+              async function processCounterBidQueue(counterBidQueue: CollectOfferActivity[]) {
+
+                queue.addAll(counterBidQueue.map((offer) => async () => {
+                  const { listedPrice } = offer
+
+                  // GET CURRENT HIGHEST COLLECTION OFFER DETAILS
+                  const currentHighestCollectionOfferPrice = bidHistory[collectionSymbol].highestCollectionOffer?.price
+
+                  const ownerOfHighestOffer = bidHistory[collectionSymbol].highestCollectionOffer?.buyerPaymentAddress
+
+
+                  // CHECK IF NEW COLLECTION OFFER PRICE IS GREATER THAN HIGHEST COLLECT OFFER
+
+                  if (!currentHighestCollectionOfferPrice) {
+                    // bid minimum
+                    const outBidMargin = item.outBidMargin ?? DEFAULT_OUTBID_MARGIN
+                    const outBidAmount = outBidMargin * CONVERSION_RATE
+                    const bidPrice = outBidAmount + Number(listedPrice)
+
+                    // BID
+                    await placeCollectionBid(bidPrice, expiration, collectionSymbol, buyerTokenReceiveAddress, publicKey, privateKey, feeSatsPerVbyte)
+                    bidHistory[collectionSymbol].offerType = "COLLECTION"
+
+                    // UPDATE RECORD
+                    bidHistory[collectionSymbol].highestCollectionOffer = {
+                      price: bidPrice,
+                      buyerPaymentAddress: buyerPaymentAddress
+                    }
+                  }
+                  else if (currentHighestCollectionOfferPrice && +listedPrice > currentHighestCollectionOfferPrice) {
+                    // IF WE DONE OWN THE INCOMING HIGHEST COLLECTION OFFER, OUTBID
+                    if (ownerOfHighestOffer !== buyerPaymentAddress) {
+                      const outBidMargin = item.outBidMargin ?? DEFAULT_OUTBID_MARGIN
+                      const outBidAmount = outBidMargin * CONVERSION_RATE
+                      const bidPrice = outBidAmount + Number(listedPrice)
+
+                      // OUTBID
+                      await placeCollectionBid(bidPrice, expiration, collectionSymbol, buyerTokenReceiveAddress, publicKey, privateKey, feeSatsPerVbyte)
+                      bidHistory[collectionSymbol].offerType = "COLLECTION"
+
+                      // UPDATE RECORD
+                      bidHistory[collectionSymbol].highestCollectionOffer = {
+                        price: bidPrice,
+                        buyerPaymentAddress: buyerPaymentAddress
+                      }
+                    }
+                  }
+                }))
+              }
+            }
+
+          } catch (error) {
+          }
+        });
+      }
     }
   } catch (error) {
     throw error
@@ -655,7 +850,6 @@ async function processScheduledLoop(item: CollectionData) {
 
 }
 
-let isWsConnected = false;
 
 async function processCounterBidLoop(item: CollectionData, ws: WebSocket) {
   console.log('----------------------------------------------------------------------');
@@ -734,101 +928,6 @@ async function processCounterBidLoop(item: CollectionData, ws: WebSocket) {
 
       bidHistory[collectionSymbol].lastSeenActivity = latestTimestamp
       const ourBids = Object.keys(bidHistory[collectionSymbol].ourBids);
-
-      let counterBidQueue: CollectOfferActivity[] = []
-
-      try {
-        const subscriptionMessage = {
-          type: 'subscribeCollection',
-          constraint: {
-            chain: 'bitcoin',
-            collectionSymbol: item.collectionSymbol
-          }
-        };
-
-        if (isWsConnected) {
-          ws.send(JSON.stringify(subscriptionMessage));
-          ws.on('message', async (data: WebSocket.Data) => {
-            if (isValidJSON(data.toString())) {
-              const message: CollectOfferActivity = JSON.parse(data.toString());
-              if (message.kind === "offer_placed" && ourBids.includes(message.tokenId) && message.buyerPaymentAddress !== buyerPaymentAddress) {
-
-                if (!counterBidQueue.some((item) => item.tokenId === message.tokenId)) {
-                  counterBidQueue.push(message)
-                }
-                processCounterBidQueue(counterBidQueue);
-              }
-            }
-          });
-
-          async function processCounterBidQueue(counterBidQueue: CollectOfferActivity[]) {
-            const counterOffers = counterBidQueue.map((item) => ({ listedPrice: item.listedPrice, tokenId: item.tokenId, buyerPaymentAddress: item.buyerPaymentAddress, createdAt: item.createdAt }))
-
-            console.log('--------------------------------------------------------------------------');
-            console.log('COUNTER OFFERS FOUND VIA WEB SOCKET');
-            console.table(counterOffers);
-            console.log('--------------------------------------------------------------------------');
-
-            queue.addAll(
-              counterBidQueue.map((offer) => async () => {
-                const { tokenId, listedPrice, buyerPaymentAddress } = offer
-
-                const bidPrice = +listedPrice + (outBidMargin * CONVERSION_RATE)
-                const ourBidPrice = bidHistory[collectionSymbol]?.ourBids[tokenId]?.price
-                const offerData = await getOffers(tokenId, buyerTokenReceiveAddress)
-                if (offerData && offerData.offers && +offerData.total > 0) {
-                  const offer = offerData.offers[0]
-
-                  if (+listedPrice > ourBidPrice) {
-                    console.log('-------------------------------------------------------------------------');
-                    console.log('COUNTERBIDDING!!!!');
-                    console.log('-------------------------------------------------------------------------');
-
-                    try {
-                      await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
-                      delete bidHistory[collectionSymbol].ourBids[tokenId]
-                      delete bidHistory[collectionSymbol].topBids[tokenId]
-                    } catch (error) {
-                      console.log(error);
-                    }
-                    if (bidPrice <= maxOffer) {
-                      try {
-                        const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey)
-                        if (status === true) {
-                          bidHistory[collectionSymbol].topBids[tokenId] = true
-                          bidHistory[collectionSymbol].ourBids[tokenId] = {
-                            price: bidPrice,
-                            expiration: expiration
-                          }
-                        }
-
-                      } catch (error) {
-                        console.log(error);
-                      }
-                    } else {
-                      console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                      console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
-                      console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                      delete bidHistory[collectionSymbol].topBids[tokenId]
-                      delete bidHistory[collectionSymbol].ourBids[tokenId]
-                    }
-                  } else {
-                    console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                    console.log(`YOU CURRENTLY HAVE THE HIGHEST OFFER ${ourBidPrice} FOR ${collectionSymbol} ${tokenId}`);
-                    console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                  }
-                }
-                counterBidQueue = counterBidQueue.filter(item => item.tokenId !== tokenId);
-              })
-
-
-            )
-          }
-
-        }
-      } catch (error) {
-        console.log(error);
-      }
 
       const latestOffers = offers
         .filter((offer) => ourBids.includes(offer.tokenId))
@@ -934,87 +1033,7 @@ async function processCounterBidLoop(item: CollectionData, ws: WebSocket) {
     let counterBidQueue: CollectOfferActivity[] = []
 
     try {
-      const subscriptionMessage = {
-        type: 'subscribeCollection',
-        constraint: {
-          chain: 'bitcoin',
-          collectionSymbol: item.collectionSymbol
-        }
-      };
 
-
-      if (isWsConnected) {
-        ws.send(JSON.stringify(subscriptionMessage));
-        ws.on('message', async (data: WebSocket.Data) => {
-          try {
-            if (isValidJSON(data.toString())) {
-              const message: CollectOfferActivity = JSON.parse(data.toString());
-
-              // GET ONLY COLLECTION OFFERS
-
-              if (message.kind === 'coll_offer_created') {
-                counterBidQueue.push(message)
-                processCounterBidQueue(counterBidQueue);
-              }
-
-
-              async function processCounterBidQueue(counterBidQueue: CollectOfferActivity[]) {
-
-                queue.addAll(counterBidQueue.map((offer) => async () => {
-                  const { listedPrice } = offer
-
-                  // GET CURRENT HIGHEST COLLECTION OFFER DETAILS
-                  const currentHighestCollectionOfferPrice = bidHistory[collectionSymbol].highestCollectionOffer?.price
-
-                  const ownerOfHighestOffer = bidHistory[collectionSymbol].highestCollectionOffer?.buyerPaymentAddress
-
-
-                  // CHECK IF NEW COLLECTION OFFER PRICE IS GREATER THAN HIGHEST COLLECT OFFER
-
-                  if (!currentHighestCollectionOfferPrice) {
-                    // bid minimum
-                    const outBidMargin = item.outBidMargin ?? DEFAULT_OUTBID_MARGIN
-                    const outBidAmount = outBidMargin * CONVERSION_RATE
-                    const bidPrice = outBidAmount + Number(listedPrice)
-
-                    // BID
-                    await placeCollectionBid(bidPrice, expiration, collectionSymbol, buyerTokenReceiveAddress, publicKey, privateKey, feeSatsPerVbyte)
-                    bidHistory[collectionSymbol].offerType = "COLLECTION"
-
-                    // UPDATE RECORD
-                    bidHistory[collectionSymbol].highestCollectionOffer = {
-                      price: bidPrice,
-                      buyerPaymentAddress: buyerPaymentAddress
-                    }
-                  }
-                  else if (currentHighestCollectionOfferPrice && +listedPrice > currentHighestCollectionOfferPrice) {
-                    // IF WE DONE OWN THE INCOMING HIGHEST COLLECTION OFFER, OUTBID
-                    if (ownerOfHighestOffer !== buyerPaymentAddress) {
-                      const outBidMargin = item.outBidMargin ?? DEFAULT_OUTBID_MARGIN
-                      const outBidAmount = outBidMargin * CONVERSION_RATE
-                      const bidPrice = outBidAmount + Number(listedPrice)
-
-                      // OUTBID
-                      await placeCollectionBid(bidPrice, expiration, collectionSymbol, buyerTokenReceiveAddress, publicKey, privateKey, feeSatsPerVbyte)
-                      bidHistory[collectionSymbol].offerType = "COLLECTION"
-
-                      // UPDATE RECORD
-                      bidHistory[collectionSymbol].highestCollectionOffer = {
-                        price: bidPrice,
-                        buyerPaymentAddress: buyerPaymentAddress
-                      }
-                    }
-                  }
-
-
-                }))
-              }
-            }
-
-          } catch (error) {
-          }
-        });
-      }
     } catch (error) {
       console.log(error);
     }
@@ -1024,58 +1043,20 @@ async function processCounterBidLoop(item: CollectionData, ws: WebSocket) {
 
 
 async function startProcessing() {
-  const ws = new WebSocket('wss://wss-mainnet.magiceden.io/CJMw7IPrGPUb13adEQYW2ASbR%2FIWToagGUCr02hWp1oWyLAtf5CS0XF69WNXj0MbO6LEQLrFQMQoEqlX7%2Fny2BP08wjFc9MxzEmM5v2c5huTa3R1DPqGSbuO2TXKEEneIc4FMEm5ZJruhU8y4cyfIDzGqhWDhxK3iRnXtYzI0FGG1%2BMKyx9WWOpp3lLA3Gm2BgNpHHp3wFEas5TqVdJn0GtBrptg8ZEveG8c44CGqfWtEsS0iI8LZDR7tbrZ9fZpbrngDaimEYEH6MgvhWPTlKrsGw%3D%3D');
-
-
-  ws.on('open', () => {
-    console.log('WebSocket connected');
-    isWsConnected = true;
-
-  });
-
-  ws.on('close', () => {
-    console.log('WebSocket connection closed');
-    isWsConnected = false;
-  });
-  // Run processScheduledLoop and processCounterBidLoop for each item concurrently
   await Promise.all(
     collections.map(async (item) => {
-      let isScheduledLoopRunning = false;
-      let isCounterBidLoopRunning = false;
       let mutex = new Mutex();
 
-      // Start processScheduledLoop and processCounterBidLoop loops concurrently for the item
-      await Promise.all([
-        (async () => {
-          while (true) {
-            await mutex.acquire();
-            if (!isCounterBidLoopRunning) {
-              isScheduledLoopRunning = true;
-              await processScheduledLoop(item);
-              isScheduledLoopRunning = false;
-            }
-            mutex.release();
-            await delay((item.scheduledLoop || DEFAULT_LOOP) * 1000);
-          }
-        })(),
-        (async () => {
-          while (item.enableCounterBidding) {
-            await mutex.acquire();
-            if (!isScheduledLoopRunning) {
-              isCounterBidLoopRunning = true;
-              await processCounterBidLoop(item, ws);
-              isCounterBidLoopRunning = false;
-            }
-            mutex.release();
-            await delay((item.counterbidLoop || DEFAULT_COUNTER_BID_LOOP_TIME) * 1000);
-          }
-        })(),
-      ]);
+      while (true) {
+        await mutex.acquire();
+        await processScheduledLoop(item);
+        mutex.release();
+        await delay((item.scheduledLoop || DEFAULT_LOOP) * 1000);
+      }
     })
   );
 }
 
-// Simple Mutex implementation
 class Mutex {
   private locked: boolean;
   private waitQueue: (() => void)[];
@@ -1349,7 +1330,6 @@ export interface CollectionData {
   fundingWalletWIF?: string;
   tokenReceiveAddress?: string;
   scheduledLoop?: number;
-  counterbidLoop?: number;
   offerType: "ITEM" | "COLLECTION";
   feeSatsPerVbyte?: number;
 }
