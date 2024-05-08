@@ -1,16 +1,17 @@
 [
 	{
-		"collectionSymbol": "runestone",
-		"minBid": 0.011842425,
-		"minFloorBid": 75,
-		"maxFloorBid": 95,
-		"maxBid": 0.015000405,
+		"collectionSymbol": "basedangels",
+		"minBid": 0.004395,
+		"maxBid": 0.0065925,
+		"minFloorBid": 50,
+		"maxFloorBid": 75,
 		"bidCount": 20,
-		"duration": 10,
+		"duration": 4320,
+		"enableCounterBidding": false,
 		"scheduledLoop": 60,
 		"counterbidLoop": 60,
-		"outBidMargin": 1e-6,
-		"offerType": "COLLECTION",
+		"outBidMargin": 1e-5,
+		"offerType": "ITEM",
 		"quantity": 1,
 		"feeSatsPerVbyte": 28
 	}
