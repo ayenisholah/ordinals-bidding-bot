@@ -20,8 +20,12 @@ const ECPair: ECPairAPI = ECPairFactory(tinysecp);
 
 
 
+const uniqueCollections = collections.filter(
+  (collection, index, self) =>
+    index === self.findIndex((c) => c.tokenReceiveAddress === collection.tokenReceiveAddress && c.offerType === collection.offerType)
+);
 
-collections.forEach((item) => {
+uniqueCollections.forEach((item) => {
   main(item)
 })
 

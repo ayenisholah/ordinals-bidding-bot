@@ -726,10 +726,6 @@ async function processCounterBidLoop(item: CollectionData, ws: WebSocket) {
       const maxFloorBid = item.maxFloorBid <= 100 ? item.maxFloorBid : 100
       const maxOffer = Math.max(maxPrice, Math.round(maxFloorBid * floorPrice / 100))
 
-
-
-      const minFloorBid = item.minFloorBid
-
       const lastSeenTimestamp = bidHistory[collectionSymbol]?.lastSeenActivity || null;
       const { offers, latestTimestamp, soldTokens } = await getCollectionActivity(
         collectionSymbol,
@@ -737,11 +733,8 @@ async function processCounterBidLoop(item: CollectionData, ws: WebSocket) {
       );
 
       bidHistory[collectionSymbol].lastSeenActivity = latestTimestamp
-
       const ourBids = Object.keys(bidHistory[collectionSymbol].ourBids);
 
-
-      // watch if our bid shows up on socket and counter bid them
       let counterBidQueue: CollectOfferActivity[] = []
 
       try {
@@ -759,12 +752,14 @@ async function processCounterBidLoop(item: CollectionData, ws: WebSocket) {
             if (isValidJSON(data.toString())) {
               const message: CollectOfferActivity = JSON.parse(data.toString());
               if (message.kind === "offer_placed" && ourBids.includes(message.tokenId) && message.buyerPaymentAddress !== buyerPaymentAddress) {
-                counterBidQueue.push(message)
+
+                if (!counterBidQueue.some((item) => item.tokenId === message.tokenId)) {
+                  counterBidQueue.push(message)
+                }
                 processCounterBidQueue(counterBidQueue);
               }
             }
           });
-
 
           async function processCounterBidQueue(counterBidQueue: CollectOfferActivity[]) {
             const counterOffers = counterBidQueue.map((item) => ({ listedPrice: item.listedPrice, tokenId: item.tokenId, buyerPaymentAddress: item.buyerPaymentAddress, createdAt: item.createdAt }))
@@ -788,7 +783,6 @@ async function processCounterBidLoop(item: CollectionData, ws: WebSocket) {
                     console.log('-------------------------------------------------------------------------');
                     console.log('COUNTERBIDDING!!!!');
                     console.log('-------------------------------------------------------------------------');
-
 
                     try {
                       await cancelBid(offer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
@@ -822,16 +816,9 @@ async function processCounterBidLoop(item: CollectionData, ws: WebSocket) {
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
                     console.log(`YOU CURRENTLY HAVE THE HIGHEST OFFER ${ourBidPrice} FOR ${collectionSymbol} ${tokenId}`);
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
-
-                    // check those conditions
                   }
-
                 }
-
-                // delete from queue
-
                 counterBidQueue = counterBidQueue.filter(item => item.tokenId !== tokenId);
-
               })
 
 
