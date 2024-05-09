@@ -196,7 +196,7 @@ export async function createOffer(
     const { data } = await limiter.schedule(() => axiosInstance.get(baseURL, { params, headers }))
     return data
   } catch (error: any) {
-    console.log("createOfferError: ", error.response.data);
+    console.log("createOfferError: ", error?.response?.data);
   }
 }
 
@@ -368,7 +368,7 @@ export async function getOffers(tokenId: string, buyerTokenReceiveAddress?: stri
     const { data } = await limiter.schedule(() => axiosInstance.get<OfferData>(url, { params, headers }))
     return data
   } catch (error: any) {
-    console.log("getOffers ", error.response.data);
+    console.log("getOffers ", error?.response?.data);
   }
 }
 
