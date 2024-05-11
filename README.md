@@ -36,38 +36,80 @@ OR
 
 - Edit the collections.json and set bidding configurations
 
+### ITEM OFFER
+
+| Field                           | Description                                                           |
+| ------------------------------- | --------------------------------------------------------------------- |
+| collectionSymbol                | The symbol of the collection to bid on.                               |
+| minBid                          | The minimum bid amount.                                               |
+| minFloorBid                     | The minimum percentage of the floor price to bid.                     |
+| maxFloorBid                     | The maximum percentage of the floor price to bid.                     |
+| maxBid                          | The maximum bid amount.                                               |
+| bidCount                        | The number of bids to place.                                          |
+| duration                        | The duration of the bidding process.                                  |
+| scheduledLoop                   | The interval (in seconds) at which to run the scheduled bidding loop. |
+| offerType (ITEM OR COLLECTION)  | Type of offer either item or collection or trait (coming soon)        |
+| enableCounterBidding (OPTIONAL) | Enable / disable counter bidding                                      |
+| fundingWalletWIF (OPTIONAL)     | WIF (Wallet Import Format). This overrides the value set in the env   |
+| quantity (OPTIONAL)             | the maximum number of token to buy, default to 1                      |
+| tokenReceiveAddress (OPTIONAL)  | Token receive address. This overrides the value set in the env        |
+
 ```
 [
   	{
-		"collectionSymbol": "fat_puppets",
-		"minBid": 0.00002,
-		"minFloorBid": 50,
+		"collectionSymbol": "bitdogs_btc",
+		"minBid": 0.0015,
+		"maxBid": 0.0019,
+		"minFloorBid": 65,
 		"maxFloorBid": 80,
-		"maxBid": 0.00003,
-		"bidCount": 10,
-		"duration": 10,
+		"bidCount": 7,
+		"duration": 60,
+		"enableCounterBidding": true,
 		"scheduledLoop": 60,
-		"counterbidLoop": 60,
 		"outBidMargin": 1e-6,
-		"fundingWalletWIF": "<WALLET PRIVATEKEY>",
-		"tokenReceiveAddress": "bc1pad3xhdxnktqj4gch7t3kffsxcy6j5g94nq08k0gv8u62sd45xrhqucztsy"
+		"offerType": "ITEM",
+		"quantity": 1,
 	}
 ]
 ```
 
-| Field                          | Description                                                           |
-| ------------------------------ | --------------------------------------------------------------------- |
-| collectionSymbol               | The symbol of the collection to bid on.                               |
-| minBid                         | The minimum bid amount.                                               |
-| minFloorBid                    | The minimum percentage of the floor price to bid.                     |
-| maxFloorBid                    | The maximum percentage of the floor price to bid.                     |
-| maxBid                         | The maximum bid amount.                                               |
-| bidCount                       | The number of bids to place.                                          |
-| duration                       | The duration of the bidding process.                                  |
-| scheduledLoop                  | The interval (in seconds) at which to run the scheduled bidding loop. |
-| counterbidLoop                 | The interval (in seconds) at which to run the counterbid loop.        |
-| fundingWalletWIF (OPTIONAL)    | WIF (Wallet Import Format). This overrides the value set in the env   |
-| tokenReceiveAddress (OPTIONAL) | Token receive address. This overrides the value set in the env        |
+### COLLECTION OFFER
+
+| Field                           | Description                                                           |
+| ------------------------------- | --------------------------------------------------------------------- |
+| collectionSymbol                | The symbol of the collection to bid on.                               |
+| minBid                          | The minimum bid amount.                                               |
+| minFloorBid                     | The minimum percentage of the floor price to bid.                     |
+| maxFloorBid                     | The maximum percentage of the floor price to bid.                     |
+| maxBid                          | The maximum bid amount.                                               |
+| bidCount                        | The number of bids to place.                                          |
+| duration                        | The duration of the bidding process.                                  |
+| scheduledLoop                   | The interval (in seconds) at which to run the scheduled bidding loop. |
+| offerType (ITEM OR COLLECTION)  | Type of offer either item or collection or trait (coming soon)        |
+| enableCounterBidding (OPTIONAL) | Enable / disable counter bidding                                      |
+| fundingWalletWIF (OPTIONAL)     | WIF (Wallet Import Format). This overrides the value set in the env   |
+| feeSatsPerVbyte (OPTIONAL)      | Network fees, default to 28                                           |
+| tokenReceiveAddress (OPTIONAL)  | Token receive address. This overrides the value set in the env        |
+
+```
+[
+  	{
+		"collectionSymbol": "bitdogs_btc",
+		"minBid": 0.0015,
+		"maxBid": 0.0019,
+		"minFloorBid": 65,
+		"maxFloorBid": 80,
+		"bidCount": 7,
+		"duration": 60,
+		"enableCounterBidding": true,
+		"scheduledLoop": 60,
+		"outBidMargin": 1e-6,
+		"offerType": "COLLECTION",
+		"quantity": 1,
+		"feeSatsPerVbyte": 28
+	}
+]
+```
 
 `yarn bid`
 
