@@ -356,7 +356,7 @@ export async function getOffers(tokenId: string, buyerTokenReceiveAddress?: stri
   if (buyerTokenReceiveAddress) {
     params = {
       status: 'valid',
-      limit: 1,
+      limit: 100,
       offset: 0,
       sortBy: 'priceDesc',
       token_id: tokenId,
@@ -396,7 +396,7 @@ export async function submitCancelOfferData(offerId: string, signedPSBTBase64: s
     const response = await limiter.schedule(() => axiosInstance.post(url, data, { headers }))
     return response.data.ok
   } catch (error: any) {
-    console.log('submitCancelOfferData: ', error.response.data);
+    console.log('submitCancelOfferData: ');
   }
 }
 

@@ -1,9 +1,7 @@
-import Bottleneck from "bottleneck"
-
 import axiosInstance from "../axios/axiosInstance";
 import limiter from "../bottleneck";
 
-export async function getBitcoinBalance(address: string): Promise<number> {
+export async function getBitcoinBalance(address: string): Promise<number | undefined> {
   try {
     const response = await limiter.schedule(() =>
       axiosInstance.get('https://nfttools.pro', {
@@ -20,7 +18,6 @@ export async function getBitcoinBalance(address: string): Promise<number> {
 
     return balance;
   } catch (error: any) {
-    console.error('getBitcoinBalance:', error?.response);
-    throw error;
+    console.error('getBitcoinBalance:');
   }
 }
