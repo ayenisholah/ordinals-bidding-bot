@@ -11,7 +11,6 @@ const network = bitcoin.networks.bitcoin;
 config()
 
 const api_key = process.env.API_KEY as string;
-const private_key = process.env.PRIVATE_KEY as string;
 
 const headers = {
   'Content-Type': 'application/json',
@@ -254,12 +253,11 @@ export async function getBestCollectionOffer(collectionSymbol: string) {
   const params = {
     sort: 'priceDesc',
     status: ['valid'],
-    limit: 2,
+    limit: 100,
     offset: 0
   };
 
   try {
-
     const { data } = await limiter.schedule(() => axiosInstance.get<CollectionOfferData>(url, { params, headers }));
     return data
   } catch (error: any) {
