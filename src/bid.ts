@@ -25,6 +25,8 @@ const FEE_RATE_TIER = 'halfHourFee'
 const CONVERSION_RATE = 100000000
 const network = bitcoin.networks.bitcoin;
 
+const bids: string[] = []
+
 const tinysecp: TinySecp256k1Interface = require('tiny-secp256k1');
 const ECPair: ECPairAPI = ECPairFactory(tinysecp);
 
@@ -198,6 +200,11 @@ class EventManager {
                     console.log('REMOVE EXPIRED BIDS');
                     delete bidHistory[collectionSymbol].ourBids[bid.tokenId]
                     delete bidHistory[collectionSymbol].topBids[bid.tokenId]
+
+                    const index = bids.indexOf(bid.tokenId);
+                    if (index > -1) {
+                      bids.splice(index, 1);
+                    }
                   }
                 })
 
@@ -455,6 +462,11 @@ class EventManager {
           console.log('REMOVE EXPIRED BIDS');
           delete bidHistory[collectionSymbol].ourBids[bid.tokenId]
           delete bidHistory[collectionSymbol].topBids[bid.tokenId]
+
+          const index = bids.indexOf(bid.tokenId);
+          if (index > -1) {
+            bids.splice(index, 1);
+          }
         }
       })
 
@@ -1043,7 +1055,6 @@ async function getCollectionActivity(
 }
 
 
-
 async function cancelBid(offer: IOffer, privateKey: string, collectionSymbol?: string, tokenId?: string, buyerPaymentAddress?: string) {
   try {
     const offerFormat = await retrieveCancelOfferFormat(offer.id)
@@ -1051,6 +1062,10 @@ async function cancelBid(offer: IOffer, privateKey: string, collectionSymbol?: s
       const signedOfferFormat = signData(offerFormat, privateKey)
       if (signedOfferFormat) {
         await submitCancelOfferData(offer.id, signedOfferFormat)
+        const index = bids.indexOf(offer.tokenId);
+        if (index > -1) {
+          bids.splice(index, 1);
+        }
       }
     }
   } catch (error) {
@@ -1088,6 +1103,8 @@ async function placeBid(
   try {
     const startTime = Date.now();
 
+    if (bids.includes(tokenId)) return
+
     const price = Math.round(offerPrice)
     // check for current offers and cancel before placing the bid
     const offerData = await getOffers(tokenId, buyerTokenReceiveAddress)
@@ -1106,6 +1123,8 @@ async function placeBid(
       await submitSignedOfferOrder(signedOffer, tokenId, offerPrice, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, FEE_RATE_TIER)
       const endTime = Date.now();
       console.log('PLACE BID FUNCTION TOOK:', endTime - startTime, 'ms');
+
+      bids.push(tokenId)
       return true
     }
 
