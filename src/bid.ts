@@ -103,14 +103,14 @@ class EventManager {
   async processQueue(): Promise<void> {
     if (!this.isProcessingQueue && this.queue.length > 0) {
       this.isProcessingQueue = true;
-      setTimeout(() => {
-        const event = this.queue.shift();
-        if (event) {
+      const event = this.queue.shift();
+      if (event) {
+        setTimeout(() => {
           this.handleIncomingBid(event);
-        }
-        this.isProcessingQueue = false;
-        this.processQueue();
-      }, 5000)
+        }, 5000)
+      }
+      this.isProcessingQueue = false;
+      this.processQueue();
     }
   }
 
