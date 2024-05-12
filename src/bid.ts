@@ -1104,6 +1104,7 @@ async function placeBid(
       const offers = offerData.offers
       offers.forEach(async (item) => {
         await cancelBid(item, privateKey)
+        delay(2000)
       })
     }
 
