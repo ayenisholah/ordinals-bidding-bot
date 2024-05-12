@@ -277,18 +277,16 @@ class EventManager {
     }
   }
 
-  async runScheduledTask(item: CollectionData, interval: number): Promise<void> {
-    setInterval(async () => {
-      console.log('Scheduled task is waiting for queue to complete.');
-      while (this.isProcessingQueue) {
-        await new Promise(resolve => setTimeout(resolve, 100)); // Wait for queue processing to pause
-      }
-      console.log('Scheduled task running...');
-      this.isScheduledRunning = true;
-      this.processScheduledLoop(item);
-      console.log('Scheduled task completed.');
-      this.isScheduledRunning = false;
-    }, interval);
+  async runScheduledTask(item: CollectionData): Promise<void> {
+    console.log('Scheduled task is waiting for queue to complete.');
+    while (this.isProcessingQueue) {
+      await new Promise(resolve => setTimeout(resolve, 100)); // Wait for queue processing to pause
+    }
+    console.log('Scheduled task running...');
+    this.isScheduledRunning = true;
+    this.processScheduledLoop(item);
+    console.log('Scheduled task completed.');
+    this.isScheduledRunning = false;
   }
 
   async processScheduledLoop(item: CollectionData) {
@@ -458,6 +456,7 @@ class EventManager {
                   item.tokenId,
                   buyerPaymentAddress
                 );
+                await delay(1000)
                 delete bidHistory[collectionSymbol].ourBids[token.tokenId]
                 delete bidHistory[collectionSymbol].topBids[token.tokenId]
               })
@@ -553,6 +552,8 @@ class EventManager {
                             tokenId,
                             buyerPaymentAddress
                           );
+                          await delay(1000)
+
                           delete bidHistory[collectionSymbol].ourBids[tokenId]
                           delete bidHistory[collectionSymbol].topBids[tokenId]
                         })
@@ -631,6 +632,7 @@ class EventManager {
                             tokenId,
                             buyerPaymentAddress
                           );
+                          await delay(1000)
 
                           delete bidHistory[collectionSymbol].topBids[tokenId]
                           delete bidHistory[collectionSymbol].ourBids[tokenId]
@@ -658,6 +660,8 @@ class EventManager {
                             tokenId,
                             buyerPaymentAddress
                           );
+                          await delay(1000)
+
                           delete bidHistory[collectionSymbol].ourBids[tokenId]
                           delete bidHistory[collectionSymbol].topBids[tokenId]
                         })
@@ -691,6 +695,9 @@ class EventManager {
                           await cancelBid(topOffer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
                           delete bidHistory[collectionSymbol].ourBids[tokenId]
                           delete bidHistory[collectionSymbol].topBids[tokenId]
+
+                          await delay(1000)
+
 
                         } catch (error) {
                           console.log(error);
@@ -729,6 +736,9 @@ class EventManager {
                           await cancelBid(topOffer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
                           delete bidHistory[collectionSymbol].ourBids[tokenId]
                           delete bidHistory[collectionSymbol].topBids[tokenId]
+
+                          await delay(1000)
+
                         } catch (error) {
                           console.log(error);
                         }
@@ -771,6 +781,8 @@ class EventManager {
                             tokenId,
                             buyerPaymentAddress
                           );
+                          await delay(1000)
+
                           delete bidHistory[collectionSymbol].ourBids[tokenId]
                           delete bidHistory[collectionSymbol].topBids[tokenId]
                         })
@@ -1037,7 +1049,10 @@ async function startProcessing() {
   console.log("Running");
   collections.map(async (item) => {
     const loop = (item.scheduledLoop || DEFAULT_LOOP) * 1000
-    eventManager.runScheduledTask(item, 60000);
+    while (true) {
+      eventManager.runScheduledTask(item);
+      await delay(loop)
+    }
   })
 }
 
