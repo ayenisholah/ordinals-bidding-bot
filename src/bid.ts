@@ -10,6 +10,7 @@ import { retrieveTokens } from "./functions/Tokens";
 import axiosInstance from "./axios/axiosInstance";
 import limiter from "./bottleneck";
 import WebSocket from 'ws';
+import { off } from "process";
 
 
 config()
@@ -179,24 +180,6 @@ class EventManager {
               processingItems.add(incomingItemKey);
 
               try {
-                const offerData = await getOffers(tokenId, buyerTokenReceiveAddress);
-                if (offerData && offerData.offers && +offerData.total > 0) {
-                  const offer = offerData?.offers.filter((item) => item.buyerPaymentAddress === buyerPaymentAddress)
-
-                  offer.forEach(async (item) => {
-                    await cancelBid(
-                      item,
-                      privateKey,
-                      collectionSymbol,
-                      tokenId,
-                      buyerPaymentAddress
-                    );
-                  })
-
-                  delete bidHistory[collectionSymbol].ourBids[tokenId];
-                  delete bidHistory[collectionSymbol].topBids[tokenId];
-                }
-
                 const userBids = Object.entries(bidHistory).flatMap(([collectionSymbol, bidData]) => {
                   return Object.entries(bidData.ourBids).map(([tokenId, bidInfo]) => ({
                     collectionSymbol,
@@ -447,8 +430,8 @@ class EventManager {
           tokensToCancel.map(token => async () => {
             const offerData = await getOffers(token.tokenId, buyerTokenReceiveAddress)
             if (offerData && Number(offerData.total) > 0) {
-              const offer = offerData?.offers.filter((item) => item.buyerPaymentAddress === buyerPaymentAddress)
-              offer.forEach(async (item) => {
+              const offers = offerData?.offers.filter((item) => item.buyerPaymentAddress === buyerPaymentAddress)
+              offers.forEach(async (item) => {
                 await cancelBid(
                   item,
                   privateKey,
@@ -456,7 +439,6 @@ class EventManager {
                   item.tokenId,
                   buyerPaymentAddress
                 );
-                await delay(1000)
                 delete bidHistory[collectionSymbol].ourBids[token.tokenId]
                 delete bidHistory[collectionSymbol].topBids[token.tokenId]
               })
@@ -496,7 +478,6 @@ class EventManager {
               const offer = offerData?.offers.filter((item) => item.buyerPaymentAddress === buyerPaymentAddress)
 
               if (currentExpiry - Date.now() > newExpiry) {
-
                 if (offer) {
                   offer.forEach(async (item) => {
                     await cancelBid(
@@ -544,20 +525,6 @@ class EventManager {
                       console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
                       try {
-                        offer?.forEach(async (item) => {
-                          await cancelBid(
-                            item,
-                            privateKey,
-                            collectionSymbol,
-                            tokenId,
-                            buyerPaymentAddress
-                          );
-                          await delay(1000)
-
-                          delete bidHistory[collectionSymbol].ourBids[tokenId]
-                          delete bidHistory[collectionSymbol].topBids[tokenId]
-                        })
-
                         const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey)
                         if (status === true) {
                           bidHistory[collectionSymbol].topBids[tokenId] = true
@@ -619,30 +586,6 @@ class EventManager {
                   const bestPrice = topOffer.price
 
                   if (topOffer.buyerPaymentAddress !== buyerPaymentAddress) {
-                    const offerData = await getOffers(tokenId, buyerTokenReceiveAddress)
-                    if (offerData && Number(offerData.total) > 0) {
-                      const offer = offerData?.offers.filter((item) => item.buyerPaymentAddress === buyerPaymentAddress)
-
-                      try {
-                        offer.forEach(async (item) => {
-                          await cancelBid(
-                            item,
-                            privateKey,
-                            collectionSymbol,
-                            tokenId,
-                            buyerPaymentAddress
-                          );
-                          await delay(1000)
-
-                          delete bidHistory[collectionSymbol].topBids[tokenId]
-                          delete bidHistory[collectionSymbol].ourBids[tokenId]
-                        })
-
-                      } catch (error) {
-                        console.log(error);
-                      }
-
-                    }
                     const currentPrice = topOffer.price
                     const bidPrice = currentPrice + (outBidMargin * CONVERSION_RATE)
 
@@ -652,20 +595,6 @@ class EventManager {
                       console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
                       try {
-                        offer?.forEach(async (item) => {
-                          await cancelBid(
-                            item,
-                            privateKey,
-                            collectionSymbol,
-                            tokenId,
-                            buyerPaymentAddress
-                          );
-                          await delay(1000)
-
-                          delete bidHistory[collectionSymbol].ourBids[tokenId]
-                          delete bidHistory[collectionSymbol].topBids[tokenId]
-                        })
-
                         const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey)
                         if (status === true) {
                           bidHistory[collectionSymbol].topBids[tokenId] = true
@@ -691,17 +620,6 @@ class EventManager {
                       const outBidAmount = outBidMargin * CONVERSION_RATE
                       if (bestPrice - secondBestPrice > outBidAmount) {
                         const bidPrice = secondBestPrice + outBidAmount
-                        try {
-                          await cancelBid(topOffer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
-                          delete bidHistory[collectionSymbol].ourBids[tokenId]
-                          delete bidHistory[collectionSymbol].topBids[tokenId]
-
-                          await delay(1000)
-
-
-                        } catch (error) {
-                          console.log(error);
-                        }
 
                         if (bidPrice <= maxOffer) {
                           console.log('-----------------------------------------------------------------------------------------------------------------------------');
@@ -731,18 +649,6 @@ class EventManager {
                     } else {
                       const bidPrice = Math.max(minOffer, listedPrice * 0.5)
                       if (bestPrice !== bidPrice) { // self adjust bids.
-
-                        try {
-                          await cancelBid(topOffer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
-                          delete bidHistory[collectionSymbol].ourBids[tokenId]
-                          delete bidHistory[collectionSymbol].topBids[tokenId]
-
-                          await delay(1000)
-
-                        } catch (error) {
-                          console.log(error);
-                        }
-
                         console.log('-----------------------------------------------------------------------------------------------------------------------------');
                         console.log(`ADJUST OUR CURRENT OFFER ${bestPrice} TO ${bidPrice} FOR ${collectionSymbol} ${tokenId}`);
                         console.log('-----------------------------------------------------------------------------------------------------------------------------');
@@ -768,24 +674,6 @@ class EventManager {
 
                       } else if (bidPrice > maxOffer) {
                         console.log('\x1b[31m%s\x1b[0m', '🛑 CURRENT PRICE IS GREATER THAN MAX OFFER!!! 🛑');
-                        const offerData = await getOffers(tokenId, buyerTokenReceiveAddress)
-
-                        const offer = offerData?.offers.filter((item) => item.buyerPaymentAddress === buyerPaymentAddress)
-
-
-                        offer?.forEach(async (item) => {
-                          await cancelBid(
-                            item,
-                            privateKey,
-                            collectionSymbol,
-                            tokenId,
-                            buyerPaymentAddress
-                          );
-                          await delay(1000)
-
-                          delete bidHistory[collectionSymbol].ourBids[tokenId]
-                          delete bidHistory[collectionSymbol].topBids[tokenId]
-                        })
                       }
                     }
                   }
@@ -1050,7 +938,7 @@ async function startProcessing() {
   collections.map(async (item) => {
     const loop = (item.scheduledLoop || DEFAULT_LOOP) * 1000
     while (true) {
-      eventManager.runScheduledTask(item);
+      await eventManager.runScheduledTask(item);
       await delay(loop)
     }
   })
@@ -1146,7 +1034,7 @@ async function getCollectionActivity(
 
 
 
-async function cancelBid(offer: IOffer, privateKey: string, collectionSymbol: string, tokenId: string, buyerPaymentAddress: string) {
+async function cancelBid(offer: IOffer, privateKey: string, collectionSymbol?: string, tokenId?: string, buyerPaymentAddress?: string) {
   try {
     const offerFormat = await retrieveCancelOfferFormat(offer.id)
     if (offerFormat) {
@@ -1188,11 +1076,25 @@ async function placeBid(
   privateKey: string,
 ) {
   try {
+    const startTime = Date.now(); // Record start time
+
     const price = Math.round(offerPrice)
+    // check for current offers and cancel before placing the bid
+    const offerData = await getOffers(tokenId, buyerPaymentAddress)
+
+    if (offerData && offerData.offers.length > 0) {
+      const offers = offerData.offers
+      offers.forEach(async (item) => {
+        await cancelBid(item, privateKey)
+      })
+    }
+
     const unsignedOffer = await createOffer(tokenId, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, FEE_RATE_TIER)
     const signedOffer = await signData(unsignedOffer, privateKey)
     if (signedOffer) {
       await submitSignedOfferOrder(signedOffer, tokenId, offerPrice, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, FEE_RATE_TIER)
+      const endTime = Date.now(); // Record end time
+      console.log('PLACE BID FUNCTION TOOK:', endTime - startTime, 'ms'); // Calculate and log execution time
       return true
     }
 
