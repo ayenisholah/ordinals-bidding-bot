@@ -1,10 +1,10 @@
 [
 	{
-		"collectionSymbol": "buzz-buzz-buzz",
-		"minBid": 0.0004251,
-		"maxBid": 0.0004578,
-		"minFloorBid": 65,
-		"maxFloorBid": 80,
+		"collectionSymbol": "bitdogs_btc",
+		"minBid": 0.0017394,
+		"maxBid": 0.0020293,
+		"minFloorBid": 60,
+		"maxFloorBid": 70,
 		"bidCount": 20,
 		"duration": 60,
 		"scheduledLoop": 300,
