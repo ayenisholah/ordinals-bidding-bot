@@ -18,7 +18,7 @@ const TOKEN_RECEIVE_ADDRESS = process.env.TOKEN_RECEIVE_ADDRESS as string
 const FUNDING_WIF = process.env.FUNDING_WIF as string;
 const DEFAULT_OUTBID_MARGIN = Number(process.env.DEFAULT_OUTBID_MARGIN) || 0.00001
 const API_KEY = process.env.API_KEY as string;
-const RATE_LIMIT = Number(process.env.RATE_LIMIT) ?? 16
+const RATE_LIMIT = Number(process.env.RATE_LIMIT) ?? 32
 const DEFAULT_OFFER_EXPIRATION = 30
 const FEE_RATE_TIER = 'halfHourFee'
 const CONVERSION_RATE = 100000000
@@ -364,11 +364,22 @@ class EventManager {
       let tokens = await retrieveTokens(collectionSymbol, bidCount)
       tokens = tokens.slice(0, bidCount)
 
-      bidHistory[collectionSymbol].bottomListings = tokens.map(item => ({ id: item.id, price: item.listedPrice }))
-        .sort((a, b) => a.price - b.price)
+      const bottomTokens = tokens
+        .sort((a, b) => a.listedPrice - b.listedPrice)
+
+      const uniqueTokenIds: {
+        id: string;
+        price: number;
+      }[] = Object.values(bottomTokens.reduce((acc: any, item) => {
+        if (!acc[item.id] || acc[item.id].price > item.listedPrice) {
+          acc[item.id] = { id: item.id, price: item.listedPrice };
+        }
+        return acc;
+      }, {}))
+
+      bidHistory[collectionSymbol].bottomListings = uniqueTokenIds
 
       const bottomListings = bidHistory[collectionSymbol].bottomListings
-
       console.log('--------------------------------------------------------------------------------');
       console.log(`BOTTOM LISTING FOR ${collectionSymbol}`);
       console.table(bottomListings)
@@ -447,10 +458,10 @@ class EventManager {
                   item.tokenId,
                   buyerPaymentAddress
                 );
+                delete bidHistory[collectionSymbol].ourBids[token.tokenId]
+                delete bidHistory[collectionSymbol].topBids[token.tokenId]
               })
             }
-            delete bidHistory[collectionSymbol].ourBids[token.tokenId]
-            delete bidHistory[collectionSymbol].topBids[token.tokenId]
           })
         )
       }
@@ -479,7 +490,6 @@ class EventManager {
 
               const bestOffer = await getBestOffer(tokenId);
               const ourExistingOffer = bidHistory[collectionSymbol].ourBids[tokenId]?.expiration > Date.now()
-              const currentBidCount = userBids.length
 
               const currentExpiry = bidHistory[collectionSymbol]?.ourBids[tokenId]?.expiration
               const newExpiry = duration * 60 * 1000
@@ -497,9 +507,9 @@ class EventManager {
                       tokenId,
                       buyerPaymentAddress
                     );
+                    delete bidHistory[collectionSymbol].ourBids[tokenId]
+                    delete bidHistory[collectionSymbol].topBids[tokenId]
                   })
-                  delete bidHistory[collectionSymbol].ourBids[tokenId]
-                  delete bidHistory[collectionSymbol].topBids[tokenId]
                 }
               }
 
@@ -543,9 +553,9 @@ class EventManager {
                             tokenId,
                             buyerPaymentAddress
                           );
+                          delete bidHistory[collectionSymbol].ourBids[tokenId]
+                          delete bidHistory[collectionSymbol].topBids[tokenId]
                         })
-                        delete bidHistory[collectionSymbol].ourBids[tokenId]
-                        delete bidHistory[collectionSymbol].topBids[tokenId]
 
                         const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey)
                         if (status === true) {
@@ -562,9 +572,6 @@ class EventManager {
                       console.log('-----------------------------------------------------------------------------------------------------------------------------');
                       console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
                       console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                      delete bidHistory[collectionSymbol].topBids[tokenId]
-                      delete bidHistory[collectionSymbol].ourBids[tokenId]
-                      // add token to skip
                     }
                   }
                 }
@@ -575,7 +582,6 @@ class EventManager {
                 */
                 else {
                   const bidPrice = Math.max(listedPrice * 0.5, minOffer)
-
                   if (bidPrice <= maxOffer) {
                     try {
                       const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey)
@@ -594,9 +600,6 @@ class EventManager {
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
                     console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
-
-                    delete bidHistory[collectionSymbol].topBids[tokenId]
-                    delete bidHistory[collectionSymbol].ourBids[tokenId]
                   }
                 }
               }
@@ -628,6 +631,9 @@ class EventManager {
                             tokenId,
                             buyerPaymentAddress
                           );
+
+                          delete bidHistory[collectionSymbol].topBids[tokenId]
+                          delete bidHistory[collectionSymbol].ourBids[tokenId]
                         })
 
                       } catch (error) {
@@ -652,9 +658,9 @@ class EventManager {
                             tokenId,
                             buyerPaymentAddress
                           );
+                          delete bidHistory[collectionSymbol].ourBids[tokenId]
+                          delete bidHistory[collectionSymbol].topBids[tokenId]
                         })
-                        delete bidHistory[collectionSymbol].ourBids[tokenId]
-                        delete bidHistory[collectionSymbol].topBids[tokenId]
 
                         const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey)
                         if (status === true) {
@@ -673,8 +679,6 @@ class EventManager {
                       console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
                       console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
-                      delete bidHistory[collectionSymbol].topBids[tokenId]
-                      delete bidHistory[collectionSymbol].ourBids[tokenId]
                     }
 
                   } else {
@@ -683,7 +687,6 @@ class EventManager {
                       const outBidAmount = outBidMargin * CONVERSION_RATE
                       if (bestPrice - secondBestPrice > outBidAmount) {
                         const bidPrice = secondBestPrice + outBidAmount
-
                         try {
                           await cancelBid(topOffer, privateKey, collectionSymbol, tokenId, buyerPaymentAddress)
                           delete bidHistory[collectionSymbol].ourBids[tokenId]
@@ -716,9 +719,6 @@ class EventManager {
                           console.log('-----------------------------------------------------------------------------------------------------------------------------');
                           console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
                           console.log('-----------------------------------------------------------------------------------------------------------------------------');
-
-                          delete bidHistory[collectionSymbol].topBids[tokenId]
-                          delete bidHistory[collectionSymbol].ourBids[tokenId]
                         }
                       }
                     } else {
@@ -738,10 +738,8 @@ class EventManager {
                         console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
                         if (bidPrice <= maxOffer) {
-
                           try {
                             const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey)
-
                             if (status === true) {
                               bidHistory[collectionSymbol].topBids[tokenId] = true
                               bidHistory[collectionSymbol].ourBids[tokenId] = {
@@ -756,9 +754,6 @@ class EventManager {
                           console.log('-----------------------------------------------------------------------------------------------------------------------------');
                           console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
                           console.log('-----------------------------------------------------------------------------------------------------------------------------');
-
-                          delete bidHistory[collectionSymbol].topBids[tokenId]
-                          delete bidHistory[collectionSymbol].ourBids[tokenId]
                         }
 
                       } else if (bidPrice > maxOffer) {
@@ -776,11 +771,9 @@ class EventManager {
                             tokenId,
                             buyerPaymentAddress
                           );
+                          delete bidHistory[collectionSymbol].ourBids[tokenId]
+                          delete bidHistory[collectionSymbol].topBids[tokenId]
                         })
-
-
-                        delete bidHistory[collectionSymbol].ourBids[tokenId]
-                        delete bidHistory[collectionSymbol].topBids[tokenId]
                       }
                     }
                   }
