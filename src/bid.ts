@@ -95,8 +95,10 @@ class EventManager {
     this.isProcessingQueue = false;
   }
 
-  receiveWebSocketEvent(event: CollectOfferActivity): void {
+  async receiveWebSocketEvent(event: CollectOfferActivity): Promise<void> {
     this.queue.push(event);
+
+    await delay(1000)
     this.processQueue();
   }
 
@@ -105,9 +107,7 @@ class EventManager {
       this.isProcessingQueue = true;
       const event = this.queue.shift();
       if (event) {
-        setTimeout(() => {
-          this.handleIncomingBid(event);
-        }, 10000);
+        this.handleIncomingBid(event);
       }
       this.isProcessingQueue = false;
       // this.processQueue();
