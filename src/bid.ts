@@ -99,7 +99,7 @@ class EventManager {
     this.queue.push(event);
     setTimeout(() => {
       this.processQueue();
-    }, 1000)
+    }, 3000)
   }
 
   async processQueue(): Promise<void> {
