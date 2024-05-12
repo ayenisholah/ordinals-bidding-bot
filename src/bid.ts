@@ -110,7 +110,7 @@ class EventManager {
         }
         this.isProcessingQueue = false;
         this.processQueue();
-      }, 2000)
+      }, 5000)
     }
   }
 
