@@ -109,9 +109,7 @@ class EventManager {
       }
       this.isProcessingQueue = false;
 
-      setTimeout(() => {
-        this.processQueue();
-      }, 5000);
+      this.processQueue();
     }
   }
 
@@ -203,14 +201,13 @@ class EventManager {
                 })
 
                 if (bidPrice <= maxOffer) {
-                  const OfferData = await getOffers(tokenId, buyerTokenReceiveAddress)
-                  if (OfferData) {
-                    const offers = OfferData.offers
-                    offers.forEach(async (item) => {
-                      await cancelBid(item, privateKey)
-                      await delay(2000)
-                    })
-                  }
+                  // const OfferData = await getOffers(tokenId, buyerTokenReceiveAddress)
+                  // if (OfferData) {
+                  //   const offers = OfferData.offers
+                  //   offers.forEach(async (item) => {
+                  //     await cancelBid(item, privateKey)
+                  //   })
+                  // }
                   const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey)
                   if (status === true) {
                     bidHistory[collectionSymbol].topBids[tokenId] = true

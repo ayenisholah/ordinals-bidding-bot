@@ -410,7 +410,7 @@ export async function submitCancelOfferData(offerId: string, signedPSBTBase64: s
     const response = await limiter.schedule(() => axiosInstance.post(url, data, { headers }))
     return response.data.ok
   } catch (error: any) {
-    console.log('submitCancelOfferData: ');
+    console.log('submitCancelOfferData: ', error?.response?.data);
   }
 }
 
