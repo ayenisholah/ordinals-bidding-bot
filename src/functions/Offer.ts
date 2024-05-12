@@ -256,14 +256,6 @@ export async function submitSignedOfferOrder(
   };
 
   try {
-
-    const OfferData = await getOffers(tokenId, buyerReceiveAddress)
-    if (OfferData) {
-      const offers = OfferData.offers
-      offers.forEach(async (item) => {
-        await cancelBid(item, privateKey)
-      })
-    }
     const response = await limiter.schedule(() => axiosInstance.post(url, data, { headers }))
     return response.data;
   } catch (error: any) {
