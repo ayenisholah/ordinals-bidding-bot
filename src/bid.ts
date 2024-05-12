@@ -399,7 +399,6 @@ class EventManager {
       const minOffer = Math.max(minPrice, Math.round(minFloorBid * floorPrice / 100))
       const maxOffer = Math.min(maxPrice, Math.round(maxFloorBid * floorPrice / 100))
 
-
       const userBids = Object.entries(bidHistory).flatMap(([collectionSymbol, bidData]) => {
         return Object.entries(bidData.ourBids).map(([tokenId, bidInfo]) => ({
           collectionSymbol,
@@ -412,7 +411,6 @@ class EventManager {
       const ourBids = userBids.map((item) => ({ tokenId: item.tokenId, collectionSymbol: item.collectionSymbol })).filter((item) => item.collectionSymbol === collectionSymbol)
       const collectionBottomBids: CollectionBottomBid[] = tokens.map((item) => ({ tokenId: item.id, collectionSymbol: item.collectionSymbol })).filter((item) => item.collectionSymbol === collectionSymbol)
       const tokensToCancel = findTokensToCancel(collectionBottomBids, ourBids)
-
       const bottomListingBids = combineBidsAndListings(userBids, bottomListings)
       console.log('--------------------------------------------------------------------------------');
       console.log(`BOTTOM LISTING BIDS FOR ${collectionSymbol}`);
@@ -447,7 +445,6 @@ class EventManager {
           })
         )
       }
-
 
       userBids.forEach((bid) => {
         const givenTimestamp = new Date(bid.expiration);
@@ -631,9 +628,7 @@ class EventManager {
                           console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
                           try {
-
                             const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey)
-
                             if (status === true) {
                               bidHistory[collectionSymbol].topBids[tokenId] = true
                               bidHistory[collectionSymbol].ourBids[tokenId] = {

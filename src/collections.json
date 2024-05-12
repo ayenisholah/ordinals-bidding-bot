@@ -1,20 +1,5 @@
 [
 	{
-		"collectionSymbol": "bitdogs_btc",
-		"minBid": 0.0015,
-		"maxBid": 0.00199,
-		"minFloorBid": 65,
-		"maxFloorBid": 85,
-		"bidCount": 5,
-		"duration": 60,
-		"enableCounterBidding": true,
-		"scheduledLoop": 60,
-		"outBidMargin": 1e-6,
-		"offerType": "ITEM",
-		"quantity": 1,
-		"feeSatsPerVbyte": 28
-	},
-	{
 		"collectionSymbol": "buzz-buzz-buzz",
 		"minBid": 0.0004251,
 		"maxBid": 0.0004578,
