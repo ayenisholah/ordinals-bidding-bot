@@ -242,8 +242,7 @@ export async function submitSignedOfferOrder(
   feerateTier: string,
   privateKey: string
 ) {
-  const url = 'https://nfttools.pro/magiceden/v2/ord/btc/offers/create'
-
+  const url = 'https://nfttools.pro/magiceden/v2/ord/btc/offers/create';
   const data = {
     signedPSBTBase64: signedPSBTBase64,
     feerateTier: feerateTier,
@@ -255,14 +254,34 @@ export async function submitSignedOfferOrder(
     buyerReceiveAddress: buyerReceiveAddress
   };
 
-  try {
-    const response = await limiter.schedule(() => axiosInstance.post(url, data, { headers }))
-    return response.data;
-  } catch (error: any) {
-    console.log("submitSignedOfferOrder: ", error.response.data, tokenId);
+  let errorOccurred = false;
 
-  }
+  do {
+    try {
+      const response = await limiter.schedule(() => axiosInstance.post(url, data, { headers }));
+      return response.data;
+    } catch (error: any) {
+      console.log("submitSignedOfferOrder Error: ", error.response?.data, tokenId);
+      if (error.response?.data?.error === "You already have an offer for this token") {
+        await new Promise(resolve => setTimeout(resolve, 2500)); // Wait before retrying
+        const offerData = await getOffers(tokenId, buyerReceiveAddress);
+        console.log(offerData);
+        if (offerData && offerData.offers.length > 0) {
+          for (const item of offerData.offers) {
+            await cancelBid(item, privateKey);
+          }
+        }
+        errorOccurred = true;  // Signal to retry
+      } else {
+        errorOccurred = false;
+        throw error;  // Rethrow other types of errors that are not handled specifically
+      }
+    }
+  } while (errorOccurred);
+
+  // If you exit the loop, it means you eventually made a successful call or handled all errors
 }
+
 
 export async function getBestCollectionOffer(collectionSymbol: string) {
   const url = `https://nfttools.pro/magiceden/v2/ord/btc/collection-offers/collection/${collectionSymbol}`;
@@ -362,7 +381,7 @@ export async function getOffers(tokenId: string, buyerTokenReceiveAddress?: stri
   let params: any = {
     status: 'valid',
     limit: 100,
-    offset: 0,
+    //offset: 0,
     sortBy: 'priceDesc',
     token_id: tokenId
   };
@@ -371,7 +390,7 @@ export async function getOffers(tokenId: string, buyerTokenReceiveAddress?: stri
     params = {
       status: 'valid',
       limit: 100,
-      offset: 0,
+      //offset: 0,
       sortBy: 'priceDesc',
       token_id: tokenId,
       wallet_address_buyer: buyerTokenReceiveAddress

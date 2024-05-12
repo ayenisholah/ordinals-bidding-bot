@@ -31,6 +31,9 @@ const ECPair: ECPairAPI = ECPairFactory(tinysecp);
 const DEFAULT_LOOP = Number(process.env.DEFAULT_LOOP) ?? 30
 let RESTART = true
 
+// Define a global map to track processing tokens
+const processingTokens: Record<string, boolean> = {};
+
 const headers = {
   'Content-Type': 'application/json',
   'X-NFT-API-Key': API_KEY,
@@ -101,14 +104,21 @@ class EventManager {
   }
 
   async processQueue(): Promise<void> {
+    // Ensure that the queue is not currently being processed and that there is something to process
     if (!this.isProcessingQueue && this.queue.length > 0) {
       this.isProcessingQueue = true;
-      const event = this.queue.shift();
-      if (event) {
-        this.handleIncomingBid(event);
+      // Process the queue
+      while (this.queue.length > 0) {
+        // Wait until `this.isScheduledRunning` is false before starting processing
+        while (this.isScheduledRunning) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        const event = this.queue.shift();
+        if (event) {
+          this.handleIncomingBid(event);
+        }
       }
-      this.isProcessingQueue = false;
-      this.processQueue();
+      this.isProcessingQueue = false
     }
   }
 
@@ -172,7 +182,7 @@ class EventManager {
           const incomingItemKey = `${tokenId}:${new Date(createdAt).getTime()}`
           if (bottomListings.includes(tokenId)) {
             if (incomingBuyerTokenReceiveAddress.toLowerCase() != buyerTokenReceiveAddress.toLowerCase()) {
-              console.log(`INCOMING OFFER ${collectionSymbol}: `, message);
+              //console.log(`INCOMING OFFER ${collectionSymbol}: `, message);
               console.log(`COUNTERBID FOR ${collectionSymbol} ${tokenId}`);
               const bidPrice = +(incomingBidAmount) + outBidAmount
               processingItems.add(incomingItemKey);
@@ -207,7 +217,22 @@ class EventManager {
                   //     await cancelBid(item, privateKey)
                   //   })
                   // }
-                  const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey)
+
+                  let status;
+                  // Wait if token is already being processed
+                  while (processingTokens[tokenId]) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                  }
+
+                  // Mark the token as being processed
+                  processingTokens[tokenId] = true;
+
+                  try {
+                    status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey);
+                  } finally {
+                    // Always mark the token as not being processed when done
+                    processingTokens[tokenId] = false;
+                  }
                   if (status === true) {
                     bidHistory[collectionSymbol].topBids[tokenId] = true
                     bidHistory[collectionSymbol].ourBids[tokenId] = {
@@ -1095,20 +1120,21 @@ async function placeBid(
 
     const price = Math.round(offerPrice)
     // check for current offers and cancel before placing the bid
+    await delay(2000);
     const offerData = await getOffers(tokenId, buyerTokenReceiveAddress)
 
     if (offerData && offerData.offers.length > 0) {
       const offers = offerData.offers
       offers.forEach(async (item) => {
         await cancelBid(item, privateKey)
-        delay(2000)
       })
     }
 
     const unsignedOffer = await createOffer(tokenId, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, FEE_RATE_TIER)
     const signedOffer = await signData(unsignedOffer, privateKey)
     if (signedOffer) {
-      await submitSignedOfferOrder(signedOffer, tokenId, offerPrice, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, FEE_RATE_TIER, privateKey)
+      const response = await submitSignedOfferOrder(signedOffer, tokenId, offerPrice, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, FEE_RATE_TIER, privateKey)
+      console.log(response);
       const endTime = Date.now();
       console.log('PLACE BID FUNCTION TOOK:', endTime - startTime, 'ms');
 
