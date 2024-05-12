@@ -215,6 +215,21 @@ export function signData(unsignedData: any, privateKey: string) {
   }
 }
 
+async function cancelBid(offer: IOffer, privateKey: string, collectionSymbol?: string, tokenId?: string, buyerPaymentAddress?: string) {
+  try {
+    const offerFormat = await retrieveCancelOfferFormat(offer.id)
+    if (offerFormat) {
+      const signedOfferFormat = signData(offerFormat, privateKey)
+      if (signedOfferFormat) {
+        await submitCancelOfferData(offer.id, signedOfferFormat)
+
+      }
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 
 export async function submitSignedOfferOrder(
   signedPSBTBase64: string,
@@ -225,6 +240,7 @@ export async function submitSignedOfferOrder(
   buyerReceiveAddress: string,
   publicKey: string,
   feerateTier: string,
+  privateKey: string
 ) {
   const url = 'https://nfttools.pro/magiceden/v2/ord/btc/offers/create'
 
@@ -240,10 +256,18 @@ export async function submitSignedOfferOrder(
   };
 
   try {
+
+    const OfferData = await getOffers(tokenId, buyerReceiveAddress)
+    if (OfferData) {
+      const offers = OfferData.offers
+      offers.forEach(async (item) => {
+        await cancelBid(item, privateKey)
+      })
+    }
     const response = await limiter.schedule(() => axiosInstance.post(url, data, { headers }))
     return response.data;
   } catch (error: any) {
-    console.log(error.response.data);
+    console.log("submitSignedOfferOrder: ", error.response.data, tokenId);
 
   }
 }
@@ -448,7 +472,7 @@ export async function counterBid(
 
   if (signedOfferData) {
 
-    const offerData = await submitSignedOfferOrder(signedOfferData, tokenId, price, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, feerateTier)
+    const offerData = await submitSignedOfferOrder(signedOfferData, tokenId, price, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, feerateTier, privateKey)
 
     console.log('--------------------------------------------------------------------------------');
     console.log({ offerData });

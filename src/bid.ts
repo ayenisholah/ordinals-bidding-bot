@@ -25,8 +25,6 @@ const FEE_RATE_TIER = 'halfHourFee'
 const CONVERSION_RATE = 100000000
 const network = bitcoin.networks.bitcoin;
 
-const bids: string[] = []
-
 const tinysecp: TinySecp256k1Interface = require('tiny-secp256k1');
 const ECPair: ECPairAPI = ECPairFactory(tinysecp);
 
@@ -103,15 +101,17 @@ class EventManager {
   }
 
   async processQueue(): Promise<void> {
-    if (!this.isProcessingQueue && this.queue.length > 0) {
-      this.isProcessingQueue = true;
-      const event = this.queue.shift();
-      if (event) {
-        this.handleIncomingBid(event);
+    setInterval(() => {
+      if (!this.isProcessingQueue && this.queue.length > 0) {
+        this.isProcessingQueue = true;
+        const event = this.queue.shift();
+        if (event) {
+          this.handleIncomingBid(event);
+        }
+        this.isProcessingQueue = false;
+        this.processQueue();
       }
-      this.isProcessingQueue = false;
-      this.processQueue();
-    }
+    }, 1000)
   }
 
   async handleIncomingBid(message: CollectOfferActivity) {
@@ -200,15 +200,19 @@ class EventManager {
                     console.log('REMOVE EXPIRED BIDS');
                     delete bidHistory[collectionSymbol].ourBids[bid.tokenId]
                     delete bidHistory[collectionSymbol].topBids[bid.tokenId]
-
-                    const index = bids.indexOf(bid.tokenId);
-                    if (index > -1) {
-                      bids.splice(index, 1);
-                    }
                   }
                 })
 
                 if (bidPrice <= maxOffer) {
+                  const OfferData = await getOffers(tokenId, buyerTokenReceiveAddress)
+                  if (OfferData) {
+                    const offers = OfferData.offers
+                    offers.forEach(async (item) => {
+                      await cancelBid(item, privateKey)
+                      delay(2000)
+                    })
+                  }
+                  await delay(2000)
                   const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey)
                   if (status === true) {
                     bidHistory[collectionSymbol].topBids[tokenId] = true
@@ -462,11 +466,6 @@ class EventManager {
           console.log('REMOVE EXPIRED BIDS');
           delete bidHistory[collectionSymbol].ourBids[bid.tokenId]
           delete bidHistory[collectionSymbol].topBids[bid.tokenId]
-
-          const index = bids.indexOf(bid.tokenId);
-          if (index > -1) {
-            bids.splice(index, 1);
-          }
         }
       })
 
@@ -1062,10 +1061,7 @@ async function cancelBid(offer: IOffer, privateKey: string, collectionSymbol?: s
       const signedOfferFormat = signData(offerFormat, privateKey)
       if (signedOfferFormat) {
         await submitCancelOfferData(offer.id, signedOfferFormat)
-        const index = bids.indexOf(offer.tokenId);
-        if (index > -1) {
-          bids.splice(index, 1);
-        }
+
       }
     }
   } catch (error) {
@@ -1103,8 +1099,6 @@ async function placeBid(
   try {
     const startTime = Date.now();
 
-    if (bids.includes(tokenId)) return
-
     const price = Math.round(offerPrice)
     // check for current offers and cancel before placing the bid
     const offerData = await getOffers(tokenId, buyerTokenReceiveAddress)
@@ -1120,16 +1114,15 @@ async function placeBid(
     const unsignedOffer = await createOffer(tokenId, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, FEE_RATE_TIER)
     const signedOffer = await signData(unsignedOffer, privateKey)
     if (signedOffer) {
-      await submitSignedOfferOrder(signedOffer, tokenId, offerPrice, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, FEE_RATE_TIER)
+      await submitSignedOfferOrder(signedOffer, tokenId, offerPrice, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, FEE_RATE_TIER, privateKey)
       const endTime = Date.now();
       console.log('PLACE BID FUNCTION TOOK:', endTime - startTime, 'ms');
 
-      bids.push(tokenId)
       return true
     }
 
   } catch (error) {
-    console.log(error);
+    console.log("placeBidError: ", error);
     return false
   }
 }
