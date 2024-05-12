@@ -529,7 +529,7 @@ class EventManager {
                    * And there's a current offer on that token
                    * we outbid the current offer on the token if the calculated bid price is less than our max bid amount
                   */
-                  if (topOffer.buyerPaymentAddress !== buyerPaymentAddress) {
+                  if (topOffer?.buyerPaymentAddress !== buyerPaymentAddress) {
                     const currentPrice = topOffer.price
                     const bidPrice = currentPrice + (outBidMargin * CONVERSION_RATE)
                     if (bidPrice <= maxOffer) {
