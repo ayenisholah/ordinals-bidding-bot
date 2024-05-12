@@ -458,9 +458,18 @@ class EventManager {
         }
       })
 
+      const uniqueIdStore: any = {};
+      const uniqueListings = bottomListings.filter(listing => {
+        if (!uniqueIdStore[listing.id]) {
+          uniqueIdStore[listing.id] = true;
+          return true;
+        }
+        return false;
+      });
+
       if (offerType.toUpperCase() === "ITEM") {
         await queue.addAll(
-          bottomListings.sort((a, b) => a.price - b.price)
+          uniqueListings.sort((a, b) => a.price - b.price)
             .slice(0, bidCount)
             .map(token => async () => {
               const { id: tokenId, price: listedPrice } = token
