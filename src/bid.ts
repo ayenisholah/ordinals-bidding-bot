@@ -107,7 +107,7 @@ class EventManager {
       if (event) {
         setTimeout(() => {
           this.handleIncomingBid(event);
-        }, 1000);
+        }, 10000);
       }
       this.isProcessingQueue = false;
       // this.processQueue();
