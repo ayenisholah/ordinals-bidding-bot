@@ -105,7 +105,9 @@ class EventManager {
       this.isProcessingQueue = true;
       const event = this.queue.shift();
       if (event) {
-        this.handleIncomingBid(event);
+        setTimeout(() => {
+          this.handleIncomingBid(event);
+        }, 1000);
       }
       this.isProcessingQueue = false;
       // this.processQueue();
