@@ -132,8 +132,6 @@ class EventManager {
       const collection = collections.find((item) => item.collectionSymbol === collectionSymbol)
       if (!collection) return
 
-      // initialize bidhistoru
-
       if (!bidHistory[collectionSymbol]) {
         bidHistory[collectionSymbol] = {
           offerType: collection.offerType,
@@ -209,6 +207,7 @@ class EventManager {
                     const offers = OfferData.offers
                     offers.forEach(async (item) => {
                       await cancelBid(item, privateKey)
+                      await delay(2000)
                     })
                   }
                   const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey)
