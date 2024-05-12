@@ -1096,8 +1096,8 @@ async function placeBid(
       const offers = offerData.offers
       offers.forEach(async (item) => {
         await cancelBid(item, privateKey)
+        await delay(2000)
       })
-      await delay(1000)
     }
 
     const unsignedOffer = await createOffer(tokenId, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, FEE_RATE_TIER)
