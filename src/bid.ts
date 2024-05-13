@@ -1113,8 +1113,6 @@ async function placeBid(
   privateKey: string,
 ) {
   try {
-    const startTime = Date.now();
-
     const price = Math.round(offerPrice)
     // check for current offers and cancel before placing the bid
     await delay(2000);
@@ -1130,10 +1128,7 @@ async function placeBid(
     const unsignedOffer = await createOffer(tokenId, price, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, FEE_RATE_TIER)
     const signedOffer = await signData(unsignedOffer, privateKey)
     if (signedOffer) {
-      const response = await submitSignedOfferOrder(signedOffer, tokenId, offerPrice, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, FEE_RATE_TIER, privateKey)
-      console.log(response);
-      const endTime = Date.now();
-      console.log('PLACE BID FUNCTION TOOK:', endTime - startTime, 'ms');
+      await submitSignedOfferOrder(signedOffer, tokenId, offerPrice, expiration, buyerPaymentAddress, buyerTokenReceiveAddress, publicKey, FEE_RATE_TIER, privateKey)
 
       return true
     }

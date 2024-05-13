@@ -259,11 +259,9 @@ export async function submitSignedOfferOrder(
       const response = await limiter.schedule(() => axiosInstance.post(url, data, { headers }));
       return response.data;
     } catch (error: any) {
-      console.log("submitSignedOfferOrder Error: ", error.response?.data, tokenId);
       if (error.response?.data?.error === "You already have an offer for this token") {
         await new Promise(resolve => setTimeout(resolve, 2500)); // Wait before retrying
         const offerData = await getOffers(tokenId, buyerReceiveAddress);
-        console.log(offerData);
         if (offerData && offerData.offers.length > 0) {
           for (const item of offerData.offers) {
             await cancelBid(item, privateKey);
@@ -377,7 +375,6 @@ export async function getOffers(tokenId: string, buyerTokenReceiveAddress?: stri
   let params: any = {
     status: 'valid',
     limit: 100,
-    //offset: 0,
     sortBy: 'priceDesc',
     token_id: tokenId
   };
@@ -386,7 +383,6 @@ export async function getOffers(tokenId: string, buyerTokenReceiveAddress?: stri
     params = {
       status: 'valid',
       limit: 100,
-      //offset: 0,
       sortBy: 'priceDesc',
       token_id: tokenId,
       wallet_address_buyer: buyerTokenReceiveAddress
@@ -397,7 +393,6 @@ export async function getOffers(tokenId: string, buyerTokenReceiveAddress?: stri
     const { data } = await limiter.schedule(() => axiosInstance.get<OfferData>(url, { params, headers }))
     return data
   } catch (error: any) {
-    console.log("getOffers ", error?.response?.data);
   }
 }
 
