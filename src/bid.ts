@@ -85,7 +85,6 @@ let ws: WebSocket;
 let heartbeatIntervalId: NodeJS.Timeout | null = null;
 let reconnectTimeoutId: NodeJS.Timeout | null = null;
 let retryCount: number = 0;
-const processingItems = new Set();
 
 class EventManager {
   queue: any[];
@@ -179,13 +178,11 @@ class EventManager {
 
       if (offerType === "ITEM") {
         if (message.kind === "offer_placed") {
-          const incomingItemKey = `${tokenId}:${new Date(createdAt).getTime()}`
           if (bottomListings.includes(tokenId)) {
             if (incomingBuyerTokenReceiveAddress.toLowerCase() != buyerTokenReceiveAddress.toLowerCase()) {
               //console.log(`INCOMING OFFER ${collectionSymbol}: `, message);
               console.log(`COUNTERBID FOR ${collectionSymbol} ${tokenId}`);
               const bidPrice = +(incomingBidAmount) + outBidAmount
-              processingItems.add(incomingItemKey);
 
               try {
                 const userBids = Object.entries(bidHistory).flatMap(([collectionSymbol, bidData]) => {
@@ -210,13 +207,6 @@ class EventManager {
                 })
 
                 if (bidPrice <= maxOffer) {
-                  // const OfferData = await getOffers(tokenId, buyerTokenReceiveAddress)
-                  // if (OfferData) {
-                  //   const offers = OfferData.offers
-                  //   offers.forEach(async (item) => {
-                  //     await cancelBid(item, privateKey)
-                  //   })
-                  // }
 
                   let status;
                   // Wait if token is already being processed
@@ -244,22 +234,26 @@ class EventManager {
 
               } catch (error) {
                 console.log(error);
-              } finally {
-                processingItems.delete(incomingItemKey);
               }
             }
           }
         }
       } else if (offerType === "COLLECTION") {
         if (message.kind === "coll_offer_created") {
-          if (incomingBuyerTokenReceiveAddress.toLowerCase() != buyerTokenReceiveAddress.toLowerCase()) {
+
+          const incomingBuyerPaymentAddress = message.buyerPaymentAddress
+          const collectionSymbol = message.collectionSymbol
+          if (incomingBuyerPaymentAddress.toLowerCase() !== buyerPaymentAddress.toLowerCase()) {
             console.log(`INCOMING COLLECTION OFFER ${collectionSymbol}: `, message);
             console.log(`COUNTERBID FOR ${collectionSymbol} COLLECTION OFFER`);
-            const incomingItemKey = `${collectionSymbol}:${new Date(createdAt).getTime()}`
+
+            while (processingTokens[collectionSymbol]) {
+              console.log(`Processing existing collection offer: ${collectionSymbol}`.toUpperCase());
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            processingTokens[collectionSymbol] = true
 
             const bidPrice = +(incomingBidAmount) + outBidAmount
-            processingItems.add(incomingItemKey);
-
             const offerData = await getBestCollectionOffer(collectionSymbol)
             const ourOffer = offerData?.offers.find((item) => item.btcParams.makerOrdinalReceiveAddress.toLowerCase() === buyerTokenReceiveAddress.toLowerCase())
 
@@ -267,14 +261,19 @@ class EventManager {
               const offerIds = [ourOffer.id]
               await cancelCollectionOffer(offerIds, publicKey, privateKey)
             }
-            const feeSatsPerVbyte = 28
-
-            if (bidPrice < maxOffer || bidPrice < floorPrice) {
-              await placeCollectionBid(bidPrice, expiration, collectionSymbol, buyerTokenReceiveAddress, publicKey, privateKey, feeSatsPerVbyte)
-              bidHistory[collectionSymbol].highestCollectionOffer = {
-                price: bidPrice,
-                buyerPaymentAddress: buyerPaymentAddress
+            const feeSatsPerVbyte = collection.feeSatsPerVbyte || 28
+            try {
+              if (bidPrice < maxOffer || bidPrice < floorPrice) {
+                await placeCollectionBid(bidPrice, expiration, collectionSymbol, buyerTokenReceiveAddress, publicKey, privateKey, feeSatsPerVbyte)
+                bidHistory[collectionSymbol].highestCollectionOffer = {
+                  price: bidPrice,
+                  buyerPaymentAddress: buyerPaymentAddress
+                }
               }
+            } catch (error) {
+              console.log(error);
+            } finally {
+              delete processingTokens[collectionSymbol]
             }
           }
         }
@@ -322,7 +321,6 @@ class EventManager {
     const publicKey = keyPair.publicKey.toString('hex');
     const maxBuy = item.quantity ?? 1
     const enableCounterBidding = item.enableCounterBidding ?? false
-
     const buyerPaymentAddress = bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: network }).address as string
 
     try {
@@ -506,7 +504,6 @@ class EventManager {
 
               const bestOffer = await getBestOffer(tokenId);
               const ourExistingOffer = bidHistory[collectionSymbol].ourBids[tokenId]?.expiration > Date.now()
-
               const currentExpiry = bidHistory[collectionSymbol]?.ourBids[tokenId]?.expiration
               const newExpiry = duration * 60 * 1000
               const offerData = await getOffers(tokenId, buyerTokenReceiveAddress)
