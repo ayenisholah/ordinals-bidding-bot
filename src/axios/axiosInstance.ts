@@ -25,6 +25,10 @@ const retryConfig: IAxiosRetryConfig = {
     if (/This offer does not exists. It is either not valid anymore or canceled by the offerer./i.test(error.response.data.error)) {
       return false;
     }
+
+    if (/You already have an offer for this token/i.test(error.response.data.error)) {
+      return true
+    }
     if (
       axiosRetry.isNetworkError(error) || (error.response && error.response.status === 429)) {
       return true;
