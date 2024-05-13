@@ -13,20 +13,5 @@
 		"offerType": "ITEM",
 		"quantity": 1,
 		"feeSatsPerVbyte": 28
-	},
-	{
-		"collectionSymbol": "commoners",
-		"minBid": 0.001222,
-		"maxBid": 0.001316,
-		"minFloorBid": 65,
-		"maxFloorBid": 70,
-		"bidCount": 10,
-		"duration": 60,
-		"scheduledLoop": 300,
-		"enableCounterBidding": true,
-		"outBidMargin": 1e-8,
-		"offerType": "ITEM",
-		"quantity": 1,
-		"feeSatsPerVbyte": 28
 	}
 ]

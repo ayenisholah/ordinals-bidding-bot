@@ -195,7 +195,6 @@ export async function createOffer(
     const { data } = await limiter.schedule(() => axiosInstance.get(baseURL, { params, headers }))
     return data
   } catch (error: any) {
-    console.log("createOfferError: ", error?.response?.data);
   }
 }
 
@@ -226,7 +225,6 @@ async function cancelBid(offer: IOffer, privateKey: string, collectionSymbol?: s
       }
     }
   } catch (error) {
-    console.log(error);
   }
 }
 
@@ -278,8 +276,6 @@ export async function submitSignedOfferOrder(
       }
     }
   } while (errorOccurred);
-
-  // If you exit the loop, it means you eventually made a successful call or handled all errors
 }
 
 
