@@ -343,7 +343,6 @@ export async function cancelAllUserOffers(buyerTokenReceiveAddress: string, priv
       }
     }
   } catch (error) {
-    console.log("cancelAllUserOffers: ", error);
   }
 }
 
@@ -365,7 +364,6 @@ export async function cancelBulkTokenOffers(tokenIds: string[], buyerTokenReceiv
       }
     }
   } catch (error) {
-    console.log('cancelBulkTokenOffers: ', error);
   }
 }
 
@@ -420,7 +418,6 @@ export async function submitCancelOfferData(offerId: string, signedPSBTBase64: s
     const response = await limiter.schedule(() => axiosInstance.post(url, data, { headers }))
     return response.data.ok
   } catch (error: any) {
-    console.log('submitCancelOfferData: ', error?.response?.data);
   }
 }
 
