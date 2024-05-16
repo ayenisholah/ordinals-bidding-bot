@@ -16,7 +16,6 @@ export async function collectionDetails(collectionSymbol: string) {
     return data
 
   } catch (error: any) {
-    console.log('collectionDetailsError: ', error.response);
   }
 }
 

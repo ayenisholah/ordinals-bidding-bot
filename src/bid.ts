@@ -233,7 +233,6 @@ class EventManager {
                 }
 
               } catch (error) {
-                console.log(error);
               }
             }
           }
@@ -271,7 +270,6 @@ class EventManager {
                 }
               }
             } catch (error) {
-              console.log(error);
             } finally {
               delete processingTokens[collectionSymbol]
             }
@@ -285,7 +283,6 @@ class EventManager {
         }
       }
     } catch (error) {
-      console.log(error);
     }
   }
 
@@ -568,7 +565,6 @@ class EventManager {
                             }
                           }
                         } catch (error) {
-                          console.log(error);
                         }
                       }
 
@@ -598,7 +594,6 @@ class EventManager {
                       }
 
                     } catch (error) {
-                      console.log(error);
                     }
                   } else {
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
@@ -641,7 +636,6 @@ class EventManager {
                             }
                           }
                         } catch (error) {
-                          console.log(error);
                         }
                       }
                     } else {
@@ -673,7 +667,6 @@ class EventManager {
                               }
                             }
                           } catch (error) {
-                            console.log(error);
                           }
                         } else {
                           console.log('-----------------------------------------------------------------------------------------------------------------------------');
@@ -699,7 +692,6 @@ class EventManager {
                               }
                             }
                           } catch (error) {
-                            console.log(error);
                           }
                         } else {
                           console.log('-----------------------------------------------------------------------------------------------------------------------------');
@@ -738,7 +730,6 @@ class EventManager {
                 await cancelCollectionOffer(offerIds, publicKey, privateKey)
               }
             } catch (error) {
-              console.log(error);
             }
 
             const currentPrice = topOffer.price.amount
@@ -760,7 +751,6 @@ class EventManager {
                 }
 
               } catch (error) {
-                console.log(error);
               }
 
             } else {
@@ -783,7 +773,6 @@ class EventManager {
                   }
 
                 } catch (error) {
-                  console.log(error);
                 }
 
                 if (bidPrice <= maxOffer) {
@@ -801,7 +790,6 @@ class EventManager {
                       }
                     }
                   } catch (error) {
-                    console.log(error);
                   }
                 } else {
                   console.log('-----------------------------------------------------------------------------------------------------------------------------');
@@ -818,7 +806,6 @@ class EventManager {
                     await cancelCollectionOffer(offerIds, publicKey, privateKey)
                   }
                 } catch (error) {
-                  console.log(error);
                 }
 
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
@@ -838,7 +825,6 @@ class EventManager {
                       }
                     }
                   } catch (error) {
-                    console.log(error);
                   }
                 } else {
                   console.log('-----------------------------------------------------------------------------------------------------------------------------');
@@ -1081,7 +1067,6 @@ async function cancelBid(offer: IOffer, privateKey: string, collectionSymbol?: s
       }
     }
   } catch (error) {
-    console.log(error);
   }
 }
 
@@ -1134,7 +1119,6 @@ async function placeBid(
     }
 
   } catch (error) {
-    console.log("placeBidError: ", error);
     return false
   }
 }

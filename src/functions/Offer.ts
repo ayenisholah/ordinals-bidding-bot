@@ -309,7 +309,6 @@ export async function getBestOffer(tokenId: string) {
     const { data } = await limiter.schedule(() => axiosInstance.get<OfferData>(url, { params, headers }));
     return data
   } catch (error: any) {
-    console.log('getBestOffer: ', error.response);
   }
 
 }
@@ -404,7 +403,6 @@ export async function retrieveCancelOfferFormat(offerId: string) {
     );
     return data
   } catch (error: any) {
-    // console.log("retrieveCancelOfferFormat: ", error.response.data.error);
   }
 }
 
@@ -494,7 +492,6 @@ export async function getUserOffers(buyerPaymentAddress: string) {
     const { data } = await limiter.schedule(() => axiosInstance.get<UserOffer>(url, { params, headers }))
     return data
   } catch (error) {
-    console.log('getUserOffers: ', error);
   }
 }
 
