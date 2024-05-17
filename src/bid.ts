@@ -91,6 +91,7 @@ class EventManager {
   isScheduledRunning: boolean;
   isProcessingQueue: boolean;
 
+
   constructor() {
     this.queue = [];
     this.isScheduledRunning = false;
@@ -180,9 +181,10 @@ class EventManager {
         if (message.kind === "offer_placed") {
           if (bottomListings.includes(tokenId)) {
             if (incomingBuyerTokenReceiveAddress.toLowerCase() != buyerTokenReceiveAddress.toLowerCase()) {
-              //console.log(`INCOMING OFFER ${collectionSymbol}: `, message);
-              console.log(`COUNTERBID FOR ${collectionSymbol} ${tokenId}`);
               const bidPrice = +(incomingBidAmount) + outBidAmount
+              console.log('---------------------------------------------------------------------------------------------');
+              console.log(`COUNTERBID CURRENT OFFER ${(+incomingBidAmount / 1e8)} OUR OFFER ${(bidPrice / 1e8)} FOR ${collectionSymbol} ${tokenId}`);
+              console.log('---------------------------------------------------------------------------------------------');
 
               try {
                 const userBids = Object.entries(bidHistory).flatMap(([collectionSymbol, bidData]) => {
@@ -219,8 +221,14 @@ class EventManager {
 
                   try {
                     status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey);
+                    if (status === true) {
+                      bidHistory[collectionSymbol].topBids[tokenId] = true
+                      bidHistory[collectionSymbol].ourBids[tokenId] = {
+                        price: bidPrice,
+                        expiration: expiration
+                      }
+                    }
                   } finally {
-                    // Always mark the token as not being processed when done
                     processingTokens[tokenId] = false;
                   }
                   if (status === true) {
@@ -243,7 +251,6 @@ class EventManager {
           const incomingBuyerPaymentAddress = message.buyerPaymentAddress
           const collectionSymbol = message.collectionSymbol
           if (incomingBuyerPaymentAddress.toLowerCase() !== buyerPaymentAddress.toLowerCase()) {
-            console.log(`INCOMING COLLECTION OFFER ${collectionSymbol}: `, message);
             console.log(`COUNTERBID FOR ${collectionSymbol} COLLECTION OFFER`);
 
             while (processingTokens[collectionSymbol]) {
@@ -385,42 +392,15 @@ class EventManager {
       });
 
       bidHistory[collectionSymbol].bottomListings = uniqueBottomListings
-
       const bottomListings = bidHistory[collectionSymbol].bottomListings
-      console.log('--------------------------------------------------------------------------------');
-      console.log(`BOTTOM LISTING FOR ${collectionSymbol}`);
-      console.table(bottomListings)
-      console.log('--------------------------------------------------------------------------------');
-
-      console.log('--------------------------------------------------------------------------------');
-      console.log(`BUYER PAYMENT ADDRESS: ${buyerPaymentAddress}`);
-      console.log(`BUYER TOKEN RECEIVE ADDRESS: ${buyerTokenReceiveAddress}`);
-      console.log('--------------------------------------------------------------------------------');
 
       const currentTime = new Date().getTime();
       const expiration = currentTime + (duration * 60 * 1000);
       const minPrice = Math.round(minBid * CONVERSION_RATE)
       const maxPrice = Math.round(maxBid * CONVERSION_RATE)
       const floorPrice = Number(collectionData?.floorPrice) ?? 0
-
-      console.log('--------------------------------------------------------------------------------');
-      console.log(`COLLECTION SYMBOL: ${collectionSymbol}`);
-      console.log("MAX PRICE: ", maxPrice);
-      console.log("MIN PRICE: ", minPrice);
-      console.log("FLOOR PRICE: ", floorPrice);
-      console.log('--------------------------------------------------------------------------------');
-
       const maxFloorBid = item.maxFloorBid <= 100 ? item.maxFloorBid : 100
       const minFloorBid = item.minFloorBid
-
-      console.log('--------------------------------------------------------------------------------');
-      console.log('BID RANGE AS A PERCENTAGE FLOOR PRICE');
-
-      console.log("MAX PRICE PERCENTAGE OF FLOOR: ", Math.round(maxFloorBid * floorPrice / 100));
-      console.log("MIN PRICE PERCENTAGE OF FLOOR: ", Math.round(minFloorBid * floorPrice / 100));
-      console.log('--------------------------------------------------------------------------------');
-
-
       const minOffer = Math.max(minPrice, Math.round(minFloorBid * floorPrice / 100))
       const maxOffer = Math.min(maxPrice, Math.round(maxFloorBid * floorPrice / 100))
 
@@ -441,13 +421,6 @@ class EventManager {
       console.log(`BOTTOM LISTING BIDS FOR ${collectionSymbol}`);
       console.table(bottomListingBids)
       console.log('--------------------------------------------------------------------------------');
-
-
-      console.log('--------------------------------------------------------------------------------');
-      console.log(`TOKENS TO CANCEL ${collectionSymbol}`);
-      console.table(tokensToCancel)
-      console.log('--------------------------------------------------------------------------------');
-
 
       if (tokensToCancel.length > 0) {
         await queue.addAll(
@@ -553,7 +526,7 @@ class EventManager {
 
                       if (RESTART || !enableCounterBidding) {
                         console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                        console.log(`OUTBID CURRENT OFFER ${currentPrice} OUR OFFER ${bidPrice} FOR ${collectionSymbol} ${tokenId}`);
+                        console.log(`OUTBID CURRENT OFFER ${currentPrice / 1e8} OUR OFFER ${bidPrice / 1e8} FOR ${collectionSymbol} ${tokenId}`);
                         console.log('-----------------------------------------------------------------------------------------------------------------------------');
                         try {
                           const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey)
@@ -570,7 +543,7 @@ class EventManager {
 
                     } else {
                       console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                      console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
+                      console.log(`CALCULATED BID PRICE ${bidPrice / 1e8} IS GREATER THAN MAX BID ${maxOffer / 1e8} FOR ${collectionSymbol} ${tokenId}`);
                       console.log('-----------------------------------------------------------------------------------------------------------------------------');
                     }
                   }
@@ -597,7 +570,7 @@ class EventManager {
                     }
                   } else {
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                    console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
+                    console.log(`CALCULATED BID PRICE ${bidPrice / 1e8} IS GREATER THAN MAX BID ${maxOffer / 1e8} FOR ${collectionSymbol} ${tokenId}`);
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
                   }
                 }
@@ -624,7 +597,7 @@ class EventManager {
 
                       if (RESTART || !enableCounterBidding) {
                         console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                        console.log(`OUTBID CURRENT OFFER ${currentPrice} OUR OFFER ${bidPrice} FOR ${collectionSymbol} ${tokenId}`);
+                        console.log(`OUTBID CURRENT OFFER ${currentPrice / 1e8} OUR OFFER ${bidPrice / 1e8} FOR ${collectionSymbol} ${tokenId}`);
                         console.log('-----------------------------------------------------------------------------------------------------------------------------');
                         try {
                           const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey)
@@ -640,7 +613,7 @@ class EventManager {
                       }
                     } else {
                       console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                      console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
+                      console.log(`CALCULATED BID PRICE ${bidPrice / 1e8} IS GREATER THAN MAX BID ${maxOffer / 1e8} FOR ${collectionSymbol} ${tokenId}`);
                       console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
                     }
@@ -654,7 +627,7 @@ class EventManager {
 
                         if (bidPrice <= maxOffer) {
                           console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                          console.log(`ADJUST OUR CURRENT OFFER ${bestPrice} TO ${bidPrice} FOR ${collectionSymbol} ${tokenId}`);
+                          console.log(`ADJUST OUR CURRENT OFFER ${bestPrice / 1e8} TO ${bidPrice / 1e8} FOR ${collectionSymbol} ${tokenId}`);
                           console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
                           try {
@@ -670,7 +643,7 @@ class EventManager {
                           }
                         } else {
                           console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                          console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
+                          console.log(`CALCULATED BID PRICE ${bidPrice / 1e8} IS GREATER THAN MAX BID ${maxOffer / 1e8} FOR ${collectionSymbol} ${tokenId}`);
                           console.log('-----------------------------------------------------------------------------------------------------------------------------');
                         }
                       }
@@ -678,7 +651,7 @@ class EventManager {
                       const bidPrice = Math.max(minOffer, listedPrice * 0.5)
                       if (bestPrice !== bidPrice) { // self adjust bids.
                         console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                        console.log(`ADJUST OUR CURRENT OFFER ${bestPrice} TO ${bidPrice} FOR ${collectionSymbol} ${tokenId}`);
+                        console.log(`ADJUST OUR CURRENT OFFER ${bestPrice / 1e8} TO ${bidPrice / 1e8} FOR ${collectionSymbol} ${tokenId}`);
                         console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
                         if (bidPrice <= maxOffer) {
@@ -695,7 +668,7 @@ class EventManager {
                           }
                         } else {
                           console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                          console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol} ${tokenId}`);
+                          console.log(`CALCULATED BID PRICE ${bidPrice / 1e8} IS GREATER THAN MAX BID ${maxOffer / 1e8} FOR ${collectionSymbol} ${tokenId}`);
                           console.log('-----------------------------------------------------------------------------------------------------------------------------');
                         }
 
@@ -736,7 +709,7 @@ class EventManager {
             const bidPrice = currentPrice + (outBidMargin * CONVERSION_RATE)
             if (bidPrice <= maxOffer) {
               console.log('-----------------------------------------------------------------------------------------------------------------------------');
-              console.log(`OUTBID CURRENT COLLECTION OFFER ${currentPrice} OUR OFFER ${bidPrice} FOR ${collectionSymbol}`);
+              console.log(`OUTBID CURRENT COLLECTION OFFER ${currentPrice / 1e8} OUR OFFER ${bidPrice / 1e8} FOR ${collectionSymbol}`);
               console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
               try {
@@ -777,7 +750,7 @@ class EventManager {
 
                 if (bidPrice <= maxOffer) {
                   console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                  console.log(`ADJUST OUR CURRENT COLLECTION OFFER ${bestPrice} TO ${bidPrice} FOR ${collectionSymbol}`);
+                  console.log(`ADJUST OUR CURRENT COLLECTION OFFER ${bestPrice / 1e8} TO ${bidPrice / 1e8} FOR ${collectionSymbol}`);
                   console.log('-----------------------------------------------------------------------------------------------------------------------------');
                   try {
 
@@ -809,7 +782,7 @@ class EventManager {
                 }
 
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                console.log(`ADJUST OUR CURRENT COLLECTION OFFER ${bestPrice} TO ${bidPrice} FOR ${collectionSymbol} `);
+                console.log(`ADJUST OUR CURRENT COLLECTION OFFER ${bestPrice / 1e8} TO ${bidPrice / 1e8} FOR ${collectionSymbol} `);
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
                 if (bidPrice <= maxOffer) {
@@ -828,7 +801,7 @@ class EventManager {
                   }
                 } else {
                   console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                  console.log(`CALCULATED BID PRICE ${bidPrice} IS GREATER THAN MAX BID ${maxOffer} FOR ${collectionSymbol}`);
+                  console.log(`CALCULATED BID PRICE ${bidPrice / 1e8} IS GREATER THAN MAX BID ${maxOffer / 1e8} FOR ${collectionSymbol}`);
                   console.log('-----------------------------------------------------------------------------------------------------------------------------');
                 }
 
@@ -912,7 +885,6 @@ function connectWebSocket(): void {
   });
 
   ws.addEventListener("error", function error(err) {
-    console.error("WebSocket error:", err);
     if (ws) {
       ws.close();
     }
@@ -957,7 +929,6 @@ function subscribeToCollections(collections: CollectionData[]) {
 }
 
 async function startProcessing() {
-  console.log("Running");
   collections.map(async (item) => {
     const loop = (item.scheduledLoop || DEFAULT_LOOP) * 1000
     while (true) {
