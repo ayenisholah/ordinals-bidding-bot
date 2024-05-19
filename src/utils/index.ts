@@ -102,8 +102,8 @@ export function filterNFTsByContract(nfts: TokenOwnership[], slug: string) {
 export async function getWETHBalance(privateKey: string) {
   try {
     const NETWORK = "mainnet"
-    const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY as string;
-    const provider = new providers.AlchemyProvider(NETWORK, ALCHEMY_API_KEY)
+    const INFURA_API_KEY = process.env.INFURA_API_KEY as string;
+    const provider = new providers.InfuraProvider(NETWORK, INFURA_API_KEY)
     const wallet = new Wallet(privateKey, provider);
     const wethContract = new Contract(WETH_ADDRESS, WETH_ABI, wallet);
     const balance = await wethContract.balanceOf(wallet.address);

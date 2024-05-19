@@ -352,11 +352,11 @@ interface Order {
   depth: Depth[];
 }
 
-interface OrdersResponse {
+export interface OrdersResponse {
   orders: Order[];
 }
 
-interface CreateOrderData {
+export interface CreateOrderData {
   steps: Step[];
   errors: any[];
 }
@@ -476,7 +476,7 @@ interface Result {
   orderId: string;
 }
 
-interface OfferResponse {
+export interface OfferResponse {
   results: Result[];
 }
 
