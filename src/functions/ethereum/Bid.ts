@@ -2,6 +2,8 @@ import { ethers } from "ethers";
 import axiosInstance from "../../axios/axiosInstance";
 import limiter from "../../bottleneck";
 import { config } from "dotenv"
+import { CancelRequest } from "./interface/cancel.interface";
+import { log } from "console";
 config()
 
 const X_NFT_API_KEY = process.env.API_KEY as string
@@ -130,8 +132,6 @@ export async function createCollectionOffer(maker: string,
   }
 }
 
-
-
 export async function getHighestOffer(contractAddress: string, slug: string) {
   const url = 'https://nfttools.pro/magiceden/v3/rtp/ethereum/orders/bids/v6';
   const params = {
@@ -168,10 +168,87 @@ export async function getHighestOffer(contractAddress: string, slug: string) {
   }
 }
 
+export async function fetchOrderData(maker: string) {
+  const url = 'https://nfttools.pro/magiceden/v3/rtp/ethereum/orders/bids/v6';
+  const params = {
+    maker: maker,
+    includeCriteriaMetadata: 'true',
+    orderType: 'collection',
+    status: 'valid',
+    normalizeRoyalties: 'false'
+  };
 
-// https://api-mainnet.magiceden.io/v3/rtp/ethereum/execute/cancel/v3
+  try {
+    const { data } = await limiter.schedule(() => axiosInstance.get<OrdersResponse>(url, { params, headers: headers }))
+    return data.orders
+  } catch (error) {
+    console.log(error);
+  }
+}
 
-// {"orderIds":["0x4f6b030ecc633c51703315ec16e5547ddd7a135ddaba350bddbdef037b50d2ac"]}
+export async function orderCancelRequest(orderIds: string[]) {
+  try {
+    const url = "https://nfttools.pro/magiceden/v3/rtp/ethereum/execute/cancel/v3"
+
+    const data = {
+      orderIds: orderIds
+    }
+    const { data: order } = await limiter.schedule(() => axiosInstance.post<CancelRequest>(url, data, { headers }))
+
+    return order
+
+  } catch (error: any) {
+    console.log(error.response.data);
+  }
+}
+
+export async function submitCancelRequest(order: CancelRequest,
+  offerIds: string[], wallet: ethers.Wallet) {
+
+  try {
+    if (order) {
+      const signData: any = order.steps[0].items[0].data.sign;
+      const signature = await wallet._signTypedData(
+        signData.domain,
+        signData.types,
+        signData.value
+      );
+
+      console.log('--------------------------------------------');
+      console.log(`CANCEL OFFER ${offerIds[0]}`);
+      console.log('--------------------------------------------');
+
+      const url = `https://nfttools.pro/magiceden/v3/rtp/ethereum/execute/cancel-signature/v1?signature=${encodeURIComponent(signature)}`
+
+      const data = {
+        "orderIds": offerIds,
+        "orderKind": "payment-processor-v2"
+      }
+
+      const cancelResponse = await limiter.schedule(() => axiosInstance.post(url, data,
+        { headers }))
+
+      return cancelResponse
+    }
+  } catch (error: any) {
+    console.log(error);
+  }
+
+}
+
+export async function cancelRequest(orderIds: string[], wallet: ethers.Wallet) {
+  try {
+    const order = await orderCancelRequest(orderIds)
+    if (order) {
+      const response = await submitCancelRequest(order, orderIds, wallet)
+      return response
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
 
 // https://api-mainnet.magiceden.io/v3/rtp/ethereum/execute/cancel-signature/v1?signature=0xc93f8c6751734ecc5bc07562d8e21e8fcaad29e6ca0b1c39cfc9023b78aab24361e93ea95cfef0615e4ecf052920b81e73d33ed5fa895235c7d69b70007242c51b
 
@@ -183,6 +260,8 @@ export async function getHighestOffer(contractAddress: string, slug: string) {
 
 
 // {"orderIds":["0x4f6b030ecc633c51703315ec16e5547ddd7a135ddaba350bddbdef037b50d2ac"],"orderKind":"payment-processor-v2"}
+
+
 
 interface Currency {
   contract: string;

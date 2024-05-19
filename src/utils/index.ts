@@ -1,6 +1,8 @@
 import { config } from "dotenv"
 import axiosInstance from "../axios/axiosInstance";
 import limiter from "../bottleneck";
+import { Contract, Wallet, providers, utils } from "ethers";
+import { WETH_ABI, WETH_ADDRESS } from "../constants/weth";
 
 config()
 
@@ -95,6 +97,22 @@ export function filterNFTsByContract(nfts: TokenOwnership[], slug: string) {
     (nft) => nft.token && nft.token.collection.slug === slug
   );
   return filtered;
+}
+
+export async function getWETHBalance(privateKey: string) {
+  try {
+    const NETWORK = "mainnet"
+    const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY as string;
+    const provider = new providers.AlchemyProvider(NETWORK, ALCHEMY_API_KEY)
+    const wallet = new Wallet(privateKey, provider);
+    const wethContract = new Contract(WETH_ADDRESS, WETH_ABI, wallet);
+    const balance = await wethContract.balanceOf(wallet.address);
+    const wethBalance = +utils.formatEther(balance);
+    return wethBalance;
+  } catch (error) {
+    console.log('error getting wetj balance', error);
+    return 0
+  }
 }
 
 
