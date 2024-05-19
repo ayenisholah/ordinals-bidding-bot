@@ -1,10 +1,10 @@
 [
 	{
-		"collectionSymbol": "bitmap",
-		"minBid": 0.0007,
-		"maxBid": 0.0008,
-		"minFloorBid": 70,
-		"maxFloorBid": 80,
+		"collectionSymbol": "bury",
+		"minBid": 0.001032,
+		"maxBid": 0.0010965,
+		"minFloorBid": 80,
+		"maxFloorBid": 85,
 		"bidCount": 20,
 		"duration": 60,
 		"scheduledLoop": 300,

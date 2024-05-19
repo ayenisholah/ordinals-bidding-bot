@@ -1,0 +1,115 @@
+{
+	"id": "0x5891ce1d14abf5c9159fb68424c40e8d61cc5d765693cfc351082b36bccdddda",
+	"kind": "blur",
+	"side": "buy",
+	"status": "active",
+	"tokenSetId": "contract:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
+	"tokenSetSchemaHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+	"contract": "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
+	"contractKind": "erc721",
+	"maker": "0x0000000000a39bb272e79075ade125fd351887ac",
+	"taker": "0x0000000000000000000000000000000000000000",
+	"price": {
+		"currency": {
+			"contract": "0x0000000000a39bb272e79075ade125fd351887ac",
+			"name": "Blur ETH",
+			"symbol": "BETH",
+			"decimals": 18
+		},
+		"amount": {
+			"raw": "13250000000000000000",
+			"decimal": 13.25,
+			"usd": 40991.35729,
+			"native": 13.25
+		},
+		"netAmount": {
+			"raw": "13183750000000000000",
+			"decimal": 13.18375,
+			"usd": 40786.40051,
+			"native": 13.18375
+		}
+	},
+	"validFrom": 1716083760,
+	"validUntil": 0,
+	"quantityFilled": 0,
+	"quantityRemaining": 1631,
+	"criteria": {
+		"kind": "collection",
+		"data": {
+			"collection": {
+				"id": "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
+				"name": "Bored Ape Yacht Club",
+				"image": "https://i.seadn.io/gae/Ju9CkWtV-1Okvf45wo8UctR-M9He2PjILP0oOvxE89AyiPPGtrR3gysu1Zgy0hjd2xKIgjJJtWIc0ybj4Vd7wv8t3pxDGHoJBzDB?w=500&auto=format"
+			}
+		}
+	},
+	"source": {
+		"id": "0xe073a3b3497e2ed4c6110eebbb664a839b168bcb",
+		"domain": "blur.io",
+		"name": "Blur",
+		"icon": "https://blur.io/favicons/180.png",
+		"url": "https://blur.io/asset/0x6339e5e072086621540d0362c4e3cea0d643e114/${tokenId}"
+	},
+	"feeBps": 50,
+	"feeBreakdown": [
+		{
+			"kind": "royalty",
+			"recipient": "0xa858ddc0445d8131dac4d1de01f834ffcba52ef1",
+			"bps": 50
+		}
+	],
+	"expiration": 0,
+	"isReservoir": null,
+	"createdAt": "2023-04-14T10:28:28.157Z",
+	"updatedAt": "2024-05-19T01:56:00.530Z",
+	"originatedAt": null,
+	"depth": [
+		{ "price": 13.1837, "quantity": 573 },
+		{ "price": 12.9649, "quantity": 1 },
+		{ "price": 12.338, "quantity": 1 },
+		{ "price": 11.9698, "quantity": 1 },
+		{ "price": 11.9599, "quantity": 2 },
+		{ "price": 11.94, "quantity": 1 },
+		{ "price": 11.4425, "quantity": 1 },
+		{ "price": 10.2485, "quantity": 3 },
+		{ "price": 10.0595, "quantity": 1 },
+		{ "price": 8.6963, "quantity": 1 },
+		{ "price": 7.1739, "quantity": 2 },
+		{ "price": 6.1193, "quantity": 1 },
+		{ "price": 6.0894, "quantity": 1 },
+		{ "price": 4.985, "quantity": 3 },
+		{ "price": 4.975, "quantity": 1 },
+		{ "price": 4.6068, "quantity": 1 },
+		{ "price": 4.2088, "quantity": 1 },
+		{ "price": 3.98, "quantity": 2 },
+		{ "price": 3.5322, "quantity": 1 },
+		{ "price": 2.9949, "quantity": 2 },
+		{ "price": 2.4875, "quantity": 2 },
+		{ "price": 2.1094, "quantity": 2 },
+		{ "price": 2.0995, "quantity": 1 },
+		{ "price": 1.99, "quantity": 7 },
+		{ "price": 1.8706, "quantity": 1 },
+		{ "price": 1.4925, "quantity": 2 },
+		{ "price": 1.0547, "quantity": 6 },
+		{ "price": 1.0448, "quantity": 2 },
+		{ "price": 1.005, "quantity": 1 },
+		{ "price": 0.796, "quantity": 1 },
+		{ "price": 0.5074, "quantity": 1 },
+		{ "price": 0.4975, "quantity": 1 },
+		{ "price": 0.4079, "quantity": 1 },
+		{ "price": 0.398, "quantity": 1 },
+		{ "price": 0.2985, "quantity": 1 },
+		{ "price": 0.2487, "quantity": 1 },
+		{ "price": 0.2089, "quantity": 100 },
+		{ "price": 0.199, "quantity": 2 },
+		{ "price": 0.1691, "quantity": 4 },
+		{ "price": 0.1592, "quantity": 1 },
+		{ "price": 0.1095, "quantity": 15 },
+		{ "price": 0.0995, "quantity": 13 },
+		{ "price": 0.0597, "quantity": 2 },
+		{ "price": 0.0498, "quantity": 2 },
+		{ "price": 0.0299, "quantity": 3 },
+		{ "price": 0.0199, "quantity": 600 },
+		{ "price": 0.01, "quantity": 258 }
+	]
+}
