@@ -73,7 +73,7 @@ async function main() {
         const offers = await getHighestOffer(contractAddress, collection.slug)
         if (offers.length) {
           const quantity = offers[0].quantityFilled + offers[0].quantityRemaining
-          const highestOffer = +offers[0].price.netAmount.raw / 1777
+          const highestOffer = +offers[0].price.netAmount.raw
 
 
           const minProfit = +convertEthToWei(collection.minProfit)
