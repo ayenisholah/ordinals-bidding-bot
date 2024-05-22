@@ -1,16 +1,16 @@
 [
 	{
-		"collectionSymbol": "bury",
-		"minBid": 0.001032,
-		"maxBid": 0.0010965,
-		"minFloorBid": 80,
-		"maxFloorBid": 85,
-		"bidCount": 20,
+		"collectionSymbol": "prometheans",
+		"minBid": 0.005,
+		"maxBid": 0.0056,
+		"minFloorBid": 71.43,
+		"maxFloorBid": 80,
+		"bidCount": 5,
 		"duration": 60,
 		"scheduledLoop": 300,
 		"enableCounterBidding": true,
-		"outBidMargin": 1e-8,
-		"offerType": "ITEM",
+		"outBidMargin": 1e-6,
+		"offerType": "COLLECTION",
 		"quantity": 1,
 		"feeSatsPerVbyte": 28
 	}

@@ -127,7 +127,7 @@ export async function submitCollectionOffer(
   makerReceiveAddress: string
 ) {
 
-  const requestData = {
+  const data = {
     collectionSymbol,
     quantity: 1,
     priceSats,
@@ -141,16 +141,22 @@ export async function submitCollectionOffer(
         signedCancelPsbtBase64
       }
     ]
-  };
+  }
+
+
+
 
   const url = 'https://nfttools.pro/magiceden/v2/ord/btc/collection-offers/psbt/create'
 
   try {
-    const { data } = await limiter.schedule(() => axiosInstance.post<ISubmitCollectionOfferResponse>(url, requestData, { headers }))
-    return data
+    const { data: requestData } = await limiter.schedule(() => axiosInstance.post<ISubmitCollectionOfferResponse>(url, data, { headers }))
 
-  } catch (error) {
-    console.log(error);
+    console.log({ requestData });
+
+    return requestData
+
+  } catch (error: any) {
+    console.log(error.response.data);
   }
 }
 // sign collection offerData
@@ -161,13 +167,22 @@ export function signCollectionOffer(unsignedData: ICollectionOfferResponseData, 
   const cancelPsbt = bitcoin.Psbt.fromBase64(offers.cancelPsbtBase64);
   const keyPair: ECPairInterface = ECPair.fromWIF(privateKey, network)
 
+  const toSignInputs = [0, 1]
 
-  offerPsbt.signInput(0, keyPair);
-  cancelPsbt.signInput(0, keyPair);
+
+  for (let index of toSignInputs) {
+    offerPsbt.signInput(index, keyPair);
+    cancelPsbt.signInput(index, keyPair);
+    offerPsbt.finalizeInput(index);
+    cancelPsbt.finalizeInput(index);
+  }
+
+  offerPsbt.signAllInputs(keyPair)
+  cancelPsbt.signAllInputs(keyPair)
+
 
   const signedOfferPSBTBase64 = offerPsbt.toBase64();
   const signedCancelledPSBTBase64 = cancelPsbt.toBase64();
-
   return { signedOfferPSBTBase64, signedCancelledPSBTBase64 };
 }
 

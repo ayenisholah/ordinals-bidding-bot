@@ -1,0 +1,536 @@
+openapi: 3.0.0
+info:
+  title: NFTTOOLS API DOCS FOR MAGIC EDEN
+  version: 1.0.0
+  description: A comprehensive API for interacting with Magic Eden, providing tools to handle collections, tokens, activity, bid, list, and buy on Solana, Bitcoin, Ethereum, Base, and Polygon chains.
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Solana
+    description: Endpoints related to Solana blockchain
+  - name: Bitcoin
+    description: Endpoints related to Bitcoin blockchain
+  - name: Ethereum
+    description: Endpoints related to Ethereum blockchain
+  - name: Base
+    description: Endpoints related to Base blockchain
+  - name: Polygon
+    description: Endpoints related to Polygon blockchain
+paths:
+  /api/solana/collections:
+    get:
+      tags:
+        - Solana
+        - Collections
+      summary: Get Solana collections
+      responses:
+        "200":
+          description: Returns a list of Solana collections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    id:
+                      type: string
+  /api/solana/tokens:
+    get:
+      tags:
+        - Solana
+        - Tokens
+      summary: Get Solana tokens
+      responses:
+        "200":
+          description: Returns a list of Solana tokens
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    id:
+                      type: string
+  /api/solana/activity:
+    get:
+      tags:
+        - Solana
+        - Activity
+      summary: Get Solana activity
+      responses:
+        "200":
+          description: Returns Solana activity
+  /api/solana/bid:
+    post:
+      tags:
+        - Solana
+        - Bid
+      summary: Place a bid on Solana
+      responses:
+        "200":
+          description: Bid placed successfully
+  /api/solana/list:
+    post:
+      tags:
+        - Solana
+        - List
+      summary: List an item on Solana
+      responses:
+        "200":
+          description: Item listed successfully
+  /api/solana/buy:
+    post:
+      tags:
+        - Solana
+        - Buy
+      summary: Buy an item on Solana
+      responses:
+        "200":
+          description: Item bought successfully
+  /api/solana/user:
+    get:
+      tags:
+        - Solana
+        - User
+      summary: Get Solana user information
+      responses:
+        "200":
+          description: Returns Solana user information
+  /api/solana/rewards:
+    get:
+      tags:
+        - Solana
+        - Rewards
+      summary: Get Solana rewards
+      responses:
+        "200":
+          description: Returns Solana rewards
+  /api/solana/balance:
+    get:
+      tags:
+        - Solana
+        - Balance
+      summary: Get Solana balance
+      responses:
+        "200":
+          description: Returns Solana balance
+  /api/bitcoin/collections:
+    get:
+      tags:
+        - Bitcoin
+        - Collections
+      summary: Get Bitcoin collections
+      responses:
+        "200":
+          description: Returns a list of Bitcoin collections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    id:
+                      type: string
+  /api/bitcoin/tokens:
+    get:
+      tags:
+        - Bitcoin
+        - Tokens
+      summary: Get Bitcoin tokens
+      responses:
+        "200":
+          description: Returns a list of Bitcoin tokens
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    id:
+                      type: string
+  /api/bitcoin/activity:
+    get:
+      tags:
+        - Bitcoin
+        - Activity
+      summary: Get Bitcoin activity
+      responses:
+        "200":
+          description: Returns Bitcoin activity
+  /api/bitcoin/bid:
+    post:
+      tags:
+        - Bitcoin
+        - Bid
+      summary: Place a bid on Bitcoin
+      responses:
+        "200":
+          description: Bid placed successfully
+  /api/bitcoin/list:
+    post:
+      tags:
+        - Bitcoin
+        - List
+      summary: List an item on Bitcoin
+      responses:
+        "200":
+          description: Item listed successfully
+  /api/bitcoin/buy:
+    post:
+      tags:
+        - Bitcoin
+        - Buy
+      summary: Buy an item on Bitcoin
+      responses:
+        "200":
+          description: Item bought successfully
+  /api/bitcoin/user:
+    get:
+      tags:
+        - Bitcoin
+        - User
+      summary: Get Bitcoin user information
+      responses:
+        "200":
+          description: Returns Bitcoin user information
+  /api/bitcoin/rewards:
+    get:
+      tags:
+        - Bitcoin
+        - Rewards
+      summary: Get Bitcoin rewards
+      responses:
+        "200":
+          description: Returns Bitcoin rewards
+  /api/bitcoin/balance:
+    get:
+      tags:
+        - Bitcoin
+        - Balance
+      summary: Get Bitcoin balance
+      responses:
+        "200":
+          description: Returns Bitcoin balance
+
+  /api/ethereum/collections:
+    get:
+      tags:
+        - Ethereum
+        - Collections
+      summary: Get Ethereum collections
+      responses:
+        "200":
+          description: Returns a list of Ethereum collections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    id:
+                      type: string
+  /api/ethereum/tokens:
+    get:
+      tags:
+        - Ethereum
+        - Tokens
+      summary: Get Ethereum tokens
+      responses:
+        "200":
+          description: Returns a list of Ethereum tokens
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    id:
+                      type: string
+  /api/ethereum/activity:
+    get:
+      tags:
+        - Ethereum
+        - Activity
+      summary: Get Ethereum activity
+      responses:
+        "200":
+          description: Returns Ethereum activity
+  /api/ethereum/bid:
+    post:
+      tags:
+        - Ethereum
+        - Bid
+      summary: Place a bid on Ethereum
+      responses:
+        "200":
+          description: Bid placed successfully
+  /api/ethereum/list:
+    post:
+      tags:
+        - Ethereum
+        - List
+      summary: List an item on Ethereum
+      responses:
+        "200":
+          description: Item listed successfully
+  /api/ethereum/buy:
+    post:
+      tags:
+        - Ethereum
+        - Buy
+      summary: Buy an item on Ethereum
+      responses:
+        "200":
+          description: Item bought successfully
+  /api/ethereum/user:
+    get:
+      tags:
+        - Ethereum
+        - User
+      summary: Get Ethereum user information
+      responses:
+        "200":
+          description: Returns Ethereum user information
+  /api/ethereum/rewards:
+    get:
+      tags:
+        - Ethereum
+        - Rewards
+      summary: Get Ethereum rewards
+      responses:
+        "200":
+          description: Returns Ethereum rewards
+  /api/ethereum/balance:
+    get:
+      tags:
+        - Ethereum
+        - Balance
+      summary: Get Ethereum balance
+      responses:
+        "200":
+          description: Returns Ethereum balance
+  /api/base/collections:
+    get:
+      tags:
+        - Base
+        - Collections
+      summary: Get Base collections
+      responses:
+        "200":
+          description: Returns a list of Base collections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    id:
+                      type: string
+  /api/base/tokens:
+    get:
+      tags:
+        - Base
+        - Tokens
+      summary: Get Base tokens
+      responses:
+        "200":
+          description: Returns a list of Base tokens
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    id:
+                      type: string
+  /api/base/activity:
+    get:
+      tags:
+        - Base
+        - Activity
+      summary: Get Base activity
+      responses:
+        "200":
+          description: Returns Base activity
+  /api/base/bid:
+    post:
+      tags:
+        - Base
+        - Bid
+      summary: Place a bid on Base
+      responses:
+        "200":
+          description: Bid placed successfully
+  /api/base/list:
+    post:
+      tags:
+        - Base
+        - List
+      summary: List an item on Base
+      responses:
+        "200":
+          description: Item listed successfully
+  /api/base/buy:
+    post:
+      tags:
+        - Base
+        - Buy
+      summary: Buy an item on Base
+      responses:
+        "200":
+          description: Item bought successfully
+  /api/base/user:
+    get:
+      tags:
+        - Base
+        - User
+      summary: Get Base user information
+      responses:
+        "200":
+          description: Returns Base user information
+  /api/base/rewards:
+    get:
+      tags:
+        - Base
+        - Rewards
+      summary: Get Base rewards
+      responses:
+        "200":
+          description: Returns Base rewards
+  /api/base/balance:
+    get:
+      tags:
+        - Base
+        - Balance
+      summary: Get Base balance
+      responses:
+        "200":
+          description: Returns Base balance
+
+  /api/polygon/collections:
+    get:
+      tags:
+        - Polygon
+        - Collections
+      summary: Get Polygon collections
+      responses:
+        "200":
+          description: Returns a list of Polygon collections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    id:
+                      type: string
+  /api/polygon/tokens:
+    get:
+      tags:
+        - Polygon
+        - Tokens
+      summary: Get Polygon tokens
+      responses:
+        "200":
+          description: Returns a list of Polygon tokens
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    id:
+                      type: string
+  /api/polygon/activity:
+    get:
+      tags:
+        - Polygon
+        - Activity
+      summary: Get Polygon activity
+      responses:
+        "200":
+          description: Returns Polygon activity
+  /api/polygon/bid:
+    post:
+      tags:
+        - Polygon
+        - Bid
+      summary: Place a bid on Polygon
+      responses:
+        "200":
+          description: Bid placed successfully
+  /api/polygon/list:
+    post:
+      tags:
+        - Polygon
+        - List
+      summary: List an item on Polygon
+      responses:
+        "200":
+          description: Item listed successfully
+  /api/polygon/buy:
+    post:
+      tags:
+        - Polygon
+        - Buy
+      summary: Buy an item on Polygon
+      responses:
+        "200":
+          description: Item bought successfully
+  /api/polygon/user:
+    get:
+      tags:
+        - Polygon
+        - User
+      summary: Get Polygon user information
+      responses:
+        "200":
+          description: Returns Polygon user information
+  /api/polygon/rewards:
+    get:
+      tags:
+        - Polygon
+        - Rewards
+      summary: Get Polygon rewards
+      responses:
+        "200":
+          description: Returns Polygon rewards
+  /api/polygon/balance:
+    get:
+      tags:
+        - Polygon
+        - Balance
+      summary: Get Polygon balance
+      responses:
+        "200":
+          description: Returns Polygon balance

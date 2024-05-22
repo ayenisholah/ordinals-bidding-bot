@@ -526,7 +526,7 @@ class EventManager {
 
                       if (RESTART || !enableCounterBidding) {
                         console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                        console.log(`OUTBID CURRENT OFFER ${currentPrice / 1e8} OUR OFFER ${bidPrice / 1e8} FOR ${collectionSymbol} ${tokenId}`);
+                        console.log(`OUTBID CURRENT OFFER ${currentPrice / 1e8} BTC OUR OFFER ${bidPrice / 1e8} BTC FOR ${collectionSymbol} ${tokenId}`);
                         console.log('-----------------------------------------------------------------------------------------------------------------------------');
                         try {
                           const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey)
@@ -543,7 +543,7 @@ class EventManager {
 
                     } else {
                       console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                      console.log(`CALCULATED BID PRICE ${bidPrice / 1e8} IS GREATER THAN MAX BID ${maxOffer / 1e8} FOR ${collectionSymbol} ${tokenId}`);
+                      console.log(`CALCULATED BID PRICE ${bidPrice / 1e8} BTC IS GREATER THAN MAX BID ${maxOffer / 1e8} BTC FOR ${collectionSymbol} ${tokenId}`);
                       console.log('-----------------------------------------------------------------------------------------------------------------------------');
                     }
                   }
@@ -570,7 +570,7 @@ class EventManager {
                     }
                   } else {
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                    console.log(`CALCULATED BID PRICE ${bidPrice / 1e8} IS GREATER THAN MAX BID ${maxOffer / 1e8} FOR ${collectionSymbol} ${tokenId}`);
+                    console.log(`CALCULATED BID PRICE ${bidPrice / 1e8} BTC IS GREATER THAN MAX BID ${maxOffer / 1e8} BTC FOR ${collectionSymbol} ${tokenId}`);
                     console.log('-----------------------------------------------------------------------------------------------------------------------------');
                   }
                 }
@@ -597,7 +597,7 @@ class EventManager {
 
                       if (RESTART || !enableCounterBidding) {
                         console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                        console.log(`OUTBID CURRENT OFFER ${currentPrice / 1e8} OUR OFFER ${bidPrice / 1e8} FOR ${collectionSymbol} ${tokenId}`);
+                        console.log(`OUTBID CURRENT OFFER ${currentPrice / 1e8} BTC OUR OFFER ${bidPrice / 1e8} BTC FOR ${collectionSymbol} ${tokenId}`);
                         console.log('-----------------------------------------------------------------------------------------------------------------------------');
                         try {
                           const status = await placeBid(tokenId, bidPrice, expiration, buyerTokenReceiveAddress, buyerPaymentAddress, publicKey, privateKey)
@@ -613,7 +613,7 @@ class EventManager {
                       }
                     } else {
                       console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                      console.log(`CALCULATED BID PRICE ${bidPrice / 1e8} IS GREATER THAN MAX BID ${maxOffer / 1e8} FOR ${collectionSymbol} ${tokenId}`);
+                      console.log(`CALCULATED BID PRICE ${bidPrice / 1e8} BTC IS GREATER THAN MAX BID ${maxOffer / 1e8} BTC FOR ${collectionSymbol} ${tokenId}`);
                       console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
                     }
@@ -627,7 +627,7 @@ class EventManager {
 
                         if (bidPrice <= maxOffer) {
                           console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                          console.log(`ADJUST OUR CURRENT OFFER ${bestPrice / 1e8} TO ${bidPrice / 1e8} FOR ${collectionSymbol} ${tokenId}`);
+                          console.log(`ADJUST OUR CURRENT OFFER ${bestPrice / 1e8} BTC TO ${bidPrice / 1e8} BTC FOR ${collectionSymbol} ${tokenId}`);
                           console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
                           try {
@@ -643,7 +643,7 @@ class EventManager {
                           }
                         } else {
                           console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                          console.log(`CALCULATED BID PRICE ${bidPrice / 1e8} IS GREATER THAN MAX BID ${maxOffer / 1e8} FOR ${collectionSymbol} ${tokenId}`);
+                          console.log(`CALCULATED BID PRICE ${bidPrice / 1e8} BTC IS GREATER THAN MAX BID ${maxOffer / 1e8} BTC FOR ${collectionSymbol} ${tokenId}`);
                           console.log('-----------------------------------------------------------------------------------------------------------------------------');
                         }
                       }
@@ -651,7 +651,7 @@ class EventManager {
                       const bidPrice = Math.max(minOffer, listedPrice * 0.5)
                       if (bestPrice !== bidPrice) { // self adjust bids.
                         console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                        console.log(`ADJUST OUR CURRENT OFFER ${bestPrice / 1e8} TO ${bidPrice / 1e8} FOR ${collectionSymbol} ${tokenId}`);
+                        console.log(`ADJUST OUR CURRENT OFFER ${bestPrice / 1e8} BTC TO ${bidPrice / 1e8} BTC FOR ${collectionSymbol} ${tokenId}`);
                         console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
                         if (bidPrice <= maxOffer) {
@@ -668,7 +668,7 @@ class EventManager {
                           }
                         } else {
                           console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                          console.log(`CALCULATED BID PRICE ${bidPrice / 1e8} IS GREATER THAN MAX BID ${maxOffer / 1e8} FOR ${collectionSymbol} ${tokenId}`);
+                          console.log(`CALCULATED BID PRICE ${bidPrice / 1e8} BTC IS GREATER THAN MAX BID ${maxOffer / 1e8} BTC FOR ${collectionSymbol} ${tokenId}`);
                           console.log('-----------------------------------------------------------------------------------------------------------------------------');
                         }
 
@@ -707,9 +707,10 @@ class EventManager {
 
             const currentPrice = topOffer.price.amount
             const bidPrice = currentPrice + (outBidMargin * CONVERSION_RATE)
+
             if (bidPrice <= maxOffer) {
               console.log('-----------------------------------------------------------------------------------------------------------------------------');
-              console.log(`OUTBID CURRENT COLLECTION OFFER ${currentPrice / 1e8} OUR OFFER ${bidPrice / 1e8} FOR ${collectionSymbol}`);
+              console.log(`OUTBID CURRENT COLLECTION OFFER ${currentPrice / 1e8} BTC OUR OFFER ${bidPrice / 1e8} BTC FOR ${collectionSymbol}`);
               console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
               try {
@@ -750,7 +751,7 @@ class EventManager {
 
                 if (bidPrice <= maxOffer) {
                   console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                  console.log(`ADJUST OUR CURRENT COLLECTION OFFER ${bestPrice / 1e8} TO ${bidPrice / 1e8} FOR ${collectionSymbol}`);
+                  console.log(`ADJUST OUR CURRENT COLLECTION OFFER ${bestPrice / 1e8} BTC TO ${bidPrice / 1e8} BTC FOR ${collectionSymbol}`);
                   console.log('-----------------------------------------------------------------------------------------------------------------------------');
                   try {
 
@@ -782,7 +783,7 @@ class EventManager {
                 }
 
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                console.log(`ADJUST OUR CURRENT COLLECTION OFFER ${bestPrice / 1e8} TO ${bidPrice / 1e8} FOR ${collectionSymbol} `);
+                console.log(`ADJUST OUR CURRENT COLLECTION OFFER ${bestPrice / 1e8} BTC TO ${bidPrice / 1e8} BTC FOR ${collectionSymbol} `);
                 console.log('-----------------------------------------------------------------------------------------------------------------------------');
 
                 if (bidPrice <= maxOffer) {
@@ -801,7 +802,7 @@ class EventManager {
                   }
                 } else {
                   console.log('-----------------------------------------------------------------------------------------------------------------------------');
-                  console.log(`CALCULATED BID PRICE ${bidPrice / 1e8} IS GREATER THAN MAX BID ${maxOffer / 1e8} FOR ${collectionSymbol}`);
+                  console.log(`CALCULATED BID PRICE ${bidPrice / 1e8} BTC IS GREATER THAN MAX BID ${maxOffer / 1e8} BTC FOR ${collectionSymbol}`);
                   console.log('-----------------------------------------------------------------------------------------------------------------------------');
                 }
 
