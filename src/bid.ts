@@ -247,10 +247,13 @@ class EventManager {
         }
       } else if (offerType === "COLLECTION") {
         if (message.kind === "coll_offer_created") {
+          const collectionSymbol = message.collectionSymbol
+
+          const incomingBidAmount = message.listedPrice
+          const ourBidPrice = bidHistory[collectionSymbol].highestCollectionOffer?.price
 
           const incomingBuyerPaymentAddress = message.buyerPaymentAddress
-          const collectionSymbol = message.collectionSymbol
-          if (incomingBuyerPaymentAddress.toLowerCase() !== buyerPaymentAddress.toLowerCase()) {
+          if (incomingBuyerPaymentAddress.toLowerCase() !== buyerPaymentAddress.toLowerCase() && Number(incomingBidAmount) > Number(ourBidPrice)) {
             console.log(`COUNTERBID FOR ${collectionSymbol} COLLECTION OFFER`);
 
             while (processingTokens[collectionSymbol]) {
@@ -1110,7 +1113,7 @@ async function placeCollectionBid(
   const unsignedCollectionOffer = await createCollectionOffer(collectionSymbol, priceSats, expirationAt, feeSatsPerVbyte, publicKey, buyerTokenReceiveAddress)
   if (unsignedCollectionOffer) {
     const { signedOfferPSBTBase64, signedCancelledPSBTBase64 } = signCollectionOffer(unsignedCollectionOffer, privateKey)
-    await submitCollectionOffer(signedOfferPSBTBase64, signedCancelledPSBTBase64, collectionSymbol, priceSats, expirationAt, publicKey, buyerTokenReceiveAddress)
+    await submitCollectionOffer(signedOfferPSBTBase64, signedCancelledPSBTBase64, collectionSymbol, priceSats, expirationAt, publicKey, buyerTokenReceiveAddress, privateKey)
   }
 
 }

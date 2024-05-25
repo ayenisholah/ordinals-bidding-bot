@@ -124,7 +124,8 @@ export async function submitCollectionOffer(
   priceSats: number,
   expirationAt: string,
   makerPublicKey: string,
-  makerReceiveAddress: string
+  makerReceiveAddress: string,
+  privateKey: string,
 ) {
 
   const data = {
@@ -148,16 +149,29 @@ export async function submitCollectionOffer(
 
   const url = 'https://nfttools.pro/magiceden/v2/ord/btc/collection-offers/psbt/create'
 
-  try {
-    const { data: requestData } = await limiter.schedule(() => axiosInstance.post<ISubmitCollectionOfferResponse>(url, data, { headers }))
+  let errorOccurred = false;
 
-    console.log({ requestData });
+  do {
+    try {
+      const { data: requestData } = await limiter.schedule(() => axiosInstance.post<ISubmitCollectionOfferResponse>(url, data, { headers }))
+      console.log({ requestData });
+      return requestData
+    } catch (error: any) {
+      if (error.response?.data?.error === "You already have an offer for this token") {
+        await new Promise(resolve => setTimeout(resolve, 2500)); // Wait before retrying
+        const offerData = await getBestCollectionOffer(collectionSymbol);
 
-    return requestData
-
-  } catch (error: any) {
-    console.log(error.response.data);
-  }
+        const userOffer = offerData?.offers.find((item) => item.btcParams.makerOrdinalReceiveAddress.toLowerCase() === makerReceiveAddress.toLowerCase())
+        if (userOffer) {
+          await cancelCollectionOffer([userOffer.id], makerPublicKey, privateKey)
+        }
+        errorOccurred = true;
+      } else {
+        errorOccurred = false;
+        throw error;
+      }
+    }
+  } while (errorOccurred);
 }
 // sign collection offerData
 

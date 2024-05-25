@@ -1,17 +1,63 @@
 [
 	{
 		"collectionSymbol": "prometheans",
-		"minBid": 0.005,
-		"maxBid": 0.0056,
-		"minFloorBid": 71.43,
-		"maxFloorBid": 80,
-		"bidCount": 5,
+		"minBid": 0.0066555,
+		"maxBid": 0.007474401,
+		"minFloorBid": 85,
+		"maxFloorBid": 99,
+		"bidCount": 10,
 		"duration": 60,
 		"scheduledLoop": 300,
 		"enableCounterBidding": true,
-		"outBidMargin": 1e-6,
+		"outBidMargin": 1e-5,
 		"offerType": "COLLECTION",
 		"quantity": 1,
-		"feeSatsPerVbyte": 28
+		"feeSatsPerVbyte": 18
+	},
+
+	{
+		"collectionSymbol": "bitcoincats",
+		"minBid": 0.002945,
+		"maxBid": 0.0038285,
+		"minFloorBid": 50,
+		"maxFloorBid": 65,
+		"bidCount": 7,
+		"duration": 60,
+		"scheduledLoop": 300,
+		"enableCounterBidding": true,
+		"outBidMargin": 1e-5,
+		"offerType": "ITEM",
+		"quantity": 1,
+		"feeSatsPerVbyte": 13.5
+	},
+	{
+		"collectionSymbol": "feeling-good",
+		"minBid": 0.00352,
+		"maxBid": 0.00374,
+		"minFloorBid": 80,
+		"maxFloorBid": 85,
+		"bidCount": 7,
+		"duration": 60,
+		"scheduledLoop": 300,
+		"enableCounterBidding": true,
+		"outBidMargin": 1e-5,
+		"offerType": "ITEM",
+		"quantity": 1,
+		"feeSatsPerVbyte": 13.5
+	},
+	{
+		"collectionSymbol": "retordinals",
+		"minBid": 0.001112,
+		"maxBid": 0.0011815,
+		"minFloorBid": 80,
+		"maxFloorBid": 85,
+		"bidCount": 7,
+		"duration": 60,
+		"scheduledLoop": 300,
+		"enableCounterBidding": true,
+		"outBidMargin": 1e-5,
+		"offerType": "ITEM",
+		"quantity": 1,
+		"feeSatsPerVbyte": 13.5
 	}
 ]
