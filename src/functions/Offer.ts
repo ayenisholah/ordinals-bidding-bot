@@ -27,8 +27,6 @@ export async function cancelCollectionOfferRequest(offerIds: string[], makerPubl
   };
   try {
     const { data } = await limiter.schedule(() => axiosInstance.get<ICancelCollectionOfferRequest>(url, { params, headers }))
-
-    console.log({ data });
     return data
 
   } catch (error: any) {
@@ -119,13 +117,13 @@ export async function createCollectionOffer(
 
 export async function submitCollectionOffer(
   signedPsbtBase64: string,
-  signedCancelPsbtBase64: string,
   collectionSymbol: string,
   priceSats: number,
   expirationAt: string,
   makerPublicKey: string,
   makerReceiveAddress: string,
   privateKey: string,
+  signedCancelPsbtBase64?: string,
 ) {
 
   const data = {
@@ -167,6 +165,7 @@ export async function submitCollectionOffer(
         }
         errorOccurred = true;
       } else {
+        console.log(error.response.data);
         errorOccurred = false;
         throw error;
       }
@@ -178,25 +177,38 @@ export async function submitCollectionOffer(
 export function signCollectionOffer(unsignedData: ICollectionOfferResponseData, privateKey: string) {
   const offers = unsignedData.offers[0]
   const offerPsbt = bitcoin.Psbt.fromBase64(offers.psbtBase64);
-  const cancelPsbt = bitcoin.Psbt.fromBase64(offers.cancelPsbtBase64);
   const keyPair: ECPairInterface = ECPair.fromWIF(privateKey, network)
+  const toSignInputs: any[] = offerPsbt.data.inputs
 
-  const toSignInputs = [0, 1]
+  let cancelPsbt, signedCancelledPSBTBase64;
 
-
-  for (let index of toSignInputs) {
-    offerPsbt.signInput(index, keyPair);
-    cancelPsbt.signInput(index, keyPair);
-    offerPsbt.finalizeInput(index);
-    cancelPsbt.finalizeInput(index);
+  if (offers.cancelPsbtBase64) {
+    cancelPsbt = bitcoin.Psbt.fromBase64(offers.cancelPsbtBase64);
+    for (let index of toSignInputs) {
+      cancelPsbt.signInput(index, keyPair);
+      cancelPsbt.finalizeInput(index);
+    }
+    cancelPsbt.signAllInputs(keyPair)
+    signedCancelledPSBTBase64 = cancelPsbt.toBase64();
   }
 
-  offerPsbt.signAllInputs(keyPair)
-  cancelPsbt.signAllInputs(keyPair)
 
+  if (toSignInputs.length > 1) {
+    const inputs = [0, 1]
+    console.log('SIGN 2 INPUTS');
+    for (let index of inputs) {
+      offerPsbt.signInput(index, keyPair);
+      offerPsbt.finalizeInput(index);
+
+    }
+    offerPsbt.signAllInputs(keyPair)
+
+  } else {
+    console.log('SIGN 1 INPUTS');
+    offerPsbt.signInput(0, keyPair);
+  }
 
   const signedOfferPSBTBase64 = offerPsbt.toBase64();
-  const signedCancelledPSBTBase64 = cancelPsbt.toBase64();
   return { signedOfferPSBTBase64, signedCancelledPSBTBase64 };
 }
 
