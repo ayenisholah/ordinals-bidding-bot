@@ -757,7 +757,6 @@ class EventManager {
                   console.log(`ADJUST OUR CURRENT COLLECTION OFFER ${bestPrice / 1e8} BTC TO ${bidPrice / 1e8} BTC FOR ${collectionSymbol}`);
                   console.log('-----------------------------------------------------------------------------------------------------------------------------');
                   try {
-
                     if (bidPrice < floorPrice) {
                       await placeCollectionBid(bidPrice, expiration, collectionSymbol, buyerTokenReceiveAddress, publicKey, privateKey, feeSatsPerVbyte)
                       bidHistory[collectionSymbol].offerType = "COLLECTION"
@@ -792,7 +791,6 @@ class EventManager {
                 if (bidPrice <= maxOffer) {
 
                   try {
-
                     if (bidPrice < floorPrice) {
                       await placeCollectionBid(bidPrice, expiration, collectionSymbol, buyerTokenReceiveAddress, publicKey, privateKey, feeSatsPerVbyte)
                       bidHistory[collectionSymbol].offerType = "COLLECTION"
@@ -1109,6 +1107,11 @@ async function placeCollectionBid(
 ) {
   const priceSats = Math.ceil(offerPrice)
   const expirationAt = new Date(expiration).toISOString();
+
+  if (offerPrice > Number(balance)) {
+    console.log('INSUFFICIENT BTC TO PLACE BID');
+    return
+  }
 
   console.log('-----------------------------------------------------------------------------------');
   console.log(`CREATE COLLECTION OFFER FOR ${collectionSymbol} @ ${priceSats / 1e8} BTC`);

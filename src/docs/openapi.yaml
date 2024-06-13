@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: A comprehensive API for interacting with Magic Eden, providing tools to handle collections, tokens, activity, bid, list, and buy on Solana, Bitcoin, Ethereum, Base, and Polygon chains.
 servers:
-  - url: http://localhost:3000
+  - url: https://nfttools.pro/magiceden
 tags:
   - name: Solana
     description: Endpoints related to Solana blockchain
@@ -17,26 +17,168 @@ tags:
   - name: Polygon
     description: Endpoints related to Polygon blockchain
 paths:
-  /api/solana/collections:
+  /idxv2/getListedNftsByCollectionSymbol:
     get:
       tags:
         - Solana
-        - Collections
-      summary: Get Solana collections
+        - Tokens
+      summary: Get Listed NFTs by Collection Symbol
+      description: Fetches listed NFTs by the specified collection symbol.
+      parameters:
+        - in: query
+          name: collectionSymbol
+          required: true
+          schema:
+            type: string
+          description: The symbol of the NFT collection.
+        - in: query
+          name: onChainCollectionAddress
+          required: true
+          schema:
+            type: string
+          description: The on-chain address of the collection.
+        - in: query
+          name: direction
+          required: true
+          schema:
+            type: integer
+            example: 2
+          description: Direction of the listing.
+        - in: query
+          name: field
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: Field to sort by.
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            example: 100
+          description: Number of results to return.
+        - in: query
+          name: token22StandardFilter
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: Token 22 standard filter.
+        - in: query
+          name: mode
+          required: true
+          schema:
+            type: string
+            example: "all"
+          description: Mode of the listing.
+        - in: query
+          name: agg
+          required: true
+          schema:
+            type: integer
+            example: 3
+          description: Aggregation mode.
+        - in: query
+          name: compressionMode
+          required: true
+          schema:
+            type: string
+            example: "both"
+          description: Compression mode.
+        - in: header
+          name: X-NFT-API-Key
+          required: true
+          schema:
+            type: string
+          description: NFTTOOLS API key for authentication.
       responses:
         "200":
-          description: Returns a list of Solana collections
+          description: A list of NFTs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ListedNft"
+                  result:
+                    type: string
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+
+  /collection_stats/search/base:
+    get:
+      summary: Fetch Collection Stats
+      description: Retrieve collection stats based on specified parameters.
+      parameters:
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            example: 0
+          required: true
+          description: The offset for pagination.
+        - in: query
+          name: window
+          schema:
+            type: string
+            example: 6h
+          required: true
+          description: The time window for stats.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            example: 100
+          required: true
+          description: The number of results to return.
+        - in: query
+          name: sort
+          schema:
+            type: string
+            example: sales
+          required: true
+          description: The field to sort by.
+        - in: query
+          name: direction
+          schema:
+            type: string
+            example: desc
+          required: true
+          description: The direction of sorting.
+        - in: query
+          name: filter
+          schema:
+            type: string
+            example: "{}"
+          required: true
+          description: The filter to apply.
+        - in: header
+          name: X-NFT-API-Key
+          required: true
+          schema:
+            type: string
+          description: NFTTOOLS API key for authentication.
+      responses:
+        "200":
+          description: A list of collection stats
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                    id:
-                      type: string
+                  $ref: "#/components/schemas/CollectionStats"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      security:
+        - apiKeyAuth: []
   /api/solana/tokens:
     get:
       tags:
@@ -534,3 +676,236 @@ paths:
       responses:
         "200":
           description: Returns Polygon balance
+
+components:
+  schemas:
+    ListedNft:
+      type: object
+      properties:
+        isCompressed:
+          type: boolean
+        isTradeable:
+          type: boolean
+        tokenOwnershipStandard:
+          type: string
+        mintAddress:
+          type: string
+        supply:
+          type: integer
+        title:
+          type: string
+        primarySaleHappened:
+          type: boolean
+        updateAuthority:
+          type: string
+        onChainCollection:
+          $ref: "#/components/schemas/OnChainCollection"
+        sellerFeeBasisPoints:
+          type: integer
+        creators:
+          type: array
+          items:
+            $ref: "#/components/schemas/Creator"
+        price:
+          type: number
+        solPrice:
+          $ref: "#/components/schemas/SolPrice"
+        escrowPubkey:
+          type: string
+        img:
+          type: string
+        attributes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Attribute"
+        properties:
+          $ref: "#/components/schemas/Properties"
+        propertyCategory:
+          type: string
+        animationURL:
+          type: string
+        externalURL:
+          type: string
+        content:
+          type: string
+        collectionName:
+          type: string
+        collectionTitle:
+          type: string
+        owner:
+          type: string
+        id:
+          type: string
+        listingType:
+          type: string
+        listingUpdatedAt:
+          $ref: "#/components/schemas/Timestamp"
+        updatedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        tokenStandard:
+          type: integer
+
+    OnChainCollection:
+      type: object
+      properties:
+        key:
+          type: string
+        verified:
+          type: integer
+        data:
+          $ref: "#/components/schemas/CollectionData"
+
+    CollectionData:
+      type: object
+      properties:
+        name:
+          type: string
+        image:
+          type: string
+        description:
+          type: string
+
+    Creator:
+      type: object
+      properties:
+        share:
+          type: integer
+        address:
+          type: string
+        verified:
+          type: boolean
+
+    SolPrice:
+      type: object
+      properties:
+        rawAmount:
+          type: string
+        address:
+          type: string
+        decimals:
+          type: integer
+
+    Attribute:
+      type: object
+      properties:
+        trait_type:
+          type: string
+        value:
+          type: string
+
+    Properties:
+      type: object
+      properties:
+        files:
+          type: array
+          items:
+            $ref: "#/components/schemas/File"
+        category:
+          type: string
+        creators:
+          type: array
+          items:
+            $ref: "#/components/schemas/Creator"
+
+    File:
+      type: object
+      properties:
+        uri:
+          type: string
+        type:
+          type: string
+
+    Timestamp:
+      type: object
+      properties:
+        updatedAt:
+          type: string
+          format: date-time
+        slot:
+          type: integer
+
+    CollectionStats:
+      type: object
+      properties:
+        chain:
+          type: string
+          example: base
+        name:
+          type: string
+          example: Zillas Based
+        collectionSymbol:
+          type: string
+          example: zillas-based
+        collectionId:
+          type: string
+          example: 0x814899ff414bcc7e8c396bbbd7f7a3178855ae90
+        vol:
+          type: number
+          example: 0.01157
+        totalVol:
+          type: number
+          example: 0.179319999
+        volPctChg:
+          type: number
+          example: -86.83431953
+        txns:
+          type: integer
+          example: 106
+        txnsPctChg:
+          type: number
+          example: -52.46636771
+        fp:
+          type: number
+          example: 0.00004
+        fpPctChg:
+          type: number
+          example: 33.33333333333335
+        fpListingPrice:
+          type: number
+          example: 0.00004
+        fpListingCurrency:
+          type: string
+          example: ETH
+        highestGlobalOfferBidCurrency:
+          type: string
+          example: ETH
+        marketCap:
+          type: number
+          example: 0.35552
+        totalSupply:
+          type: integer
+          example: 8888
+        listedCount:
+          type: integer
+          example: 917
+        ownerCount:
+          type: integer
+          example: 2162
+        uniqueOwnerRatio:
+          type: number
+          example: 0.24324932493249324
+        image:
+          type: string
+          example: https://img.reservoir.tools/images/v2/base/z9JRSpLYGu7%2BCZoKWtAuAHHi8sdkiV1ldJ1nW3bLOdz4KNjnrqaKjQ0AC6UYBj0MDdvnAL2nEa%2FQjjm%2BT%2BPwXC4ijUidVLxQ%2F4jPy7w7R6PUaHwew3CWDae2vie9jJyRLKXaFN2t%2F00b%2FQdqQQv%2BdQ%3D%3D?width=250
+        isCompressed:
+          type: boolean
+          example: false
+        isVerified:
+          type: boolean
+          example: false
+        hasInscriptions:
+          type: boolean
+          example: false
+        currency:
+          type: string
+          example: ETH
+        currencyUsdRate:
+          type: number
+          example: 3768.53
+        marketCapUsd:
+          type: number
+          example: 1339.7877856

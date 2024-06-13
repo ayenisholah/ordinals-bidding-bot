@@ -143,12 +143,8 @@ export async function submitCollectionOffer(
   }
 
 
-
-
   const url = 'https://nfttools.pro/magiceden/v2/ord/btc/collection-offers/psbt/create'
-
   let errorOccurred = false;
-
   do {
     try {
       const { data: requestData } = await limiter.schedule(() => axiosInstance.post<ISubmitCollectionOfferResponse>(url, data, { headers }))
@@ -182,17 +178,6 @@ export function signCollectionOffer(unsignedData: ICollectionOfferResponseData, 
 
   let cancelPsbt, signedCancelledPSBTBase64;
 
-  if (offers.cancelPsbtBase64) {
-    cancelPsbt = bitcoin.Psbt.fromBase64(offers.cancelPsbtBase64);
-    for (let index of toSignInputs) {
-      cancelPsbt.signInput(index, keyPair);
-      cancelPsbt.finalizeInput(index);
-    }
-    cancelPsbt.signAllInputs(keyPair)
-    signedCancelledPSBTBase64 = cancelPsbt.toBase64();
-  }
-
-
   if (toSignInputs.length > 1) {
     const inputs = [0, 1]
     console.log('SIGN 2 INPUTS');
@@ -203,12 +188,23 @@ export function signCollectionOffer(unsignedData: ICollectionOfferResponseData, 
     }
     offerPsbt.signAllInputs(keyPair)
 
+    if (offers.cancelPsbtBase64) {
+      cancelPsbt = bitcoin.Psbt.fromBase64(offers.cancelPsbtBase64);
+      for (let index of inputs) {
+        cancelPsbt.signInput(index, keyPair);
+        cancelPsbt.finalizeInput(index);
+      }
+      cancelPsbt.signAllInputs(keyPair)
+      signedCancelledPSBTBase64 = cancelPsbt.toBase64();
+    }
+
   } else {
     console.log('SIGN 1 INPUTS');
     offerPsbt.signInput(0, keyPair);
   }
 
   const signedOfferPSBTBase64 = offerPsbt.toBase64();
+
   return { signedOfferPSBTBase64, signedCancelledPSBTBase64 };
 }
 

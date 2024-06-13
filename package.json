@@ -13,6 +13,8 @@
 		"cancel": "ts-node src/cancel.ts",
 		"scan:collections": "ts-node src/scanCollections.ts",
 		"test": "ts-node src/test.ts",
+		"solana:test": "ts-node src/solana/test.ts",
+		"base:test": "ts-node src/base/test.ts",
 		"bid:ethereum": "ts-node src/ethereum/bid.ts"
 	},
 	"keywords": [],
