@@ -201,7 +201,13 @@ export function signCollectionOffer(unsignedData: ICollectionOfferResponseData, 
   } else {
     console.log('SIGN 1 INPUTS');
     offerPsbt.signInput(0, keyPair);
+    if (offers.cancelPsbtBase64) {
+      cancelPsbt = bitcoin.Psbt.fromBase64(offers.cancelPsbtBase64);
+      cancelPsbt.signInput(0, keyPair);
+      signedCancelledPSBTBase64 = cancelPsbt.toBase64();
+    }
   }
+
 
   const signedOfferPSBTBase64 = offerPsbt.toBase64();
 
