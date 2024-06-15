@@ -94,6 +94,7 @@ export async function createCollectionOffer(
   feeSatsPerVbyte: number,
   makerPublicKey: string,
   makerReceiveAddress: string,
+  privateKey: string
 ) {
   const params = {
     collectionSymbol,
@@ -105,14 +106,29 @@ export async function createCollectionOffer(
     makerPaymentType: 'p2wpkh',
     makerReceiveAddress
   };
+  let errorOccurred = false;
+  do {
+    try {
+      const url = 'https://nfttools.pro/magiceden/v2/ord/btc/collection-offers/psbt/create'
+      const { data } = await limiter.schedule(() => axiosInstance.get<ICollectionOfferResponseData>(url, { params, headers }))
+      return data
+    } catch (error: any) {
+      if (error.response?.data?.error === "Only 1 collection offer allowed per collection.") {
+        await new Promise(resolve => setTimeout(resolve, 2500)); // Wait before retrying
+        const offerData = await getBestCollectionOffer(collectionSymbol);
 
-  try {
-    const url = 'https://nfttools.pro/magiceden/v2/ord/btc/collection-offers/psbt/create'
-    const { data } = await limiter.schedule(() => axiosInstance.get<ICollectionOfferResponseData>(url, { params, headers }))
-    return data
-  } catch (error: any) {
-    console.log(error.response.data);
-  }
+        const userOffer = offerData?.offers.find((item) => item.btcParams.makerOrdinalReceiveAddress.toLowerCase() === makerReceiveAddress.toLowerCase())
+        if (userOffer) {
+          await cancelCollectionOffer([userOffer.id], makerPublicKey, privateKey)
+        }
+        errorOccurred = true;
+      } else {
+        console.log(error.response.data);
+        errorOccurred = false;
+        throw error;
+      }
+    }
+  } while (errorOccurred);
 }
 
 export async function submitCollectionOffer(
@@ -151,7 +167,9 @@ export async function submitCollectionOffer(
       console.log({ requestData });
       return requestData
     } catch (error: any) {
-      if (error.response?.data?.error === "You already have an offer for this token") {
+      console.log('Submit collection offer error from')
+      console.log(error.response.data);
+      if (error.response?.data?.error === "Only 1 collection offer allowed per collection.") {
         await new Promise(resolve => setTimeout(resolve, 2500)); // Wait before retrying
         const offerData = await getBestCollectionOffer(collectionSymbol);
 
@@ -161,7 +179,7 @@ export async function submitCollectionOffer(
         }
         errorOccurred = true;
       } else {
-        console.log('\x1b[31m%s\x1b[0m', "🛑 You already have an offer for this collection 🛑".toUpperCase());
+        console.log(error.response.data);
         errorOccurred = false;
         throw error;
       }

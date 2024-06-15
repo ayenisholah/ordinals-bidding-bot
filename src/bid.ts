@@ -1117,7 +1117,7 @@ async function placeCollectionBid(
   console.log(`CREATE COLLECTION OFFER FOR ${collectionSymbol} @ ${priceSats / 1e8} BTC`);
   console.log('-----------------------------------------------------------------------------------');
 
-  const unsignedCollectionOffer = await createCollectionOffer(collectionSymbol, priceSats, expirationAt, feeSatsPerVbyte, publicKey, buyerTokenReceiveAddress)
+  const unsignedCollectionOffer = await createCollectionOffer(collectionSymbol, priceSats, expirationAt, feeSatsPerVbyte, publicKey, buyerTokenReceiveAddress, privateKey)
 
 
   if (unsignedCollectionOffer) {
