@@ -14,6 +14,7 @@
 		"scan:collections": "ts-node src/scanCollections.ts",
 		"test": "ts-node src/test.ts",
 		"solana:test": "ts-node src/solana/test.ts",
+		"example:ethereum": "ts-node src/examples/ethereum.ts",
 		"base:test": "ts-node src/base/test.ts",
 		"bid:ethereum": "ts-node src/ethereum/bid.ts"
 	},

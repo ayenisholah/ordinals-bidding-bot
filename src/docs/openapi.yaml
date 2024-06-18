@@ -676,7 +676,212 @@ paths:
       responses:
         "200":
           description: Returns Polygon balance
+  /v3/rtp/ethereum/collections/v7:
+    get:
+      tags:
+        - Ethereum
+        - Collections
+      summary: Fetch collection details from Magic Eden
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Collection ID
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: Maximum number of collections to return
+        - in: query
+          name: includeSalesCount
+          schema:
+            type: boolean
+          description: Whether to include sales count
+        - in: query
+          name: excludeSpam
+          schema:
+            type: boolean
+          description: Whether to exclude spam collections
+        - in: query
+          name: displayCurrency
+          schema:
+            type: string
+          description: Display currency contract address
+      responses:
+        "200":
+          description: Successful response containing collection details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FetchCollectionDetailsResponse"
+        "400":
+          description: Bad request, invalid parameters
+          content:
+            application/json:
+              example:
+                message: Bad request, invalid parameters
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              example:
+                message: Internal server error
 
+  /ethereum/collection/bids:
+    get:
+      summary: Fetch Ethereum collection bids
+      description: Fetches active bids for a specific Ethereum collection.
+      parameters:
+        - name: collection
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The Ethereum contract address of the collection.
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [price]
+          description: The field to sort the bids by.
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [active]
+          description: The status of the bids to fetch.
+        - name: excludeEOA
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [true, false]
+          description: Whether to exclude EOA (Externally Owned Accounts).
+        - name: includeCriteriaMetadata
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [true, false]
+          description: Whether to include criteria metadata.
+        - name: includeDepth
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [true, false]
+          description: Whether to include depth information.
+        - name: normalizeRoyalties
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [true, false]
+          description: Whether to normalize royalties.
+      responses:
+        "200":
+          description: A list of active bids for the specified Ethereum collection.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EthereumFetchCollectionBidsResponse"
+              examples:
+                example1:
+                  value:
+                    orders:
+                      - id: "0x62c66da28dbe812101d4d4fb8a45d00e94353115f6969f20421a41b7322729ec"
+                        kind: "blur"
+                        side: "buy"
+                        status: "active"
+                        tokenSetId: "contract:0x306b1ea3ecdf94ab739f1910bbda052ed4a9f949"
+                        tokenSetSchemaHash: "0x0000000000000000000000000000000000000000000000000000000000000000"
+                        contract: "0x306b1ea3ecdf94ab739f1910bbda052ed4a9f949"
+                        contractKind: "erc721"
+                        maker: "0x0000000000a39bb272e79075ade125fd351887ac"
+                        taker: "0x0000000000000000000000000000000000000000"
+                        price:
+                          currency:
+                            contract: "0x0000000000a39bb272e79075ade125fd351887ac"
+                            name: "Blur ETH"
+                            symbol: "BETH"
+                            decimals: 18
+                          amount:
+                            raw: "170000000000000000"
+                            decimal: 0.17
+                            usd: 615.04374
+                            native: 0.17
+                          netAmount:
+                            raw: "169150000000000000"
+                            decimal: 0.16915
+                            usd: 611.96852
+                            native: 0.16915
+                        validFrom: 1718706296
+                        validUntil: 0
+                        quantityFilled: 0
+                        quantityRemaining: 2897
+                        criteria:
+                          kind: "collection"
+                          data:
+                            collection:
+                              id: "0x306b1ea3ecdf94ab739f1910bbda052ed4a9f949"
+                              name: "BEANZ Official"
+                              image: "https://i.seadn.io/gae/_R4fuC4QGYd14-KwX2bD1wf-AWjDF2VMabfqWFJhIgiN2FnAUpnD5PLdJORrhQ8gly7KcjhQZZpuzYVPF7CDSzsqmDh97z84j2On?w=500&auto=format"
+                        source:
+                          id: "0xe073a3b3497e2ed4c6110eebbb664a839b168bcb"
+                          domain: "blur.io"
+                          name: "Blur"
+                          icon: "https://blur.io/favicons/180.png"
+                          url: "https://blur.io/asset/0x18b9db07cf194aac853daaa076d421b1dd0c75b0/${tokenId}"
+                        feeBps: 50
+                        feeBreakdown:
+                          - kind: "royalty"
+                            recipient: "0xb4d24dacbdffa1bbf9a624044484b3feeb7fdf74"
+                            bps: 50
+                        expiration: 0
+                        isReservoir: null
+                        createdAt: "2023-04-14T10:28:23.222Z"
+                        updatedAt: "2024-06-18T10:24:56.811Z"
+                        originatedAt: null
+                        depth:
+                          - price: 0.1691
+                            quantity: 1460
+                          - price: 0.1592
+                            quantity: 41
+                          - price: 0.1492
+                            quantity: 8
+                          - price: 0.1393
+                            quantity: 7
+                          - price: 0.1293
+                            quantity: 6
+                          - price: 0.1194
+                            quantity: 222
+                          - price: 0.1095
+                            quantity: 172
+                          - price: 0.0995
+                            quantity: 37
+                          - price: 0.0896
+                            quantity: 3
+                          - price: 0.0796
+                            quantity: 5
+                          - price: 0.0697
+                            quantity: 2
+                          - price: 0.0597
+                            quantity: 204
+                          - price: 0.0498
+                            quantity: 110
+                          - price: 0.0398
+                            quantity: 36
+                          - price: 0.0299
+                            quantity: 39
+                          - price: 0.0199
+                            quantity: 223
+                          - price: 0.01
+                            quantity: 322
+                    continuation: "MTg5MDAwMDAwMDAwMDAwXzB4MzgwOTMyZDcxN2E3ZGY3YzI5OTUwYzczYTI3NWZjNzUxYzZjYTMxOGYxZjZhMzk2NjEwMTM3YjdmOWIzMjMyZg=="
 components:
   schemas:
     ListedNft:
@@ -909,3 +1114,492 @@ components:
         marketCapUsd:
           type: number
           example: 1339.7877856
+    FetchCollectionDetailsResponse:
+      type: object
+      properties:
+        collections:
+          type: array
+          items:
+            $ref: "#/components/schemas/Collection"
+            continuation:
+            type: string
+    Collection:
+      type: object
+      properties:
+        chainId:
+          type: integer
+        id:
+          type: string
+        slug:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        name:
+          type: string
+        symbol:
+          type: string
+        contractDeployedAt:
+          type: string
+          format: date-time
+        image:
+          type: string
+          format: uri
+        banner:
+          type: string
+          format: uri
+        twitterUrl:
+          type: string
+          nullable: true
+          format: uri
+        discordUrl:
+          type: string
+        externalUrl:
+          type: string
+          format: uri
+        twitterUsername:
+          type: string
+        openseaVerificationStatus:
+          type: string
+        magicedenVerificationStatus:
+          type: string
+          nullable: true
+        description:
+          type: string
+        metadataDisabled:
+          type: boolean
+        isSpam:
+          type: boolean
+        isNsfw:
+          type: boolean
+        isMinting:
+          type: boolean
+        sampleImages:
+          type: array
+          items:
+            type: string
+            format: uri
+        tokenCount:
+          type: string
+        onSaleCount:
+          type: string
+        primaryContract:
+          type: string
+        tokenSetId:
+          type: string
+        creator:
+          type: string
+        isSharedContract:
+          type: boolean
+        royalties:
+          type: object
+          properties:
+            recipient:
+              type: string
+            breakdown:
+              type: array
+              items:
+                type: object
+                properties:
+                  bps:
+                    type: integer
+                  recipient:
+                    type: string
+              minItems: 1
+            bps:
+              type: integer
+        allRoyalties:
+          type: object
+          properties:
+            onchain:
+              type: array
+              items:
+                type: object
+                properties:
+                  bps:
+                    type: integer
+                  recipient:
+                    type: string
+              minItems: 1
+            opensea:
+              type: array
+              items:
+                type: object
+                properties:
+                  bps:
+                    type: integer
+                  required:
+                    type: boolean
+                  recipient:
+                    type: string
+              minItems: 1
+        floorAsk:
+          type: object
+          properties:
+            id:
+              type: string
+            sourceDomain:
+              type: string
+            price:
+              type: object
+              properties:
+                currency:
+                  type: object
+                  properties:
+                    contract:
+                      type: string
+                    name:
+                      type: string
+                    symbol:
+                      type: string
+                    decimals:
+                      type: integer
+                amount:
+                  type: object
+                  properties:
+                    raw:
+                      type: string
+                    decimal:
+                      type: number
+                    usd:
+                      type: number
+                    native:
+                      type: number
+            maker:
+              type: string
+            validFrom:
+              type: integer
+            validUntil:
+              type: integer
+            token:
+              type: object
+              properties:
+                contract:
+                  type: string
+                tokenId:
+                  type: string
+                name:
+                  type: string
+                image:
+                  type: string
+                  format: uri
+        topBid:
+          type: object
+          properties:
+            id:
+              type: string
+            sourceDomain:
+              type: string
+            price:
+              type: object
+              properties:
+                currency:
+                  type: object
+                  properties:
+                    contract:
+                      type: string
+                    name:
+                      type: string
+                    symbol:
+                      type: string
+                    decimals:
+                      type: integer
+                amount:
+                  type: object
+                  properties:
+                    raw:
+                      type: string
+                    decimal:
+                      type: number
+                    usd:
+                      type: number
+                    native:
+                      type: number
+                netAmount:
+                  type: object
+                  properties:
+                    raw:
+                      type: string
+                    decimal:
+                      type: number
+                    usd:
+                      type: number
+                    native:
+                      type: number
+            maker:
+              type: string
+            validFrom:
+              type: integer
+            validUntil:
+              type: integer
+        rank:
+          type: object
+          properties:
+            "1day":
+              type: integer
+            "7day":
+              type: integer
+            "30day":
+              type: integer
+            allTime:
+              type: integer
+        volume:
+          type: object
+          properties:
+            "1day":
+              type: number
+            "7day":
+              type: number
+            "30day":
+              type: number
+            allTime:
+              type: number
+        volumeChange:
+          type: object
+          properties:
+            "1day":
+              type: number
+            "7day":
+              type: number
+            "30day":
+              type: number
+        floorSale:
+          type: object
+          properties:
+            "1day":
+              type: number
+            "7day":
+              type: number
+            "30day":
+              type: number
+        floorSaleChange:
+          type: object
+          properties:
+            "1day":
+              type: number
+            "7day":
+              type: number
+            "30day":
+              type: number
+        salesCount:
+          type: object
+          properties:
+            "1day":
+              type: string
+            "7day":
+              type: string
+            "30day":
+              type: string
+            allTime:
+              type: string
+        collectionBidSupported:
+          type: boolean
+        ownerCount:
+          type: integer
+        contractKind:
+          type: string
+        mintedTimestamp:
+          type: string
+          nullable: true
+          format: date-time
+        mintStages:
+          type: array
+          items:
+            type: object
+      required:
+        - chainId
+        - id
+        - slug
+        - createdAt
+        - updatedAt
+        - name
+        - symbol
+        - contractDeployedAt
+        - image
+        - banner
+        - discordUrl
+        - externalUrl
+        - twitterUsername
+        - openseaVerificationStatus
+        - description
+        - metadataDisabled
+        - isSpam
+        - isNsfw
+        - isMinting
+        - sampleImages
+        - tokenCount
+        - onSaleCount
+        - primaryContract
+        - tokenSetId
+        - creator
+        - isSharedContract
+        - royalties
+        - allRoyalties
+        - floorAsk
+        - topBid
+        - rank
+        - volume
+        - volumeChange
+        - floorSale
+        - floorSaleChange
+        - salesCount
+        - collectionBidSupported
+        - ownerCount
+        - contractKind
+        - mintedTimestamp
+        - mintStages
+    EthereumFetchCollectionBidsResponse:
+      type: object
+      properties:
+        orders:
+          type: array
+          items:
+            $ref: "#/components/schemas/EthereumOrder"
+        continuation:
+          type: string
+    EthereumOrder:
+      type: object
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+        side:
+          type: string
+        status:
+          type: string
+        tokenSetId:
+          type: string
+        tokenSetSchemaHash:
+          type: string
+        contract:
+          type: string
+        contractKind:
+          type: string
+        maker:
+          type: string
+        taker:
+          type: string
+        price:
+          $ref: "#/components/schemas/EthereumPrice"
+        validFrom:
+          type: number
+        validUntil:
+          type: number
+        quantityFilled:
+          type: number
+        quantityRemaining:
+          type: number
+        criteria:
+          $ref: "#/components/schemas/EthereumCriteria"
+        source:
+          $ref: "#/components/schemas/EthereumSource"
+        feeBps:
+          type: number
+        feeBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/EthereumFeeBreakdown"
+        expiration:
+          type: number
+        isReservoir:
+          type: boolean
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        originatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        depth:
+          type: array
+          items:
+            $ref: "#/components/schemas/EthereumDepth"
+    EthereumPrice:
+      type: object
+      properties:
+        currency:
+          $ref: "#/components/schemas/EthereumCurrency"
+        amount:
+          $ref: "#/components/schemas/EthereumAmount"
+        netAmount:
+          $ref: "#/components/schemas/EthereumAmount"
+    EthereumCurrency:
+      type: object
+      properties:
+        contract:
+          type: string
+        name:
+          type: string
+        symbol:
+          type: string
+        decimals:
+          type: number
+    EthereumAmount:
+      type: object
+      properties:
+        raw:
+          type: string
+        decimal:
+          type: number
+        usd:
+          type: number
+        native:
+          type: number
+    EthereumCriteria:
+      type: object
+      properties:
+        kind:
+          type: string
+        data:
+          $ref: "#/components/schemas/EthereumCriteriaData"
+    EthereumCriteriaData:
+      type: object
+      properties:
+        collection:
+          $ref: "#/components/schemas/EthereumCollection"
+    EthereumCollection:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        image:
+          type: string
+    EthereumSource:
+      type: object
+      properties:
+        id:
+          type: string
+        domain:
+          type: string
+        name:
+          type: string
+        icon:
+          type: string
+        url:
+          type: string
+    EthereumFeeBreakdown:
+      type: object
+      properties:
+        kind:
+          type: string
+        recipient:
+          type: string
+        bps:
+          type: number
+    EthereumDepth:
+      type: object
+      properties:
+        price:
+          type: number
+        quantity:
+          type: number
