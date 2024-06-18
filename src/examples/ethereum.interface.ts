@@ -221,3 +221,104 @@ export interface FetchEthereumCollectionBidsResponse {
   orders: Order[];
   continuation: string;
 }
+
+export interface EthereumActivityResponse {
+  activities: EthereumActivity[];
+  continuation: string;
+}
+
+interface EthereumActivity {
+  type: string;
+  fromAddress: string | null;
+  toAddress: string | null;
+  price: EthereumPrice;
+  amount: number;
+  timestamp: number;
+  createdAt: string;
+  contract: string;
+  token: EthereumToken;
+  collection: EthereumCollection;
+  order: EthereumOrder;
+}
+
+interface EthereumPrice {
+  currency: EthereumCurrency;
+  amount: EthereumAmount;
+}
+
+interface EthereumCurrency {
+  contract: string;
+  name: string;
+  symbol: string;
+  decimals: number;
+}
+
+interface EthereumAmount {
+  raw: string;
+  decimal: number;
+  usd: number;
+  native: number;
+}
+
+interface EthereumToken {
+  tokenId: string | null;
+  isSpam: boolean;
+  isNsfw: boolean;
+  tokenName: string | null;
+  tokenImage: string | null;
+  rarityScore?: number;
+  rarityRank?: number;
+}
+
+interface EthereumCollection {
+  collectionId: string;
+  isSpam: boolean;
+  isNsfw: boolean;
+  collectionName: string;
+  collectionImage: string;
+}
+
+interface EthereumOrder {
+  id: string;
+  side: string;
+  source: EthereumSource;
+  criteria: EthereumCriteria;
+}
+
+interface EthereumSource {
+  domain: string;
+  name: string;
+  icon: string;
+}
+
+interface EthereumCriteria {
+  kind: string;
+  data: EthereumCriteriaData;
+}
+
+interface EthereumCriteriaData {
+  collection: EthereumCollectionData;
+  token?: EthereumTokenData;
+  attribute?: EthereumAttributeData;
+}
+
+interface EthereumCollectionData {
+  id: string;
+  name: string;
+  image: string;
+  isSpam: boolean;
+  isNsfw: boolean;
+}
+
+interface EthereumTokenData {
+  tokenId: string;
+  name: string | null;
+  image: string | null;
+  isSpam: boolean;
+  isNsfw: boolean;
+}
+
+interface EthereumAttributeData {
+  key: string;
+  value: string;
+}

@@ -16,6 +16,9 @@ tags:
     description: Endpoints related to Base blockchain
   - name: Polygon
     description: Endpoints related to Polygon blockchain
+
+security:
+  - ApiKeyAuth: []
 paths:
   /idxv2/getListedNftsByCollectionSymbol:
     get:
@@ -731,6 +734,8 @@ paths:
 
   /ethereum/collection/bids:
     get:
+      tags:
+        - Ethereum
       summary: Fetch Ethereum collection bids
       description: Fetches active bids for a specific Ethereum collection.
       parameters:
@@ -882,7 +887,53 @@ paths:
                           - price: 0.01
                             quantity: 322
                     continuation: "MTg5MDAwMDAwMDAwMDAwXzB4MzgwOTMyZDcxN2E3ZGY3YzI5OTUwYzczYTI3NWZjNzUxYzZjYTMxOGYxZjZhMzk2NjEwMTM3YjdmOWIzMjMyZg=="
+
+  /rtp/ethereum/collections/activity/v6:
+    get:
+      summary: Fetch Ethereum collection activity
+      tags:
+        - Ethereum
+      parameters:
+        - in: query
+          name: collection
+          required: true
+          schema:
+            type: string
+            example: "0x306b1ea3ecdf94ab739f1910bbda052ed4a9f949"
+          description: The Ethereum collection address
+        - in: query
+          name: types
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+              enum: ["sale", "ask", "bid", "transfer", "mint"]
+          description: |
+            Types of activities to fetch. Can include multiple types (sale, ask, bid, transfer, mint).
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EthereumActivityResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Bad request parameters
 components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-NFT-API-Key
   schemas:
     ListedNft:
       type: object
@@ -1542,29 +1593,15 @@ components:
           type: string
         decimals:
           type: number
-    EthereumAmount:
-      type: object
-      properties:
-        raw:
-          type: string
-        decimal:
-          type: number
-        usd:
-          type: number
-        native:
-          type: number
     EthereumCriteria:
       type: object
       properties:
         kind:
           type: string
+          description: Kind of criteria (token, attribute, etc.)
         data:
           $ref: "#/components/schemas/EthereumCriteriaData"
-    EthereumCriteriaData:
-      type: object
-      properties:
-        collection:
-          $ref: "#/components/schemas/EthereumCollection"
+          description: Data associated with the criteria
     EthereumCollection:
       type: object
       properties:
@@ -1603,3 +1640,222 @@ components:
           type: number
         quantity:
           type: number
+
+    EthereumActivityResponse:
+      type: object
+      properties:
+        activities:
+          type: array
+          items:
+            $ref: "#/components/schemas/EthereumActivity"
+          description: List of Ethereum activities
+        continuation:
+          type: string
+          example: "171870779548_d0fb9b8e396dd4093cde51c9978f0c52d1ee5034080e4d42"
+          description: Continuation token for pagination
+    EthereumActivity:
+      type: object
+      properties:
+        type:
+          type: string
+          description: Type of activity (e.g., bid, sale, ask)
+        fromAddress:
+          type: string
+          nullable: true
+          description: Address from which the activity originated
+        toAddress:
+          type: string
+          nullable: true
+          description: Address to which the activity is directed
+        price:
+          $ref: "#/components/schemas/EthereumCollectionPrice"
+          description: Price details of the activity
+        amount:
+          type: number
+          description: Amount associated with the activity
+        timestamp:
+          type: number
+          description: Unix timestamp of when the activity occurred
+        createdAt:
+          type: string
+          format: date-time
+          description: Date and time when the activity was created
+        contract:
+          type: string
+          description: Ethereum contract address related to the activity
+        token:
+          $ref: "#/components/schemas/EthereumToken"
+          description: Token details associated with the activity
+        collection:
+          $ref: "#/components/schemas/EthereumActivityCollection"
+          description: Collection details associated with the activity
+        order:
+          $ref: "#/components/schemas/EthereumCollectionOrder"
+          description: Order details associated with the activity
+
+    EthereumCollectionPrice:
+      type: object
+      properties:
+        currency:
+          $ref: "#/components/schemas/EthereumCurrency"
+          description: Currency details
+        amount:
+          $ref: "#/components/schemas/EthereumAmount"
+          description: Amount details
+
+    EthereumAmount:
+      type: object
+      properties:
+        raw:
+          type: string
+          description: Raw amount in the smallest unit of the currency
+        decimal:
+          type: number
+          description: Amount in decimal format
+        usd:
+          type: number
+          description: Amount in USD
+        native:
+          type: number
+          description: Amount in native currency
+
+    EthereumToken:
+      type: object
+      properties:
+        tokenId:
+          type: string
+          nullable: true
+          description: Token ID associated with the activity
+        isSpam:
+          type: boolean
+          description: Indicates if the token is considered spam
+        isNsfw:
+          type: boolean
+          description: Indicates if the token is considered NSFW
+        tokenName:
+          type: string
+          nullable: true
+          description: Name of the token
+        tokenImage:
+          type: string
+          nullable: true
+          description: URL to the image of the token
+        rarityScore:
+          type: number
+          nullable: true
+          description: Rarity score of the token
+        rarityRank:
+          type: number
+          nullable: true
+          description: Rarity rank of the token
+
+    EthereumActivityCollection:
+      type: object
+      properties:
+        collectionId:
+          type: string
+          description: Collection ID associated with the activity
+        isSpam:
+          type: boolean
+          description: Indicates if the collection is considered spam
+        isNsfw:
+          type: boolean
+          description: Indicates if the collection is considered NSFW
+        collectionName:
+          type: string
+          description: Name of the collection
+        collectionImage:
+          type: string
+          description: URL to the image of the collection
+
+    EthereumCollectionOrder:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID of the order associated with the activity
+        side:
+          type: string
+          description: Side of the order (bid, ask, etc.)
+        source:
+          $ref: "#/components/schemas/EthereumCollectionSource"
+          description: Source details of the order
+        criteria:
+          $ref: "#/components/schemas/EthereumCriteria"
+          description: Criteria details of the order
+
+    EthereumCollectionSource:
+      type: object
+      properties:
+        domain:
+          type: string
+          description: Domain associated with the source
+        name:
+          type: string
+          description: Name of the source
+        icon:
+          type: string
+          description: URL to the icon of the source
+
+    EthereumCriteriaData:
+      type: object
+      properties:
+        collection:
+          $ref: "#/components/schemas/EthereumCollectionData"
+          description: Collection data associated with the criteria
+        token:
+          $ref: "#/components/schemas/EthereumTokenData"
+          description: Token data associated with the criteria
+        attribute:
+          $ref: "#/components/schemas/EthereumAttributeData"
+          description: Attribute data associated with the criteria
+
+    EthereumCollectionData:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Collection ID associated with the criteria
+        name:
+          type: string
+          description: Name of the collection associated with the criteria
+        image:
+          type: string
+          description: URL to the image of the collection associated with the criteria
+        isSpam:
+          type: boolean
+          description: Indicates if the collection is considered spam
+        isNsfw:
+          type: boolean
+          description: Indicates if the collection is considered NSFW
+
+    EthereumTokenData:
+      type: object
+      properties:
+        tokenId:
+          type: string
+          description: Token ID associated with the criteria
+        name:
+          type: string
+          nullable: true
+          description: Name of the token associated with the criteria
+        image:
+          type: string
+          nullable: true
+          description: URL to the image of the token associated with the criteria
+        isSpam:
+          type: boolean
+          description: Indicates if the token is considered spam
+        isNsfw:
+          type: boolean
+          description: Indicates if the token is considered NSFW
+
+    EthereumAttributeData:
+      type: object
+      properties:
+        key:
+          type: string
+          description: Key of the attribute associated with the criteria
+        value:
+          type: string
+          description: Value of the attribute associated with the criteria

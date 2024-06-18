@@ -1,6 +1,6 @@
 import axios from "axios";
 import { config } from "dotenv";
-import { FetchCollectionDetailsResponse, FetchEthereumCollectionBidsResponse } from "./ethereum.interface";
+import { EthereumActivityResponse, FetchCollectionDetailsResponse, FetchEthereumCollectionBidsResponse } from "./ethereum.interface";
 
 config()
 
@@ -14,7 +14,7 @@ const headers = {
 
 async function main() {
   try {
-    fetchEthereumCollectionBids();
+    fetchEthereumUserCollections();
   } catch (error) {
     console.log(error);
   }
@@ -82,3 +82,36 @@ async function fetchEthereumCollectionBids() {
   }
 }
 
+
+async function fetchEthereumCollectionActivity() {
+  const url = 'https://nfttools.pro/magiceden/v3/rtp/ethereum/collections/activity/v6';
+  const params = {
+    collection: '0x306b1ea3ecdf94ab739f1910bbda052ed4a9f949',
+    types: ['sale', 'ask', 'bid', 'transfer', 'mint']
+  };
+
+  try {
+    const { data } = await axios.get<EthereumActivityResponse>(url, { params, headers });
+    console.log(JSON.stringify(data));
+    return data;
+  } catch (error: any) {
+    console.error('Error fetching collection activity:', error.response?.data || error.message);
+  }
+}
+
+async function fetchEthereumUserCollections(address = '0x9adcFFff1DEf95F7E58B587c1A6B06Ac6A7aE1E5', collection = '0x306b1ea3ecdf94ab739f1910bbda052ed4a9f949') {
+  const url = `https://nfttools.pro/magiceden/v3/rtp/ethereum/users/${address}/collections/v4`;
+  const params = {
+    offset: 0,
+    limit: 1,
+    collection: collection
+  };
+
+  try {
+    const { data } = await axios.get(url, { params, headers });
+    console.log(JSON.stringify(data));
+    return data;
+  } catch (error: any) {
+    console.error('Error fetching user collections:', error.response?.data || error.message);
+  }
+}
