@@ -1,3 +1,122 @@
+export interface CreateOrderData {
+  steps: Step[];
+  errors: any[];
+}
+
+interface Step {
+  id: string;
+  action: string;
+  description: string;
+  kind: string;
+  items: Item[];
+}
+
+interface Item {
+  status: string;
+  data: ItemData;
+  orderIndexes: number[];
+}
+
+interface ItemData {
+  from?: string;
+  to?: string;
+  data?: string;
+  value?: string;
+  sign?: Sign;
+  post?: Post;
+}
+
+interface Sign {
+  signatureKind: string;
+  domain: Domain;
+  types: Types;
+  value: Value;
+  primaryType: string;
+}
+
+interface Domain {
+  name: string;
+  version: string;
+  chainId: string;
+  verifyingContract: string;
+}
+
+interface Post {
+  endpoint: string;
+  method: string;
+  body: PostBody;
+}
+
+interface Types {
+  CollectionOfferApproval: CollectionOfferApproval[];
+}
+
+interface Value {
+  protocol: number;
+  cosigner: string;
+  buyer: string;
+  beneficiary: string;
+  marketplace: string;
+  fallbackRoyaltyRecipient: string;
+  paymentMethod: string;
+  tokenAddress: string;
+  amount: string;
+  itemPrice: string;
+  expiration: string;
+  marketplaceFeeNumerator: string;
+  nonce: string;
+  masterNonce: string;
+}
+
+interface PostBody {
+  items: PostItem[];
+  source: string;
+}
+
+interface Order {
+  kind: string;
+  data: OrderData;
+}
+
+interface OrderData {
+  kind: string;
+  protocol: number;
+  cosigner: string;
+  sellerOrBuyer: string;
+  marketplace: string;
+  paymentMethod: string;
+  tokenAddress: string;
+  amount: string;
+  itemPrice: string;
+  expiration: string;
+  marketplaceFeeNumerator: string;
+  nonce: string;
+  masterNonce: string;
+  fallbackRoyaltyRecipient: string;
+  beneficiary: string;
+  v: number;
+  r: string;
+  s: string;
+}
+
+
+interface CollectionOfferApproval {
+  name: string;
+  type: string;
+}
+interface PostItem {
+  order: Order;
+  collection: string;
+  isNonFlagged: boolean;
+  orderbook: string;
+}
+
+
+export interface OfferResponse {
+  errors?: any;
+}
+
+
 interface Collection {
   chainId: number;
   id: string;
@@ -91,36 +210,36 @@ interface Collection {
     validUntil: number;
   };
   rank: {
-    '1day': number;
-    '7day': number;
-    '30day': number;
+    '"1day"': number;
+    '"7day"': number;
+    '"30day"': number;
     allTime: number;
   };
   volume: {
-    '1day': number;
-    '7day': number;
-    '30day': number;
+    '"1day"': number;
+    '"7day"': number;
+    '"30day"': number;
     allTime: number;
   };
   volumeChange: {
-    '1day': number;
-    '7day': number;
-    '30day': number;
+    '"1day"': number;
+    '"7day"': number;
+    '"30day"': number;
   };
   floorSale: {
-    '1day': number;
-    '7day': number;
-    '30day': number;
+    '"1day"': number;
+    '"7day"': number;
+    '"30day"': number;
   };
   floorSaleChange: {
-    '1day': number;
-    '7day': number;
-    '30day': number;
+    '"1day"': number;
+    '"7day"': number;
+    '"30day"': number;
   };
   salesCount: {
-    '1day': string;
-    '7day': string;
-    '30day': string;
+    '"1day"': string;
+    '"7day"': string;
+    '"30day"': string;
     allTime: string;
   };
   collectionBidSupported: boolean;
@@ -321,4 +440,339 @@ interface EthereumTokenData {
 interface EthereumAttributeData {
   key: string;
   value: string;
+}
+
+export interface EthereumUserCollection {
+  collection: {
+    id: string;
+    slug: string;
+    name: string;
+    image: string;
+    isSpam: boolean;
+    banner: string;
+    twitterUrl: string | null;
+    discordUrl: string;
+    externalUrl: string;
+    twitterUsername: string;
+    openseaVerificationStatus: string;
+    description: string;
+    metadataDisabled: boolean;
+    sampleImages: string[];
+    tokenCount: string;
+    primaryContract: string;
+    tokenSetId: string;
+    floorAskPrice: {
+      currency: {
+        contract: string;
+        name: string;
+        symbol: string;
+        decimals: number;
+      };
+      amount: {
+        raw: string;
+        decimal: number;
+        usd: number;
+        native: number;
+      };
+    };
+    rank: {
+      "1day": number | null;
+      "7day": number | null;
+      "30day": number | null;
+      "allTime": number;
+    };
+    volume: {
+      "1day": number;
+      "7day": number;
+      "30day": number;
+      "allTime": number;
+    };
+    volumeChange: {
+      "1day": number;
+      "7day": number;
+      "30day": number;
+    };
+    floorSale: {
+      "1day": number;
+      "7day": number;
+      "30day": number;
+    };
+    contractKind: string;
+  };
+  ownership: {
+    tokenCount: string;
+    totalValue: number;
+  };
+}
+
+export interface EthereumTokenResponse {
+  tokens: Token[];
+  continuation: string | null;
+}
+
+interface Token {
+  token: TokenDetails;
+  market: MarketDetails;
+  media: MediaDetails;
+}
+
+interface TokenDetails {
+  chainId: number;
+  contract: string;
+  tokenId: string;
+  name: string;
+  description: string;
+  image: string;
+  imageSmall: string;
+  imageLarge: string;
+  metadata: Metadata;
+  media: string;
+  kind: string;
+  isFlagged: boolean;
+  isSpam: boolean;
+  isNsfw: boolean;
+  metadataDisabled: boolean;
+  lastFlagUpdate: string;
+  lastFlagChange: string | null;
+  supply: string;
+  remainingSupply: string;
+  rarity: number;
+  rarityRank: number;
+  collection: CollectionDetails;
+  lastSale: LastSale | null;
+  owner: string;
+  mintedAt: string;
+  createdAt: string;
+  decimals: number | null;
+  mintStages: any[]; // Update this to a more specific type if known
+}
+
+interface Metadata {
+  imageOriginal: string;
+  mediaOriginal: string;
+  imageMimeType: string;
+  mediaMimeType: string;
+  tokenURI: string;
+}
+
+interface CollectionDetails {
+  id: string;
+  name: string;
+  image: string;
+  slug: string;
+  symbol: string | null;
+  creator: string;
+  tokenCount: number;
+  metadataDisabled: boolean;
+  floorAskPrice: FloorAskPrice;
+}
+
+interface FloorAskPrice {
+  currency: Currency;
+  amount: Amount;
+}
+
+interface Currency {
+  contract: string;
+  name: string;
+  symbol: string;
+  decimals: number;
+}
+
+interface Amount {
+  raw: string;
+  decimal: number;
+  usd: number;
+  native: number;
+}
+
+interface LastSale {
+  orderSource: string | null;
+  fillSource: string | null;
+  timestamp: number;
+  price: Price;
+}
+
+interface Price {
+  currency: Currency;
+  amount: Amount;
+}
+
+interface MarketDetails {
+  floorAsk: FloorAsk;
+  updatedAt: string;
+}
+
+interface FloorAsk {
+  id: string;
+  price: Price;
+  maker: string;
+  validFrom: number;
+  validUntil: number;
+  quantityFilled: string;
+  quantityRemaining: string;
+  source: Source;
+}
+
+interface Source {
+  id: string;
+  domain: string;
+  name: string;
+  icon: string;
+}
+
+interface MediaDetails {
+  image: string;
+  imageMimeType: string;
+  animationUrl: string;
+  animationMimeType: string;
+  animationEnabled: boolean;
+}
+
+export interface UserAuthData {
+  _id: string;
+  walletAddress: string;
+  tier: {
+    tier: number;
+    updatedAt: number;
+    total_volume: number;
+    sol_volume: number;
+    boosted_volume: number;
+    id: string;
+  };
+}
+
+interface TokenMetadata {
+  imageOriginal: string;
+  imageMimeType: string;
+  tokenURI: string;
+}
+
+interface Royalty {
+  bps: number;
+  recipient: string;
+}
+
+interface FeeBreakdown {
+  kind: string;
+  bps: number;
+  recipient: string;
+  rawAmount: string;
+  source: string;
+}
+
+interface SaleInfo {
+  orderSource?: any;
+  fillSource?: any;
+  timestamp: number;
+  price: {
+    currency: {
+      contract: string;
+      name: string;
+      symbol: string;
+      decimals: number;
+    },
+    amount: {
+      raw: string;
+      decimal: number;
+      usd: number;
+      native: number;
+    },
+    netAmount?: {
+      raw: string;
+      decimal: number;
+      usd: number;
+      native: number;
+    }
+  };
+  marketplaceFeeBps: number;
+  paidFullRoyalty?: any;
+  feeBreakdown: FeeBreakdown[];
+}
+
+interface FloorAsk {
+  id: string;
+  //@ts-ignore
+  price: {
+    currency: {
+      contract: string;
+      name: string;
+      symbol: string;
+      decimals: number;
+    },
+    amount: {
+      raw: string;
+      decimal: number;
+      usd: number;
+      native: number;
+    }
+  };
+  maker: string;
+  validFrom: number;
+  validUntil: number;
+  source: {
+    id: string;
+    domain: string;
+    name: string;
+    icon: string;
+    url: string;
+  };
+}
+
+interface OwnershipInfo {
+  tokenCount: string;
+  onSaleCount: string;
+  floorAsk: FloorAsk;
+  acquiredAt: string;
+}
+
+interface MediaInfo {
+  image: string;
+  imageMimeType: string;
+}
+
+interface Token {
+  chainId: number;
+  contract: string;
+  tokenId: string;
+  kind: string;
+  name: string;
+  image: string;
+  imageSmall: string;
+  imageLarge: string;
+  metadata: TokenMetadata;
+  description?: string;
+  rarityScore: number;
+  rarityRank: number;
+  supply: string;
+  remainingSupply: string;
+  collection: {
+    id: string;
+    name: string;
+    slug: string;
+    symbol: string;
+    contractDeployedAt: string;
+    imageUrl: string;
+    isSpam?: any;
+    isNsfw?: any;
+    metadataDisabled?: any;
+    openseaVerificationStatus: string;
+    tokenCount: string;
+    floorAsk: FloorAsk;
+    royaltiesBps: number;
+    royalties: Royalty[];
+  };
+  lastSale: SaleInfo;
+  floorAsk: FloorAsk;
+  lastAppraisalValue: number;
+  ownership: OwnershipInfo;
+  //@ts-ignore
+  media: MediaInfo;
+}
+
+export interface NFTData {
+  tokens: {
+    token: Token;
+  }[];
+  continuation: string | null
 }
