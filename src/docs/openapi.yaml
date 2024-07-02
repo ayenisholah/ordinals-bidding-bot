@@ -1215,6 +1215,7 @@ paths:
                 maker:
                   type: string
                   description: Wallet address of the maker
+                  example: 0xb71425024868e0c9156c3942AC115Cd3b56d5559
                 source:
                   type: string
                   description: Source of the request
@@ -1227,10 +1228,11 @@ paths:
                       token:
                         type: string
                         description: Token identifier
-                        example: contract:tokenId
+                        example: 0x361A5881f18b968422E9258cB7c1FA53FF4cdD38:3059
                       weiPrice:
                         type: string
                         description: Listing price in wei
+                        example: 40000000000000000
                       orderbook:
                         type: string
                         example: reservoir
@@ -1243,13 +1245,15 @@ paths:
                         example: 1
                       currency:
                         type: string
-                        example: 0x0000000000000000000000000000000000000000
+                        example: 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
                       expirationTime:
                         type: string
                         description: Expiration time in UNIX timestamp
+                        example: "1722542894"
                       automatedRoyalties:
                         type: boolean
                         description: Whether to automate royalties
+                        example: true
                       options:
                         type: object
                         properties:
