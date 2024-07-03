@@ -352,195 +352,871 @@ paths:
       responses:
         "200":
           description: Returns Bitcoin balance
+  # BASE
+  /v3/rtp/ethereum/order/v4?signature=${encodeURIComponent(signature):
+    post:
+      tags:
+        - Base
+      summary: Submit signed offer
+      description: Submit signed offer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      order:
+                        type: object
+                        properties:
+                          kind:
+                            type: string
+                            example: payment-processor-v2
+                          data:
+                            type: object
+                            properties:
+                              kind:
+                                type: string
+                                example: collection-offer-approval
+                              sellerOrBuyer:
+                                type: string
+                                example: "0xb71425024868e0c9156c3942ac115cd3b56d5559"
+                              protocol:
+                                type: integer
+                                example: 0
+                              cosigner:
+                                type: string
+                                example: "0x32da57e736e05f75aa4fae2e9be60fd904492726"
+                              beneficiary:
+                                type: string
+                                example: "0xb71425024868e0c9156c3942ac115cd3b56d5559"
+                              marketplace:
+                                type: string
+                                example: "0xca9337244b5f04cb946391bc8b8a980e988f9a6a"
+                              fallbackRoyaltyRecipient:
+                                type: string
+                                example: "0x9ccf727dbb547d623ded5ab83c5b0e499eee5532"
+                              paymentMethod:
+                                type: string
+                                example: "0x4200000000000000000000000000000000000006"
+                              tokenAddress:
+                                type: string
+                                example: "0x00b5f2e672f6b8a176bf6ade71238b61360a29e9"
+                              amount:
+                                type: string
+                                example: "1"
+                              itemPrice:
+                                type: string
+                                example: "100000000000000"
+                              expiration:
+                                type: string
+                                example: "1722607020"
+                              marketplaceFeeNumerator:
+                                type: string
+                                example: "200"
+                              nonce:
+                                type: string
+                                example: "69005277841611552456666767078621072521642912468796321438269508217196416860176"
+                              masterNonce:
+                                type: string
+                                example: "0"
+                              r:
+                                type: string
+                                example: "0x0000000000000000000000000000000000000000000000000000000000000000"
+                              s:
+                                type: string
+                                example: "0x0000000000000000000000000000000000000000000000000000000000000000"
+                              v:
+                                type: integer
+                                example: 0
+                      orderbook:
+                        type: string
+                        example: reservoir
+                source:
+                  type: string
+                  example: magiceden.io
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Order processed successfully
 
-  /api/base/collections:
-    get:
+  /v3/rtp/base/execute/bid/v5:
+    post:
       tags:
         - Base
-      summary: Get Base collections
+      summary: Submit offer
+      description: Submit offer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                maker:
+                  type: string
+                  example: 0xb71425024868e0c9156c3942AC115Cd3b56d5559
+                source:
+                  type: string
+                  example: magiceden.io
+                params:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      collection:
+                        type: string
+                        example: 0x00b5f2e672f6b8a176bf6ade71238b61360a29e9
+                      currency:
+                        type: string
+                        example: 0x4200000000000000000000000000000000000006
+                      quantity:
+                        type: integer
+                        example: 1
+                      weiPrice:
+                        type: string
+                        example: 100000000000000
+                      expirationTime:
+                        type: string
+                        example: 1722607020
+                      orderKind:
+                        type: string
+                        example: payment-processor-v2
+                      orderbook:
+                        type: string
+                        example: reservoir
+                      options:
+                        type: object
+                        properties:
+                          payment-processor-v2:
+                            type: object
+                            properties:
+                              useOffChainCancellation:
+                                type: boolean
+                                example: true
+                      automatedRoyalties:
+                        type: boolean
+                        example: true
       responses:
         "200":
-          description: Returns a list of Base collections
+          description: Successful response
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                    id:
-                      type: string
-  /api/base/tokens:
-    get:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+
+  /v3/rtp/base/execute/list/v5:
+    post:
       tags:
         - Base
-      summary: Get Base tokens
+      summary: Execute List
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                maker:
+                  type: string
+                  example: "0xb71425024868e0c9156c3942AC115Cd3b56d5559"
+                source:
+                  type: string
+                  example: magiceden.io
+                params:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        example: "0x9db39ac416c5ec75c2c3ae622d2013ecccc2d74a:9310"
+                      weiPrice:
+                        type: string
+                        example: "10000000000000"
+                      orderbook:
+                        type: string
+                        example: reservoir
+                      orderKind:
+                        type: string
+                        example: payment-processor-v2
+                      quantity:
+                        type: integer
+                        example: 1
+                      currency:
+                        type: string
+                        example: "0x0000000000000000000000000000000000000000"
+                      expirationTime:
+                        type: string
+                        example: "1722598814"
+                      automatedRoyalties:
+                        type: boolean
+                        example: true
+                      options:
+                        type: object
+                        properties:
+                          payment-processor-v2:
+                            type: object
+                            properties:
+                              useOffChainCancellation:
+                                type: boolean
+                                example: true
       responses:
         "200":
-          description: Returns a list of Base tokens
+          description: Successful response
           content:
             application/json:
               schema:
-                type: array
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+
+  /v3/rtp/base/order/v4?signature=%24{encodeURIComponent(signature)}:
+    post:
+      tags:
+        - Base
+      summary: Submit signed listing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
                 items:
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                    id:
-                      type: string
-  /api/base/activity:
-    get:
-      tags:
-        - Base
-      summary: Get Base activity
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      order:
+                        type: object
+                        properties:
+                          kind:
+                            type: string
+                            example: payment-processor-v2
+                          data:
+                            type: object
+                            properties:
+                              kind:
+                                type: string
+                                example: sale-approval
+                              sellerOrBuyer:
+                                type: string
+                                example: "0xb71425024868e0c9156c3942ac115cd3b56d5559"
+                              protocol:
+                                type: integer
+                                example: "0"
+                              cosigner:
+                                type: string
+                                example: "0x32da57e736e05f75aa4fae2e9be60fd904492726"
+                              marketplace:
+                                type: string
+                                example: "0xca9337244b5f04cb946391bc8b8a980e988f9a6a"
+                              fallbackRoyaltyRecipient:
+                                type: string
+                                example: "0x9db39ac416c5ec75c2c3ae622d2013ecccc2d74a"
+                              paymentMethod:
+                                type: string
+                                example: "0x0000000000000000000000000000000000000000"
+                              tokenAddress:
+                                type: string
+                                example: "0x9db39ac416c5ec75c2c3ae622d2013ecccc2d74a"
+                              tokenId:
+                                type: string
+                                example: "9310"
+                              amount:
+                                type: string
+                                example: "1"
+                              itemPrice:
+                                type: string
+                                example: "10000000000000"
+                              expiration:
+                                type: string
+                                example: "1722598814"
+                              marketplaceFeeNumerator:
+                                type: string
+                                example: "200"
+                              maxRoyaltyFeeNumerator:
+                                type: string
+                                example: "700"
+                              nonce:
+                                type: string
+                                example: "69005277841611552456666767078621072521642912468796321438269508217196416860167"
+                              masterNonce:
+                                type: string
+                                example: 0
+                              r:
+                                type: string
+                                example: "0x0000000000000000000000000000000000000000000000000000000000000000"
+                              s:
+                                type: string
+                                example: "0x0000000000000000000000000000000000000000000000000000000000000000"
+                              v:
+                                type: integer
+                                example: 0
+                      orderbook:
+                        type: string
+                        example: reservoir
+                source:
+                  type: string
+                  example: magiceden.io
       responses:
         "200":
-          description: Returns Base activity
-  /api/base/bid:
-    post:
-      tags:
-        - Base
-      summary: Place a bid on Base
-      responses:
-        "200":
-          description: Bid placed successfully
-  /api/base/list:
-    post:
-      tags:
-        - Base
-      summary: List an item on Base
-      responses:
-        "200":
-          description: Item listed successfully
-  /api/base/buy:
-    post:
-      tags:
-        - Base
-      summary: Buy an item on Base
-      responses:
-        "200":
-          description: Item bought successfully
-  /api/base/user:
-    get:
-      tags:
-        - Base
-      summary: Get Base user information
-      responses:
-        "200":
-          description: Returns Base user information
-  /api/base/rewards:
-    get:
-      tags:
-        - Base
-      summary: Get Base rewards
-      responses:
-        "200":
-          description: Returns Base rewards
-  /api/base/balance:
-    get:
-      tags:
-        - Base
-      summary: Get Base balance
-      responses:
-        "200":
-          description: Returns Base balance
-  /api/polygon/collections:
-    get:
-      tags:
-        - Polygon
-      summary: Get Polygon collections
-      responses:
-        "200":
-          description: Returns a list of Polygon collections
+          description: Successful response
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                    id:
-                      type: string
-  /api/polygon/tokens:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+
+  /v3/rtp/base/collections/0x9db39ac416c5ec75c2c3ae622d2013ecccc2d74a/marketplace-configurations/v2:
     get:
       tags:
-        - Polygon
-      summary: Get Polygon tokens
+        - Base
+      summary: Get Marketplace configuration
       responses:
         "200":
-          description: Returns a list of Polygon tokens
+          description: Successful response
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                    id:
-                      type: string
-  /api/polygon/activity:
-    get:
-      tags:
-        - Polygon
-      summary: Get Polygon activity
-      responses:
-        "200":
-          description: Returns Polygon activity
-  /api/polygon/bid:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+  /v3/rtp/base/collections-sets/v1:
     post:
       tags:
-        - Polygon
-      summary: Place a bid on Polygon
+        - Base
+      summary: Get Collection Set Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                collections:
+                  type: array
+                  items:
+                    type: string
+                    example: "0x9db39ac416c5ec75c2c3ae622d2013ecccc2d74a"
       responses:
         "200":
-          description: Bid placed successfully
-  /api/polygon/list:
-    post:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+
+  /v3/rtp/base/users/{address}/tokens/v10:
+    get:
+      summary: Retrieve user tokens
       tags:
-        - Polygon
-      summary: List an item on Polygon
+        - Base
+      parameters:
+        - name: address
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "0xb71425024868e0c9156c3942AC115Cd3b56d5559"
+        - name: includeLastSale
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          example: true
+        - name: excludeSpam
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          example: true
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+          example: 50
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [acquiredAt, price]
+            default: acquiredAt
+          example: acquiredAt
+        - name: sortDirection
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          example: desc
+        - name: onlyListed
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          example: false
+        - name: normalizeRoyalties
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          example: false
       responses:
         "200":
-          description: Item listed successfully
-  /api/polygon/buy:
-    post:
-      tags:
-        - Polygon
-      summary: Buy an item on Polygon
-      responses:
-        "200":
-          description: Item bought successfully
-  /api/polygon/user:
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: User not found
+        "500":
+          description: Internal server error
+
+  /v3/rtp/base/tokens/{token}/activity/v5:
     get:
       tags:
-        - Polygon
-      summary: Get Polygon user information
+        - Base
+      summary: Retrieve token activity
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "0x9db39ac416c5ec75c2c3ae622d2013ecccc2d74a:9310"
+        - name: types
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+          example:
+            [
+              "sale",
+              "ask",
+              "transfer",
+              "mint",
+              "bid",
+              "bid_cancel",
+              "ask_cancel",
+            ]
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [eventTimestamp]
+            default: eventTimestamp
+          example: eventTimestamp
       responses:
         "200":
-          description: Returns Polygon user information
-  /api/polygon/rewards:
+          description: Successful response
+      "400":
+        description: Invalid request
+      "404":
+        description: Token not found
+      "500":
+        description: Internal server error
+
+  /v3/rtp/base/orders/asks/v5:
     get:
       tags:
-        - Polygon
-      summary: Get Polygon rewards
+        - Base
+      summary: Retrieve active ask orders
+      parameters:
+        - name: token
+          in: header
+          required: true
+          schema:
+            type: string
+          example: "0xcb28749c24af4797808364d71d71539bc01e76d4:4865"
+        - name: status
+          in: header
+          required: true
+          schema:
+            type: string
+          example: active
+        - name: sortBy
+          in: header
+          required: true
+          schema:
+            type: string
+          example: price
+        - name: excludeEOA
+          in: header
+          required: true
+          schema:
+            type: boolean
+          example: false
+        - name: limit
+          in: header
+          required: true
+          schema:
+            type: integer
+          example: 100
+        - name: normalizeRoyalties
+          in: header
+          required: true
+          schema:
+            type: boolean
+          example: false
       responses:
         "200":
-          description: Returns Polygon rewards
-  /api/polygon/balance:
+          description: Successful response
+        "400":
+          description: Invalid request
+        "401":
+          description: Unauthorized - Token invalid or expired
+        "500":
+          description: Internal server error
+
+  /v3/rtp/base/tokens/v7:
     get:
+      summary: Retrieve token information
+      description: Get detailed information about specific tokens, including attributes, top bid, quantity, and last sale.
       tags:
-        - Polygon
-      summary: Get Polygon balance
+        - Base
+      parameters:
+        - name: tokens
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Comma-separated list of token addresses and IDs in the format address:id
+          example: "0x9db39ac416c5ec75c2c3ae622d2013ecccc2d74a:9310"
+        - name: limit
+          in: query
+          schema:
+            type: integer
+          description: Maximum number of results to return
+        - name: excludeSpam
+          in: query
+          schema:
+            type: boolean
+          description: Whether to exclude spam tokens
+        - name: includeTopBid
+          in: query
+          schema:
+            type: boolean
+          description: Whether to include the top bid information
+        - name: includeAttributes
+          in: query
+          schema:
+            type: boolean
+          description: Whether to include token attributes
+        - name: includeQuantity
+          in: query
+          schema:
+            type: boolean
+          description: Whether to include token quantity information
+        - name: includeLastSale
+          in: query
+          schema:
+            type: boolean
+          description: Whether to include the last sale information
+        - name: normalizeRoyalties
+          in: query
+          schema:
+            type: boolean
+          description: Whether to normalize royalties
       responses:
         "200":
-          description: Returns Polygon balance
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                # Define the response schema here
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
+
+  /v3/rtp/base/orders/bids/v6:
+    get:
+      summary: Retrieve bids for a collection
+      description: Get detailed information about active bids for a specific collection, including criteria metadata and depth.
+      tags:
+        - Base
+      parameters:
+        - name: collection
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The address of the collection
+          example: "0x5ca0c41a50fcfec85b91bb4ca5b024b36d9bb120"
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [price]
+          description: The field to sort the results by
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active]
+          description: The status of the bids to retrieve
+        - name: excludeEOA
+          in: query
+          schema:
+            type: boolean
+          description: Whether to exclude EOA (Externally Owned Account) bids
+        - name: includeCriteriaMetadata
+          in: query
+          schema:
+            type: boolean
+          description: Whether to include criteria metadata
+        - name: includeDepth
+          in: query
+          schema:
+            type: boolean
+          description: Whether to include depth information
+        - name: normalizeRoyalties
+          in: query
+          schema:
+            type: boolean
+          description: Whether to normalize royalties
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                # Define the response schema here
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
+
+  /v3/rtp/base/users/{address}/collections/v4:
+    get:
+      summary: Retrieve user's collections
+      description: Get detailed information about collections owned by a specific user address.
+      tags:
+        - Base
+      parameters:
+        - name: address
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The address of the user
+          example: "0xb71425024868e0c9156c3942AC115Cd3b56d5559"
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+          description: The number of items to skip before starting to collect the result set
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          description: The numbers of items to return
+        - name: collection
+          in: query
+          schema:
+            type: string
+          description: The address of a specific collection to filter by
+          example: "0x9db39ac416c5ec75c2c3ae622d2013ecccc2d74a"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                # Define the response schema here
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
+
+  /v3/rtp/base/collections/{collectionAddress}/attributes/all/v4:
+    get:
+      summary: Retrieve all attributes for a collection
+      description: Get detailed information about all attributes associated with a specific collection.
+      tags:
+        - Base
+      parameters:
+        - name: collectionAddress
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The address of the collection
+          example: "0x5ca0c41a50fcfec85b91bb4ca5b024b36d9bb120"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                # Define the response schema here
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
+
+  /v3/rtp/base/collections/v7:
+    get:
+      summary: Retrieve collection information
+      description: Get detailed information about specific collections, including sales count, floor price, and other metadata.
+      tags:
+        - Base
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The address of the collection
+          example: "0x5ca0c41a50fcfec85b91bb4ca5b024b36d9bb120"
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          description: The number of items to return
+        - name: includeSalesCount
+          in: query
+          schema:
+            type: boolean
+          description: Whether to include the sales count
+        - name: excludeSpam
+          in: query
+          schema:
+            type: boolean
+          description: Whether to exclude spam collections
+        - name: displayCurrency
+          in: query
+          schema:
+            type: string
+          description: The address of the currency to display prices in
+          example: "0x4200000000000000000000000000000000000006"
+        - name: normalizeRoyalties
+          in: query
+          schema:
+            type: boolean
+          description: Whether to normalize royalties
+        - name: includeQuantity
+          in: query
+          schema:
+            type: boolean
+          description: Whether to include quantity information
+        - name: includeLastSale
+          in: query
+          schema:
+            type: boolean
+          description: Whether to include the last sale information
+        - name: excludeBurnt
+          in: query
+          schema:
+            type: boolean
+          description: Whether to exclude burnt tokens
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [floorAskPrice]
+          description: The field to sort the results by
+        - name: sortDirection
+          in: query
+          schema:
+            type: string
+            enum: [desc, asc]
+          description: The direction to sort the results
+        - name: includeAttributes
+          in: query
+          schema:
+            type: boolean
+          description: Whether to include attribute information
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                # Define the response schema here
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
   /v3/rtp/ethereum/collections/v7:
     get:
       tags:

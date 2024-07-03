@@ -21,7 +21,7 @@ const headers = {
 
 async function main() {
   try {
-    await submitSignedOffer()
+    await submitOrder()
   } catch (error) {
     console.log(error);
   }
