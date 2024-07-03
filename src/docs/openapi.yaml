@@ -747,7 +747,7 @@ paths:
                           - price: 0.01
                             quantity: 322
                     continuation: "MTg5MDAwMDAwMDAwMDAwXzB4MzgwOTMyZDcxN2E3ZGY3YzI5OTUwYzczYTI3NWZjNzUxYzZjYTMxOGYxZjZhMzk2NjEwMTM3YjdmOWIzMjMyZg=="
-  /rtp/ethereum/collections/activity/v6:
+  /v3/rtp/ethereum/collections/activity/v6:
     get:
       summary: Fetch Ethereum collection activity
       tags:
