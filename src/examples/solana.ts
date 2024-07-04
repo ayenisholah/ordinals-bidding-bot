@@ -1,7 +1,7 @@
 // https://api-mainnet.magiceden.io/v2/instructions/mmm/create-pool?spotPrice=0.00525&solDeposit=0.00525&curveType=exp&curveDelta=0&reinvestBuy=false&reinvestSell=false&expiry=1722753360&lpFeeBp=0&buysideCreatorRoyaltyBp=10000&paymentMint=11111111111111111111111111111111&collectionSymbol=flashtrade&owner=EfdC1uyq5gWqHQYxSENscwNZKY8k2z8CXkpmPRB7mn2N
 
 
-// https://api-mainnet.magiceden.io/metrics/submit
+// https://api-mainnet.magiceden.i/metrics/submit
 // POST
 // BODY {"metricsName":"sales.txlanding.latency","type":"gauge","val":686,"tags":["rpcEndpoint:https://solana.magiceden.dev","strategy:sendtx: send interval and confirm strategy","error:failed to send transaction: Transaction simulation failed: Error processing Instruction 2: custom program error: 0x1"]}
 
