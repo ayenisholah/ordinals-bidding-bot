@@ -18,342 +18,1192 @@ tags:
     description: Endpoints related to Base blockchain
   - name: Polygon
     description: Endpoints related to Polygon blockchain
+  - name: Rewards
+    description: Check Diamond Rewards Eligibility
 
 security:
   - ApiKeyAuth: []
 
 paths:
-  /idxv2/getListedNftsByCollectionSymbol:
+  /rewards/diamond/eligibility:
     get:
+      summary: Check Diamond Rewards Eligibility
+      description: Retrieve the eligibility status for Diamond Rewards for a specific wallet address on a given blockchain.
       tags:
-        - Solana
-      summary: Get Listed NFTs by Collection Symbol
-      description: Fetches listed NFTs by the specified collection symbol.
+        - Rewards
       parameters:
-        - in: query
-          name: collectionSymbol
+        - name: walletAddress
+          in: query
           required: true
           schema:
             type: string
-          description: The symbol of the NFT collection.
-        - in: query
-          name: onChainCollectionAddress
+          description: The wallet address to check for eligibility
+          example: EfdC1uyq5gWqHQYxSENscwNZKY8k2z8CXkpmPRB7mn2N
+        - name: chain
+          in: query
           required: true
           schema:
             type: string
-          description: The on-chain address of the collection.
-        - in: query
-          name: direction
-          required: true
-          schema:
-            type: integer
-            example: 2
-          description: Direction of the listing.
-        - in: query
-          name: field
-          required: true
-          schema:
-            type: integer
-            example: 1
-          description: Field to sort by.
-        - in: query
-          name: limit
-          required: true
-          schema:
-            type: integer
-            example: 100
-          description: Number of results to return.
-        - in: query
-          name: token22StandardFilter
-          required: true
-          schema:
-            type: integer
-            example: 1
-          description: Token 22 standard filter.
-        - in: query
-          name: mode
-          required: true
-          schema:
-            type: string
-            example: "all"
-          description: Mode of the listing.
-        - in: query
-          name: agg
-          required: true
-          schema:
-            type: integer
-            example: 3
-          description: Aggregation mode.
-        - in: query
-          name: compressionMode
-          required: true
-          schema:
-            type: string
-            example: "both"
-          description: Compression mode.
-        - in: header
-          name: X-NFT-API-Key
-          required: true
-          schema:
-            type: string
-          description: NFTTOOLS API key for authentication.
+            enum: [solana, ethereum, polygon, base, bitcoin] # Assuming these are the possible chains
+          description: The blockchain on which to check eligibility
+          example: solana
       responses:
         "200":
-          description: A list of NFTs
+          description: Successful response
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  results:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/ListedNft"
-                  result:
+                  eligible:
+                    type: boolean
+                    description: Indicates whether the wallet is eligible for Diamond Rewards
+                  tier:
                     type: string
+                    description: The tier of Diamond Rewards the wallet is eligible for, if applicable
+                  requirements:
+                    type: object
+                    description: Details about the requirements for eligibility
+                    properties:
+                      # Add specific requirement properties here
+                  # Add other properties that might be in the response
         "400":
           description: Bad request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
+  #SOLANA
+  /collection_stats/search/solana:
+    servers:
+      - url: https://nfttools.pro/magiceden_stats
+    get:
+      summary: Search Solana Collection Stats
+      description: Retrieve collection statistics for Solana NFTs on Magic Eden, with options for sorting, filtering, and pagination.
+      tags:
+        - Solana
+      parameters:
+        - name: direction
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: The direction to sort the results
+          example: desc
+        - name: sort
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [volume, floorPrice, listedCount] # Assuming these are possible sort options
+          description: The field to sort the results by
+          example: volume
+        - name: window
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [1d, 7d, 30d] # Assuming these are the possible values
+          description: The time window for the stats
+          example: 1d
+        - name: limit
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100 # Assuming 100 is the maximum allowed
+          description: The maximum number of results to return
+          example: 100
+        - name: offset
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+          description: The number of results to skip (for pagination)
+          example: 0
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  collections:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        # Define properties of each collection here
+                        # This is a placeholder and should be replaced with the actual response structure
+                        symbol:
+                          type: string
+                        name:
+                          type: string
+                        volume:
+                          type: number
+                        floorPrice:
+                          type: number
+                        listedCount:
+                          type: integer
+                  # Add other top-level properties if they exist in the response
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
         "500":
           description: Internal server error
 
-  /collection_stats/search/base:
+  /rpc/getCollectionHolderStats/{collectionSymbol}:
     get:
-      summary: Fetch Collection Stats
-      description: Retrieve collection stats based on specified parameters.
+      summary: Get Collection Holder Statistics
+      description: Retrieve holder statistics for a specific NFT collection on Magic Eden.
+      tags:
+        - Solana
       parameters:
-        - in: query
-          name: offset
+        - name: collectionSymbol
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The symbol or identifier of the collection
+          example: rugens_drip
+        - name: edge_cache
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Whether to use edge caching for the request
+          example: true
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalHolders:
+                    type: integer
+                    description: Total number of unique holders in the collection
+                  uniqueHolders:
+                    type: number
+                    description: Percentage of unique holders (possibly out of total supply)
+                  averageHoldingPerWallet:
+                    type: number
+                    description: Average number of NFTs held per wallet
+                  holdersDistribution:
+                    type: object
+                    description: Distribution of holders by number of NFTs held
+                    properties:
+                      "1":
+                        type: integer
+                        description: Number of wallets holding 1 NFT
+                      "2-5":
+                        type: integer
+                        description: Number of wallets holding 2 to 5 NFTs
+                      # Add more ranges as needed
+                  # Add other properties that might be in the response
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Collection not found
+        "500":
+          description: Internal server error
+
+  /idxv2/getAllNftsByCollectionSymbol:
+    get:
+      summary: Retrieve all NFTs by collection symbol
+      tags:
+        - Solana
+      parameters:
+        - name: collectionSymbol
+          in: query
+          required: true
+          schema:
+            type: string
+          example: rugens_drip
+        - name: direction
+          in: query
+          required: true
+          schema:
+            type: integer
+            enum: [1, -1]
+            default: 1
+          example: 1
+        - name: field
+          in: query
+          required: true
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: limit
+          in: query
+          required: true
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: token22StandardFilter
+          in: query
+          required: true
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: mplCoreStandardFilter
+          in: query
+          required: true
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: agg
+          in: query
+          required: true
+          schema:
+            type: integer
+            default: 3
+          example: 3
+        - name: compressionMode
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [both, compressed, uncompressed]
+            default: both
+          example: both
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: NFTs not found
+        "500":
+          description: Internal server error
+
+  /rpc/getNFTsByOwner/{ownerAddress}:
+    get:
+      summary: Retrieve NFTs by owner
+      tags:
+        - Solana
+      parameters:
+        - name: ownerAddress
+          in: path
+          required: true
+          schema:
+            type: string
+          example: EfdC1uyq5gWqHQYxSENscwNZKY8k2z8CXkpmPRB7mn2N
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: NFTs not found
+        "500":
+          description: Internal server error
+
+  /rpc/getCollectionAttributesStats/{collectionSymbol}:
+    get:
+      summary: Retrieve collection attributes stats
+      tags:
+        - Solana
+      parameters:
+        - name: collectionSymbol
+          in: path
+          required: true
+          schema:
+            type: string
+          example: drip_tarimosi
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [all, active, inactive]
+            default: all
+          example: all
+        - name: edge_cache
+          in: query
+          required: true
+          schema:
+            type: boolean
+            default: true
+          example: true
+        - name: agg
+          in: query
+          required: true
+          schema:
+            type: integer
+            default: 3
+          example: 3
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Collection not found
+        "500":
+          description: Internal server error
+
+  /collections/{collectionSymbol}/organization:
+    get:
+      summary: Retrieve collection organization details
+      tags:
+        - Solana
+      parameters:
+        - name: collectionSymbol
+          in: path
+          required: true
+          schema:
+            type: string
+          example: drip_tarimosi
+        - name: edge_cache
+          in: query
+          required: true
+          schema:
+            type: boolean
+            default: true
+          example: true
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Collection not found
+        "500":
+          description: Internal server error
+
+  /sft/collection/{collectionSymbol}:
+    get:
+      summary: Retrieve collection details with pagination
+      tags:
+        - Solana
+      parameters:
+        - name: collectionSymbol
+          in: path
+          required: true
+          schema:
+            type: string
+          example: drip_tarimosi
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          example: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+          example: 20
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Collection not found
+        "500":
+          description: Internal server error
+
+  /rpc/getCollectionEscrowStats/{collectionSymbol}:
+    get:
+      summary: Retrieve collection escrow stats
+      tags:
+        - Solana
+      parameters:
+        - name: collectionSymbol
+          in: path
+          required: true
+          schema:
+            type: string
+          example: drip_tarimosi
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [all, active, inactive]
+            default: all
+          example: all
+        - name: edge_cache
+          in: query
+          required: true
+          schema:
+            type: boolean
+            default: true
+          example: true
+        - name: agg
+          in: query
+          required: true
+          schema:
+            type: integer
+            default: 3
+          example: 3
+        - name: enableFloorWithFee
+          in: query
+          required: true
+          schema:
+            type: boolean
+            default: true
+          example: true
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Collection not found
+        "500":
+          description: Internal server error
+
+  /v2/activities:
+    get:
+      summary: Get Collection Activities
+      description: Retrieve activities for a specific NFT collection on Magic Eden, with options for filtering by activity type and pagination.
+      tags:
+        - Magic Eden
+        - Solana
+        - Activities
+      parameters:
+        - name: activityTypes
+          in: query
+          required: true
+          schema:
+            type: string
+          description: JSON array of activity types to filter by, URL encoded
+          example: "%5B%22sale%22%2C%22item_offer%22%2C%22pool_offer%22%2C%22attributes_offer%22%2C%22list%22%2C%22edit_list%22%2C%22delist%22%5D"
+        - name: collectionSymbol
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The symbol or identifier of the collection
+          example: drip_tarimosi
+        - name: onChainCollectionAddress
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The on-chain address of the collection
+          example: TAuAUS8neSS3KPSqLXQ7u1aWkKgnVPzqNizihDYuXvN
+        - name: limit
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50 # Assuming 50 is the maximum allowed
+          description: The maximum number of results to return
+          example: 50
+        - name: enableSNS
+          in: query
+          required: true
+          schema:
+            type: boolean
+          description: Whether to enable SNS (possibly Solana Name Service) resolution
+          example: true
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Collection not found
+        "500":
+          description: Internal server error
+
+  /idxv2/getListedNftsByCollectionSymbol:
+    get:
+      summary: Retrieve listed NFTs by collection symbol
+      tags:
+        - Solana
+      parameters:
+        - name: collectionSymbol
+          in: query
+          required: true
+          schema:
+            type: string
+          example: drip_tarimosi
+        - name: direction
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [1, 2]
+            default: 2
+          example: 2
+        - name: field
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 100
+          example: 100
+        - name: token22StandardFilter
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: mplCoreStandardFilter
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: mode
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [all, listed]
+            default: all
+          example: all
+        - name: agg
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 3
+          example: 3
+        - name: compressionMode
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [none, both, compressed, uncompressed]
+            default: both
+          example: both
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: NFTs not found
+        "500":
+          description: Internal server error
+
+  /collection_watchlists/action/checkUserWatchCollection/{collectionSymbol}:
+    get:
+      summary: Check if user is watching a collection
+      tags:
+        - Solana
+      parameters:
+        - name: collectionSymbol
+          in: path
+          required: true
+          schema:
+            type: string
+          example: drip_tarimosi
+        - name: walletAddress
+          in: query
+          required: true
+          schema:
+            type: string
+          example: EfdC1uyq5gWqHQYxSENscwNZKY8k2z8CXkpmPRB7mn2N
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Collection or user not found
+        "500":
+          description: Internal server error
+
+  /collections/{collectionSymbol}:
+    get:
+      summary: Retrieve collection details
+      tags:
+        - Solana
+      parameters:
+        - name: collectionSymbol
+          in: path
+          required: true
+          schema:
+            type: string
+          example: drip_tarimosi
+        - name: edge_cache
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          example: true
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Collection not found
+        "500":
+          description: Internal server error
+
+  /idxv2/getBidsByMintAddresses:
+    get:
+      summary: Retrieve bids by mint addresses
+      tags:
+        - Solana
+      parameters:
+        - name: hideExpired
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          example: true
+        - name: mintAddresses
+          in: query
+          required: true
+          schema:
+            type: string
+          example: DmdF3ACqvjmRh4mayaw3SAKuttVQ3tZkmut1N4RxSLCG
+        - name: direction
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [1, 2]
+            default: 1
+          example: 1
+        - name: field
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 2
+          example: 2
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 500
+          example: 500
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          example: 0
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Bids not found
+        "500":
+          description: Internal server error
+
+  /rpc/getNFTByMintAddress/{mintAddress}:
+    get:
+      summary: Retrieve NFT by mint address
+      tags:
+        - Solana
+      parameters:
+        - name: mintAddress
+          in: path
+          required: true
+          schema:
+            type: string
+          example: DmdF3ACqvjmRh4mayaw3SAKuttVQ3tZkmut1N4RxSLCG
+        - name: agg
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 3
+          example: 3
+        - name: useRarity
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          example: true
+        - name: includeBurntMint
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          example: true
+        - name: compressionMode
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [none, both, compressed, uncompressed]
+            default: both
+          example: both
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: NFT not found
+        "500":
+          description: Internal server error
+
+  /rpc/getNFTStatsByMintAddress/{mintAddress}:
+    get:
+      summary: Retrieve NFT stats by mint address
+      tags:
+        - Solana
+      parameters:
+        - name: mintAddress
+          in: path
+          required: true
+          schema:
+            type: string
+          example: DmdF3ACqvjmRh4mayaw3SAKuttVQ3tZkmut1N4RxSLCG
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: NFT stats not found
+        "500":
+          description: Internal server error
+
+  /v2/collections/{symbol}/activities:
+    get:
+      summary: Retrieve activities for a collection
+      tags:
+        - Solana
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+          example: drip_tarimosi
+        - name: accept
+          in: header
+          required: true
+          schema:
+            type: string
+            default: application/json
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Activities not found
+        "500":
+          description: Internal server error
+
+  /v2/tokens/{token_mint}/listings:
+    get:
+      summary: Retrieve listings for a token
+      tags:
+        - Solana
+      parameters:
+        - name: token_mint
+          in: path
+          required: true
+          schema:
+            type: string
+          example: DmdF3ACqvjmRh4mayaw3SAKuttVQ3tZkmut1N4RxSLCG
+        - name: accept
+          in: header
+          required: true
+          schema:
+            type: string
+            default: application/json
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Listings not found
+        "500":
+          description: Internal server error
+
+  /v2/tokens/{token_mint}/offers_received:
+    get:
+      summary: Retrieve offers received for a token
+      tags:
+        - Solana
+      parameters:
+        - name: token_mint
+          in: path
+          required: true
+          schema:
+            type: string
+          example: DmdF3ACqvjmRh4mayaw3SAKuttVQ3tZkmut1N4RxSLCG
+        - name: accept
+          in: header
+          required: true
+          schema:
+            type: string
+            default: application/json
+          example: application/json
+        - name: min_price
+          in: query
+          required: false
+          schema:
+            type: integer
+          example: 1000000
+        - name: max_price
+          in: query
+          required: false
+          schema:
+            type: integer
+          example: 100000000
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          example: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+          example: 50
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - updatedAt
+              - bidAmount
+          example: updatedAt
+        - name: sort_direction
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+          example: desc
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  offers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        price:
+                          type: string
+                          example: "1000000000"
+                        buyer:
+                          type: string
+                          example: EfdC1uyq5gWqHQYxSENscwNZKY8k2z8CXkpmPRB7mn2N
+                        mintAddress:
+                          type: string
+                          example: DmdF3ACqvjmRh4mayaw3SAKuttVQ3tZkmut1N4RxSLCG
+                        timestamp:
+                          type: string
+                          example: 2023-07-04T12:34:56Z
+        "400":
+          description: Invalid request
+        "404":
+          description: Offers not found
+        "500":
+          description: Internal server error
+
+  /v2/tokens/{token_mint}/activities:
+    get:
+      summary: Retrieve activities for a token
+      tags:
+        - Solana
+      parameters:
+        - name: token_mint
+          in: path
+          required: true
+          schema:
+            type: string
+          example: DmdF3ACqvjmRh4mayaw3SAKuttVQ3tZkmut1N4RxSLCG
+        - name: accept
+          in: header
+          required: true
+          schema:
+            type: string
+            default: application/json
+          example: application/json
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          example: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+          example: 50
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Activities not found
+        "500":
+          description: Internal server error
+
+  /v2/tokens/{token_mint}:
+    get:
+      summary: Retrieve token details by mint address
+      tags:
+        - Solana
+      parameters:
+        - name: token_mint
+          in: path
+          required: true
+          schema:
+            type: string
+          example: DmdF3ACqvjmRh4mayaw3SAKuttVQ3tZkmut1N4RxSLCG
+        - name: accept
+          in: header
+          required: true
+          schema:
+            type: string
+            default: application/json
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Token not found
+        "500":
+          description: Internal server error
+
+  /v2/collections/batch/listings:
+    post:
+      summary: Batch retrieve listings for collections
+      tags:
+        - Solana
+      parameters:
+        - name: attributes
+          in: query
+          schema:
+            type: string
+          description: |
+            Array of arrays of objects representing a filtering mechanism.
+            Elements within each inner array are logically ORed, and resulting arrays are ANDed together.
+            Each inner array consists of objects with properties traitType (string) and value (string).
+            Example: [[{"traitType":"trait1", "value":"value1"},{"traitType":"trait1", "value":"value2"}]]
+        - name: offset
+          in: query
           schema:
             type: integer
             example: 0
-          required: true
-          description: The offset for pagination.
-        - in: query
-          name: window
-          schema:
-            type: string
-            example: 6h
-          required: true
-          description: The time window for stats.
-        - in: query
-          name: limit
+          description: Offset for pagination
+        - name: limit
+          in: query
           schema:
             type: integer
-            example: 100
-          required: true
-          description: The number of results to return.
-        - in: query
-          name: sort
+            example: 50
+          description: Number of results per page
+        - name: min_price
+          in: query
+          schema:
+            type: integer
+            example: 1000000
+          description: Minimum price filter
+        - name: max_price
+          in: query
+          schema:
+            type: integer
+            example: 100000000
+          description: Maximum price filter
+        - name: sort
+          in: query
           schema:
             type: string
-            example: sales
-          required: true
-          description: The field to sort by.
-        - in: query
-          name: direction
+            enum:
+              - listPrice
+              - updatedAt
+          example: listPrice
+          description: Field to sort the listings
+        - name: sort_direction
+          in: query
           schema:
             type: string
-            example: desc
-          required: true
-          description: The direction of sorting.
-        - in: query
-          name: filter
+            enum:
+              - asc
+              - desc
+          example: asc
+          description: Sort direction for the returned elements
+        - name: listingAggMode
+          in: query
           schema:
-            type: string
-            example: "{}"
-          required: true
-          description: The filter to apply.
-        - in: header
-          name: X-NFT-API-Key
-          required: true
-          schema:
-            type: string
-          description: NFTTOOLS API key for authentication.
+            type: boolean
+          example: true
+          description: True to return aggregated marketplace listings, false for Magic Eden listings only
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                collections:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      symbol:
+                        type: string
+                        example: drip_tarimosi
+                mcc:
+                  required: false
+                  type: string
       responses:
         "200":
-          description: A list of collection stats
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/CollectionStats"
+          description: Successful response
         "400":
-          description: Bad request
+          description: Invalid request
+        "404":
+          description: Listings not found
         "500":
           description: Internal server error
 
-  /api/solana/tokens:
-    get:
-      tags:
-        - Solana
-      summary: Get Solana tokens
-      responses:
-        "200":
-          description: Returns a list of Solana tokens
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                    id:
-                      type: string
-  /api/solana/activity:
-    get:
-      tags:
-        - Solana
-      summary: Get Solana activity
-      responses:
-        "200":
-          description: Returns Solana activity
-  /api/solana/bid:
-    post:
-      tags:
-        - Solana
-      summary: Place a bid on Solana
-      responses:
-        "200":
-          description: Bid placed successfully
-  /api/solana/list:
-    post:
-      tags:
-        - Solana
-      summary: List an item on Solana
-      responses:
-        "200":
-          description: Item listed successfully
-  /api/solana/buy:
-    post:
-      tags:
-        - Solana
-      summary: Buy an item on Solana
-      responses:
-        "200":
-          description: Item bought successfully
-  /api/solana/user:
-    get:
-      tags:
-        - Solana
-      summary: Get Solana user information
-      responses:
-        "200":
-          description: Returns Solana user information
-  /api/solana/rewards:
-    get:
-      tags:
-        - Solana
-      summary: Get Solana rewards
-      responses:
-        "200":
-          description: Returns Solana rewards
-  /api/solana/balance:
-    get:
-      tags:
-        - Solana
-      summary: Get Solana balance
-      responses:
-        "200":
-          description: Returns Solana balance
-  /api/bitcoin/collections:
-    get:
-      tags:
-        - Bitcoin
-      summary: Get Bitcoin collections
-      responses:
-        "200":
-          description: Returns a list of Bitcoin collections
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                    id:
-                      type: string
-  /api/bitcoin/tokens:
-    get:
-      tags:
-        - Bitcoin
-      summary: Get Bitcoin tokens
-      responses:
-        "200":
-          description: Returns a list of Bitcoin tokens
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                    id:
-                      type: string
-  /api/bitcoin/activity:
-    get:
-      tags:
-        - Bitcoin
-      summary: Get Bitcoin activity
-      responses:
-        "200":
-          description: Returns Bitcoin activity
-  /api/bitcoin/bid:
-    post:
-      tags:
-        - Bitcoin
-      summary: Place a bid on Bitcoin
-      responses:
-        "200":
-          description: Bid placed successfully
-  /api/bitcoin/list:
-    post:
-      tags:
-        - Bitcoin
-      summary: List an item on Bitcoin
-      responses:
-        "200":
-          description: Item listed successfully
-  /api/bitcoin/buy:
-    post:
-      tags:
-        - Bitcoin
-      summary: Buy an item on Bitcoin
-      responses:
-        "200":
-          description: Item bought successfully
-  /api/bitcoin/user:
-    get:
-      tags:
-        - Bitcoin
-      summary: Get Bitcoin user information
-      responses:
-        "200":
-          description: Returns Bitcoin user information
-  /api/bitcoin/rewards:
-    get:
-      tags:
-        - Bitcoin
-      summary: Get Bitcoin rewards
-      responses:
-        "200":
-          description: Returns Bitcoin rewards
-  /api/bitcoin/balance:
-    get:
-      tags:
-        - Bitcoin
-      summary: Get Bitcoin balance
-      responses:
-        "200":
-          description: Returns Bitcoin balance
   # BASE
-  /v3/rtp/ethereum/order/v4?signature=${encodeURIComponent(signature):
+
+  /collection_stats/search/base:
+    servers:
+      - url: https://nfttools.pro/magiceden_stats
+    get:
+      summary: Search Magic Eden Collection Stats on Base
+      description: Retrieve collection statistics from Magic Eden on the Base network, with options for sorting and filtering.
+      tags:
+        - Base
+      parameters:
+        - name: window
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: ["1d", "7d", "30d"] # Assuming these are the possible values
+          description: The time window for the stats
+          example: "1d"
+        - name: limit
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The maximum number of results to return
+          example: 50
+        - name: sort
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: ["volume", "floorPrice", "listedCount"] # Assuming these are possible sort options
+          description: The field to sort the results by
+          example: volume
+        - name: direction
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: ["asc", "desc"]
+          description: The direction to sort the results
+          example: desc
+        - name: filter
+          in: query
+          required: true
+          schema:
+            type: string
+          description: JSON string representing filter criteria
+          example: "{}"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  # Define the response schema here based on the actual response structure
+                  # This is a placeholder and should be replaced with the actual response structure
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        # Define properties of each item here
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
+
+  /v3/rtp/base/order/v4?signature=${encodeURIComponent(signature):
     post:
       tags:
         - Base
@@ -1217,6 +2067,7 @@ paths:
           description: Not found
         "500":
           description: Internal server error
+
   /v3/rtp/ethereum/collections/v7:
     get:
       tags:
@@ -1268,6 +2119,7 @@ paths:
             application/json:
               example:
                 message: Internal server error
+
   /ethereum/collection/bids:
     get:
       tags:
