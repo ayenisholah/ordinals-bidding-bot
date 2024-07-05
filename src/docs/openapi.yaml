@@ -1126,7 +1126,118 @@ paths:
         "500":
           description: Internal server error
 
-  # BASE
+  /v2/instructions/sell:
+    get:
+      tags:
+        - Solana
+      summary: Get sell instructions
+      description: Retrieve instructions for selling an NFT on Magic Eden.
+      parameters:
+        - name: seller
+          in: query
+          required: true
+          schema:
+            type: string
+          example: EfdC1uyq5gWqHQYxSENscwNZKY8k2z8CXkpmPRB7mn2N
+          description: The seller's wallet address.
+        - name: auctionHouseAddress
+          in: query
+          required: true
+          schema:
+            type: string
+          example: E8cU1WiRWjanGxmn96ewBgk9vPTcL6AEZ1t6F6fkgUWe
+          description: The address of the auction house.
+        - name: tokenMint
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 7kpQSvaSW5r4usqUHeqXCHK79zj4amadLdv1mpFpDiWR
+          description: The mint address of the token.
+        - name: tokenAccount
+          in: query
+          required: true
+          schema:
+            type: string
+          example: HLfiWCHHma8BJDHPLt1q65v2cA4UXQKEswPCT1rEbQi4
+          description: The token account address.
+        - name: price
+          in: query
+          required: true
+          schema:
+            type: number
+          example: 1
+          description: The price of the token.
+      responses:
+        "200":
+          description: Successful response
+
+        "400":
+          description: Invalid parameters
+
+        "500":
+          description: Internal server error
+
+  /v2/tx/{txId}:
+    post:
+      tags:
+        - Solana
+      summary: Submit signed listing
+      parameters:
+        - in: path
+          name: txId
+          required: true
+          schema:
+            type: string
+          description: The transaction ID to retrieve details for.
+      requestBody:
+        required: false
+        content:
+          application/json: {} # Assuming JSON payload, adjust content type if necessary
+      responses:
+        "200":
+          description: Successful response
+
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
+
+  /v2/instructions/buy:
+    get:
+      tags:
+        - Solana
+      summary: Get buy instructions
+      parameters:
+        - name: buyer
+          in: query
+          required: true
+          schema:
+            type: string
+          example: EfdC1uyq5gWqHQYxSENscwNZKY8k2z8CXkpmPRB7mn2N
+        - name: auctionHouseAddress
+          in: query
+          required: true
+          schema:
+            type: string
+          example: E8cU1WiRWjanGxmn96ewBgk9vPTcL6AEZ1t6F6fkgUWe
+        - name: tokenMint
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 7kpQSvaSW5r4usqUHeqXCHK79zj4amadLdv1mpFpDiWR
+        - name: price
+          in: query
+          required: true
+          schema:
+            type: number
+          example: 1
+      responses:
+        "200":
+          description: Successful response
 
   /collection_stats/search/{chain}:
     servers:

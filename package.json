@@ -16,6 +16,7 @@
 		"solana:test": "ts-node src/solana/test.ts",
 		"example:ethereum": "ts-node src/examples/ethereum.ts",
 		"example:base": "ts-node src/examples/base.ts",
+		"example:solana": "ts-node src/examples/solana.ts",
 		"base:test": "ts-node src/base/test.ts",
 		"bid:ethereum": "ts-node src/ethereum/bid.ts"
 	},
@@ -23,6 +24,7 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
+		"@solana/web3.js": "^1.94.0",
 		"ajv": "^8.12.0",
 		"axios": "^1.6.8",
 		"axios-retry": "^4.1.0",
