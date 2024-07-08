@@ -12,12 +12,8 @@ tags:
     description: Endpoints related to Solana blockchain
   - name: Bitcoin
     description: Endpoints related to Bitcoin blockchain
-  - name: Ethereum
-    description: Endpoints related to Ethereum blockchain
-  - name: Base
-    description: Endpoints related to Base blockchain
-  - name: Polygon
-    description: Endpoints related to Polygon blockchain
+  - name: EVM
+    description: Endpoints related to Ethereum, Polygon and Base blockchain
   - name: Rewards
     description: Check Diamond Rewards Eligibility
 
@@ -1246,9 +1242,7 @@ paths:
       summary: Search Magic Eden Collection Stats on Base
       description: Retrieve collection statistics from Magic Eden on the Base network, with options for sorting and filtering.
       tags:
-        - Base
-        - Polygon
-        - Ethereum
+        - EVM
       parameters:
         - name: chain
           in: path
@@ -1325,9 +1319,7 @@ paths:
   /v3/rtp/{chain}/order/v4?signature=${encodeURIComponent(signature):
     post:
       tags:
-        - Base
-        - Ethereum
-        - Polygon
+        - EVM
       parameters:
         - name: chain
           in: path
@@ -1433,9 +1425,7 @@ paths:
   /v3/rtp/{chain}/execute/bid/v5:
     post:
       tags:
-        - Base
-        - Ethereum
-        - Polygon
+        - EVM
       parameters:
         - name: chain
           in: path
@@ -1511,9 +1501,7 @@ paths:
   /v3/rtp/{chain}/execute/list/v5:
     post:
       tags:
-        - Base
-        - Ethereum
-        - Polygon
+        - EVM
       parameters:
         - name: chain
           in: path
@@ -1588,9 +1576,7 @@ paths:
   /v3/rtp/{chain}/order/v4?signature=%24{encodeURIComponent(signature)}:
     post:
       tags:
-        - Base
-        - Ethereum
-        - Polygon
+        - EVM
       parameters:
         - name: chain
           in: path
@@ -1698,9 +1684,7 @@ paths:
   /v3/rtp/{chain}/collections/0x9db39ac416c5ec75c2c3ae622d2013ecccc2d74a/marketplace-configurations/v2:
     get:
       tags:
-        - Base
-        - Ethereum
-        - Polygon
+        - EVM
       parameters:
         - name: chain
           in: path
@@ -1724,9 +1708,7 @@ paths:
   /v3/rtp/{chain}/collections-sets/v1:
     post:
       tags:
-        - Base
-        - Ethereum
-        - Polygon
+        - EVM
       parameters:
         - name: chain
           in: path
@@ -1763,9 +1745,7 @@ paths:
     get:
       summary: Retrieve user tokens
       tags:
-        - Base
-        - Polygon
-        - Ethereum
+        - EVM
       parameters:
         - name: chain
           in: path
@@ -1844,9 +1824,7 @@ paths:
   /v3/rtp/{chain}/tokens/{token}/activity/v5:
     get:
       tags:
-        - Base
-        - Polygon
-        - Ethereum
+        - EVM
       summary: Retrieve token activity
       parameters:
         - name: chain
@@ -1901,9 +1879,7 @@ paths:
   /v3/rtp/{chain}/orders/asks/v5:
     get:
       tags:
-        - Base
-        - Ethereum
-        - Polygon
+        - EVM
       summary: Retrieve active ask orders
       parameters:
         - name: chain
@@ -1962,9 +1938,7 @@ paths:
       summary: Retrieve bids for a collection
       description: Get detailed information about active bids for a specific collection, including criteria metadata and depth.
       tags:
-        - Base
-        - Polygon
-        - Ethereum
+        - EVM
       parameters:
         - name: chain
           in: path
@@ -2037,9 +2011,7 @@ paths:
       summary: Retrieve user's collections
       description: Get detailed information about collections owned by a specific user address.
       tags:
-        - Base
-        - Ethereum
-        - Polygon
+        - EVM
       parameters:
         - name: chain
           in: path
@@ -2098,9 +2070,7 @@ paths:
       summary: Retrieve all attributes for a collection
       description: Get detailed information about all attributes associated with a specific collection.
       tags:
-        - Base
-        - Polygon
-        - Ethereum
+        - EVM
       parameters:
         - name: chain
           in: path
@@ -2139,9 +2109,7 @@ paths:
       summary: Retrieve collection information
       description: Get detailed information about specific collections, including sales count, floor price, and other metadata.
       tags:
-        - Base
-        - Polygon
-        - Ethereum
+        - EVM
       parameters:
         - name: chain
           in: path
@@ -2240,9 +2208,7 @@ paths:
     get:
       summary: Fetch collection activity
       tags:
-        - Ethereum
-        - Base
-        - Polygon
+        - EVM
       parameters:
         - name: chain
           in: path
@@ -2288,9 +2254,7 @@ paths:
   /v3/rtp/{chain}/tokens/v7:
     get:
       tags:
-        - Ethereum
-        - Polygon
-        - Base
+        - EVM
       summary: Fetch Ethereum Tokens
       description: Fetches Ethereum tokens from the specified collection with various filters and sorting options.
       parameters:
@@ -2415,9 +2379,7 @@ paths:
   /v3/rtp/{chain}/order/v4:
     post:
       tags:
-        - Ethereum
-        - Polygon
-        - Base
+        - EVM
       summary: Submit Signed Order Data
 
       requestBody:
