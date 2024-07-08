@@ -27,6 +27,15 @@ paths:
       description: Retrieve the eligibility status for Diamond Rewards for a specific wallet address on a given blockchain.
       tags:
         - Rewards
+
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+        - bearerAuth: []
+
+      components:
+        securitySchemes:
+
       parameters:
         - name: walletAddress
           in: query
@@ -2347,7 +2356,7 @@ paths:
     get:
       summary: Fetch user authentication data
       tags:
-        - Ethereum
+        - General
       parameters:
         - in: path
           name: walletAddress
@@ -3286,3 +3295,12 @@ components:
       type: apiKey
       in: header
       name: X-NFT-API-Key
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: Cookie
+    bearerAuth:
+      type: http
+      scheme: bearer
+      name: Authorization
+      bearerFormat: JWT
