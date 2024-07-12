@@ -15,6 +15,7 @@
 		"test": "ts-node src/test.ts",
 		"solana:test": "ts-node src/solana/test.ts",
 		"example:ethereum": "ts-node src/examples/ethereum.ts",
+		"example:ospro": "ts-node src/examples/ospro.ts",
 		"example:base": "ts-node src/examples/base.ts",
 		"example:solana": "ts-node src/examples/solana.ts",
 		"base:test": "ts-node src/base/test.ts",

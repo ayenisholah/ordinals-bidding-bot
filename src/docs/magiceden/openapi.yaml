@@ -1,0 +1,3295 @@
+openapi: 3.1.0
+info:
+  title: NFTTOOLS API DOCS FOR MAGIC EDEN
+  version: 1.0.0
+  description: A comprehensive API for interacting with Magic Eden, providing tools to handle collections, tokens, activity, bid, list, and buy on Solana, Bitcoin, Ethereum, Base, and Polygon chains.
+servers:
+  - url: https://nfttools.pro/magiceden
+    description: Production server
+
+tags:
+  - name: Solana
+    description: Endpoints related to Solana blockchain
+  - name: Bitcoin
+    description: Endpoints related to Bitcoin blockchain
+  - name: EVM
+    description: Endpoints related to Ethereum, Polygon and Base blockchain
+  - name: Rewards
+    description: Check Diamond Rewards Eligibility
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /rewards/diamond/eligibility:
+    get:
+      summary: Check Diamond Rewards Eligibility
+      description: Retrieve the eligibility status for Diamond Rewards for a specific wallet address on a given blockchain.
+      tags:
+        - Rewards
+
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+        - bearerAuth: []
+
+      components:
+        securitySchemes:
+
+      parameters:
+        - name: walletAddress
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The wallet address to check for eligibility
+          example: EfdC1uyq5gWqHQYxSENscwNZKY8k2z8CXkpmPRB7mn2N
+        - name: chain
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [solana, ethereum, polygon, base, bitcoin] # Assuming these are the possible chains
+          description: The blockchain on which to check eligibility
+          example: solana
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  eligible:
+                    type: boolean
+                    description: Indicates whether the wallet is eligible for Diamond Rewards
+                  tier:
+                    type: string
+                    description: The tier of Diamond Rewards the wallet is eligible for, if applicable
+                  requirements:
+                    type: object
+                    description: Details about the requirements for eligibility
+                    properties:
+                      # Add specific requirement properties here
+                  # Add other properties that might be in the response
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
+  #SOLANA
+  /collection_stats/search/solana:
+    servers:
+      - url: https://nfttools.pro/magiceden_stats
+    get:
+      summary: Search Solana Collection Stats
+      description: Retrieve collection statistics for Solana NFTs on Magic Eden, with options for sorting, filtering, and pagination.
+      tags:
+        - Solana
+      parameters:
+        - name: direction
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: The direction to sort the results
+          example: desc
+        - name: sort
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [volume, floorPrice, listedCount] # Assuming these are possible sort options
+          description: The field to sort the results by
+          example: volume
+        - name: window
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [1d, 7d, 30d] # Assuming these are the possible values
+          description: The time window for the stats
+          example: 1d
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100 # Assuming 100 is the maximum allowed
+          description: The maximum number of results to return
+          example: 100
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+          description: The number of results to skip (for pagination)
+          example: 0
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  collections:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        # Define properties of each collection here
+                        # This is a placeholder and should be replaced with the actual response structure
+                        symbol:
+                          type: string
+                        name:
+                          type: string
+                        volume:
+                          type: number
+                        floorPrice:
+                          type: number
+                        listedCount:
+                          type: integer
+                  # Add other top-level properties if they exist in the response
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
+
+  /rpc/getCollectionHolderStats/{collectionSymbol}:
+    get:
+      summary: Get Collection Holder Statistics
+      description: Retrieve holder statistics for a specific NFT collection on Magic Eden.
+      tags:
+        - Solana
+      parameters:
+        - name: collectionSymbol
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The symbol or identifier of the collection
+          example: rugens_drip
+        - name: edge_cache
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Whether to use edge caching for the request
+          example: true
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalHolders:
+                    type: integer
+                    description: Total number of unique holders in the collection
+                  uniqueHolders:
+                    type: number
+                    description: Percentage of unique holders (possibly out of total supply)
+                  averageHoldingPerWallet:
+                    type: number
+                    description: Average number of NFTs held per wallet
+                  holdersDistribution:
+                    type: object
+                    description: Distribution of holders by number of NFTs held
+                    properties:
+                      "1":
+                        type: integer
+                        description: Number of wallets holding 1 NFT
+                      "2-5":
+                        type: integer
+                        description: Number of wallets holding 2 to 5 NFTs
+                      # Add more ranges as needed
+                  # Add other properties that might be in the response
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Collection not found
+        "500":
+          description: Internal server error
+
+  /idxv2/getAllNftsByCollectionSymbol:
+    get:
+      summary: Retrieve all NFTs by collection symbol
+      tags:
+        - Solana
+      parameters:
+        - name: collectionSymbol
+          in: query
+          required: true
+          schema:
+            type: string
+          example: rugens_drip
+        - name: direction
+          in: query
+          required: true
+          schema:
+            type: integer
+            enum: [1, -1]
+            default: 1
+          example: 1
+        - name: field
+          in: query
+          required: true
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: token22StandardFilter
+          in: query
+          required: true
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: mplCoreStandardFilter
+          in: query
+          required: true
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: agg
+          in: query
+          required: true
+          schema:
+            type: integer
+            default: 3
+          example: 3
+        - name: compressionMode
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [both, compressed, uncompressed]
+            default: both
+          example: both
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: NFTs not found
+        "500":
+          description: Internal server error
+
+  /rpc/getNFTsByOwner/{ownerAddress}:
+    get:
+      summary: Retrieve NFTs by owner
+      tags:
+        - Solana
+      parameters:
+        - name: ownerAddress
+          in: path
+          required: true
+          schema:
+            type: string
+          example: EfdC1uyq5gWqHQYxSENscwNZKY8k2z8CXkpmPRB7mn2N
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: NFTs not found
+        "500":
+          description: Internal server error
+
+  /rpc/getCollectionAttributesStats/{collectionSymbol}:
+    get:
+      summary: Retrieve collection attributes stats
+      tags:
+        - Solana
+      parameters:
+        - name: collectionSymbol
+          in: path
+          required: true
+          schema:
+            type: string
+          example: drip_tarimosi
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [all, active, inactive]
+            default: all
+          example: all
+        - name: edge_cache
+          in: query
+          required: true
+          schema:
+            type: boolean
+            default: true
+          example: true
+        - name: agg
+          in: query
+          required: true
+          schema:
+            type: integer
+            default: 3
+          example: 3
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Collection not found
+        "500":
+          description: Internal server error
+
+  /collections/{collectionSymbol}/organization:
+    get:
+      summary: Retrieve collection organization details
+      tags:
+        - Solana
+      parameters:
+        - name: collectionSymbol
+          in: path
+          required: true
+          schema:
+            type: string
+          example: drip_tarimosi
+        - name: edge_cache
+          in: query
+          required: true
+          schema:
+            type: boolean
+            default: true
+          example: true
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Collection not found
+        "500":
+          description: Internal server error
+
+  /sft/collection/{collectionSymbol}:
+    get:
+      summary: Retrieve collection details with pagination
+      tags:
+        - Solana
+      parameters:
+        - name: collectionSymbol
+          in: path
+          required: true
+          schema:
+            type: string
+          example: drip_tarimosi
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          example: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+          example: 20
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Collection not found
+        "500":
+          description: Internal server error
+
+  /rpc/getCollectionEscrowStats/{collectionSymbol}:
+    get:
+      summary: Retrieve collection escrow stats
+      tags:
+        - Solana
+      parameters:
+        - name: collectionSymbol
+          in: path
+          required: true
+          schema:
+            type: string
+          example: drip_tarimosi
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [all, active, inactive]
+            default: all
+          example: all
+        - name: edge_cache
+          in: query
+          required: true
+          schema:
+            type: boolean
+            default: true
+          example: true
+        - name: agg
+          in: query
+          required: true
+          schema:
+            type: integer
+            default: 3
+          example: 3
+        - name: enableFloorWithFee
+          in: query
+          required: true
+          schema:
+            type: boolean
+            default: true
+          example: true
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Collection not found
+        "500":
+          description: Internal server error
+
+  /v2/activities:
+    get:
+      summary: Get Collection Activities
+      description: Retrieve activities for a specific NFT collection on Magic Eden, with options for filtering by activity type and pagination.
+      tags:
+        - Solana
+      parameters:
+        - name: activityTypes
+          in: query
+          required: true
+          schema:
+            type: string
+          description: JSON array of activity types to filter by, URL encoded
+          example: "%5B%22sale%22%2C%22item_offer%22%2C%22pool_offer%22%2C%22attributes_offer%22%2C%22list%22%2C%22edit_list%22%2C%22delist%22%5D"
+        - name: collectionSymbol
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The symbol or identifier of the collection
+          example: drip_tarimosi
+        - name: onChainCollectionAddress
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The on-chain address of the collection
+          example: TAuAUS8neSS3KPSqLXQ7u1aWkKgnVPzqNizihDYuXvN
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50 # Assuming 50 is the maximum allowed
+          description: The maximum number of results to return
+          example: 50
+        - name: enableSNS
+          in: query
+          required: true
+          schema:
+            type: boolean
+          description: Whether to enable SNS (possibly Solana Name Service) resolution
+          example: true
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Collection not found
+        "500":
+          description: Internal server error
+
+  /idxv2/getListedNftsByCollectionSymbol:
+    get:
+      summary: Retrieve listed NFTs by collection symbol
+      tags:
+        - Solana
+      parameters:
+        - name: collectionSymbol
+          in: query
+          required: true
+          schema:
+            type: string
+          example: drip_tarimosi
+        - name: direction
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [1, 2]
+            default: 2
+          example: 2
+        - name: field
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 100
+          example: 100
+        - name: token22StandardFilter
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: mplCoreStandardFilter
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: mode
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [all, listed]
+            default: all
+          example: all
+        - name: agg
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 3
+          example: 3
+        - name: compressionMode
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [none, both, compressed, uncompressed]
+            default: both
+          example: both
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: NFTs not found
+        "500":
+          description: Internal server error
+
+  /collection_watchlists/action/checkUserWatchCollection/{collectionSymbol}:
+    get:
+      summary: Check if user is watching a collection
+      tags:
+        - Solana
+      parameters:
+        - name: collectionSymbol
+          in: path
+          required: true
+          schema:
+            type: string
+          example: drip_tarimosi
+        - name: walletAddress
+          in: query
+          required: true
+          schema:
+            type: string
+          example: EfdC1uyq5gWqHQYxSENscwNZKY8k2z8CXkpmPRB7mn2N
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Collection or user not found
+        "500":
+          description: Internal server error
+
+  /collections/{collectionSymbol}:
+    get:
+      summary: Retrieve collection details
+      tags:
+        - Solana
+      parameters:
+        - name: collectionSymbol
+          in: path
+          required: true
+          schema:
+            type: string
+          example: drip_tarimosi
+        - name: edge_cache
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          example: true
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Collection not found
+        "500":
+          description: Internal server error
+
+  /idxv2/getBidsByMintAddresses:
+    get:
+      summary: Retrieve bids by mint addresses
+      tags:
+        - Solana
+      parameters:
+        - name: hideExpired
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          example: true
+        - name: mintAddresses
+          in: query
+          required: true
+          schema:
+            type: string
+          example: DmdF3ACqvjmRh4mayaw3SAKuttVQ3tZkmut1N4RxSLCG
+        - name: direction
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [1, 2]
+            default: 1
+          example: 1
+        - name: field
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 2
+          example: 2
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 500
+          example: 500
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          example: 0
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Bids not found
+        "500":
+          description: Internal server error
+
+  /rpc/getNFTByMintAddress/{mintAddress}:
+    get:
+      summary: Retrieve NFT by mint address
+      tags:
+        - Solana
+      parameters:
+        - name: mintAddress
+          in: path
+          required: true
+          schema:
+            type: string
+          example: DmdF3ACqvjmRh4mayaw3SAKuttVQ3tZkmut1N4RxSLCG
+        - name: agg
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 3
+          example: 3
+        - name: useRarity
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          example: true
+        - name: includeBurntMint
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          example: true
+        - name: compressionMode
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [none, both, compressed, uncompressed]
+            default: both
+          example: both
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: NFT not found
+        "500":
+          description: Internal server error
+
+  /rpc/getNFTStatsByMintAddress/{mintAddress}:
+    get:
+      summary: Retrieve NFT stats by mint address
+      tags:
+        - Solana
+      parameters:
+        - name: mintAddress
+          in: path
+          required: true
+          schema:
+            type: string
+          example: DmdF3ACqvjmRh4mayaw3SAKuttVQ3tZkmut1N4RxSLCG
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: NFT stats not found
+        "500":
+          description: Internal server error
+
+  /v2/collections/{symbol}/activities:
+    get:
+      summary: Retrieve activities for a collection
+      tags:
+        - Solana
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+          example: drip_tarimosi
+        - name: accept
+          in: header
+          required: true
+          schema:
+            type: string
+            default: application/json
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Activities not found
+        "500":
+          description: Internal server error
+
+  /v2/tokens/{token_mint}/listings:
+    get:
+      summary: Retrieve listings for a token
+      tags:
+        - Solana
+      parameters:
+        - name: token_mint
+          in: path
+          required: true
+          schema:
+            type: string
+          example: DmdF3ACqvjmRh4mayaw3SAKuttVQ3tZkmut1N4RxSLCG
+        - name: accept
+          in: header
+          required: true
+          schema:
+            type: string
+            default: application/json
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Listings not found
+        "500":
+          description: Internal server error
+
+  /v2/tokens/{token_mint}/offers_received:
+    get:
+      summary: Retrieve offers received for a token
+      tags:
+        - Solana
+      parameters:
+        - name: token_mint
+          in: path
+          required: true
+          schema:
+            type: string
+          example: DmdF3ACqvjmRh4mayaw3SAKuttVQ3tZkmut1N4RxSLCG
+        - name: accept
+          in: header
+          required: true
+          schema:
+            type: string
+            default: application/json
+          example: application/json
+        - name: min_price
+          in: query
+          required: false
+          schema:
+            type: integer
+          example: 1000000
+        - name: max_price
+          in: query
+          required: false
+          schema:
+            type: integer
+          example: 100000000
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          example: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+          example: 50
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - updatedAt
+              - bidAmount
+          example: updatedAt
+        - name: sort_direction
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+          example: desc
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  offers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        price:
+                          type: string
+                          example: "1000000000"
+                        buyer:
+                          type: string
+                          example: EfdC1uyq5gWqHQYxSENscwNZKY8k2z8CXkpmPRB7mn2N
+                        mintAddress:
+                          type: string
+                          example: DmdF3ACqvjmRh4mayaw3SAKuttVQ3tZkmut1N4RxSLCG
+                        timestamp:
+                          type: string
+                          example: 2023-07-04T12:34:56Z
+        "400":
+          description: Invalid request
+        "404":
+          description: Offers not found
+        "500":
+          description: Internal server error
+
+  /v2/tokens/{token_mint}/activities:
+    get:
+      summary: Retrieve activities for a token
+      tags:
+        - Solana
+      parameters:
+        - name: token_mint
+          in: path
+          required: true
+          schema:
+            type: string
+          example: DmdF3ACqvjmRh4mayaw3SAKuttVQ3tZkmut1N4RxSLCG
+        - name: accept
+          in: header
+          required: true
+          schema:
+            type: string
+            default: application/json
+          example: application/json
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          example: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+          example: 50
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Activities not found
+        "500":
+          description: Internal server error
+
+  /v2/tokens/{token_mint}:
+    get:
+      summary: Retrieve token details by mint address
+      tags:
+        - Solana
+      parameters:
+        - name: token_mint
+          in: path
+          required: true
+          schema:
+            type: string
+          example: DmdF3ACqvjmRh4mayaw3SAKuttVQ3tZkmut1N4RxSLCG
+        - name: accept
+          in: header
+          required: true
+          schema:
+            type: string
+            default: application/json
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Token not found
+        "500":
+          description: Internal server error
+
+  /v2/collections/batch/listings:
+    post:
+      summary: Batch retrieve listings for collections
+      tags:
+        - Solana
+      parameters:
+        - name: attributes
+          in: query
+          schema:
+            type: string
+          description: |
+            Array of arrays of objects representing a filtering mechanism.
+            Elements within each inner array are logically ORed, and resulting arrays are ANDed together.
+            Each inner array consists of objects with properties traitType (string) and value (string).
+            Example: [[{"traitType":"trait1", "value":"value1"},{"traitType":"trait1", "value":"value2"}]]
+        - name: offset
+          required: false
+          in: query
+          schema:
+            type: integer
+            example: 0
+          description: Offset for pagination
+        - name: limit
+          required: false
+          in: query
+          schema:
+            type: integer
+            example: 50
+          description: Number of results per page
+        - name: min_price
+          in: query
+          schema:
+            type: integer
+            example: 1000000
+          description: Minimum price filter
+        - name: max_price
+          in: query
+          schema:
+            type: integer
+            example: 100000000
+          description: Maximum price filter
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - listPrice
+              - updatedAt
+          example: listPrice
+          description: Field to sort the listings
+        - name: sort_direction
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+          example: asc
+          description: Sort direction for the returned elements
+        - name: listingAggMode
+          in: query
+          schema:
+            type: boolean
+          example: true
+          description: True to return aggregated marketplace listings, false for Magic Eden listings only
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                collections:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      symbol:
+                        type: string
+                        example: drip_tarimosi
+                mcc:
+                  required: false
+                  type: string
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Listings not found
+        "500":
+          description: Internal server error
+
+  /v2/instructions/sell:
+    get:
+      tags:
+        - Solana
+      summary: Get sell instructions
+      description: Retrieve instructions for selling an NFT on Magic Eden.
+      parameters:
+        - name: seller
+          in: query
+          required: true
+          schema:
+            type: string
+          example: EfdC1uyq5gWqHQYxSENscwNZKY8k2z8CXkpmPRB7mn2N
+          description: The seller's wallet address.
+        - name: auctionHouseAddress
+          in: query
+          required: true
+          schema:
+            type: string
+          example: E8cU1WiRWjanGxmn96ewBgk9vPTcL6AEZ1t6F6fkgUWe
+          description: The address of the auction house.
+        - name: tokenMint
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 7kpQSvaSW5r4usqUHeqXCHK79zj4amadLdv1mpFpDiWR
+          description: The mint address of the token.
+        - name: tokenAccount
+          in: query
+          required: true
+          schema:
+            type: string
+          example: HLfiWCHHma8BJDHPLt1q65v2cA4UXQKEswPCT1rEbQi4
+          description: The token account address.
+        - name: price
+          in: query
+          required: true
+          schema:
+            type: number
+          example: 1
+          description: The price of the token.
+      responses:
+        "200":
+          description: Successful response
+
+        "400":
+          description: Invalid parameters
+
+        "500":
+          description: Internal server error
+
+  /v2/tx/{txId}:
+    post:
+      tags:
+        - Solana
+      summary: Submit signed listing
+      parameters:
+        - in: path
+          name: txId
+          required: true
+          schema:
+            type: string
+          description: The transaction ID to retrieve details for.
+      requestBody:
+        required: false
+        content:
+          application/json: {} # Assuming JSON payload, adjust content type if necessary
+      responses:
+        "200":
+          description: Successful response
+
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
+
+  /v2/instructions/buy:
+    get:
+      tags:
+        - Solana
+      summary: Get buy instructions
+      parameters:
+        - name: buyer
+          in: query
+          required: true
+          schema:
+            type: string
+          example: EfdC1uyq5gWqHQYxSENscwNZKY8k2z8CXkpmPRB7mn2N
+        - name: auctionHouseAddress
+          in: query
+          required: true
+          schema:
+            type: string
+          example: E8cU1WiRWjanGxmn96ewBgk9vPTcL6AEZ1t6F6fkgUWe
+        - name: tokenMint
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 7kpQSvaSW5r4usqUHeqXCHK79zj4amadLdv1mpFpDiWR
+        - name: price
+          in: query
+          required: true
+          schema:
+            type: number
+          example: 1
+      responses:
+        "200":
+          description: Successful response
+
+  /collection_stats/search/{chain}:
+    servers:
+      - url: https://nfttools.pro/magiceden_stats
+    get:
+      summary: Search Magic Eden Collection Stats on Base
+      description: Retrieve collection statistics from Magic Eden on the Base network, with options for sorting and filtering.
+      tags:
+        - EVM
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: ["ethereum", "base", "polygon"]
+        - name: window
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: ["1d", "7d", "30d"] # Assuming these are the possible values
+          description: The time window for the stats
+          example: "1d"
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: The maximum number of results to return
+          example: 50
+        - name: sort
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: ["volume", "floorPrice", "listedCount"] # Assuming these are possible sort options
+          description: The field to sort the results by
+          example: volume
+        - name: direction
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: ["asc", "desc"]
+          description: The direction to sort the results
+          example: desc
+        - name: filter
+          in: query
+          required: true
+          schema:
+            type: string
+          description: JSON string representing filter criteria
+          example: "{}"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  # Define the response schema here based on the actual response structure
+                  # This is a placeholder and should be replaced with the actual response structure
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        # Define properties of each item here
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
+
+  /v3/rtp/{chain}/order/v4?signature=${encodeURIComponent(signature):
+    post:
+      tags:
+        - EVM
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: ["ethereum", "base", "polygon"]
+      summary: Submit signed offer
+      description: Submit signed offer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      order:
+                        type: object
+                        properties:
+                          kind:
+                            type: string
+                            example: payment-processor-v2
+                          data:
+                            type: object
+                            properties:
+                              kind:
+                                type: string
+                                example: collection-offer-approval
+                              sellerOrBuyer:
+                                type: string
+                                example: "0xb71425024868e0c9156c3942ac115cd3b56d5559"
+                              protocol:
+                                type: integer
+                                example: 0
+                              cosigner:
+                                type: string
+                                example: "0x32da57e736e05f75aa4fae2e9be60fd904492726"
+                              beneficiary:
+                                type: string
+                                example: "0xb71425024868e0c9156c3942ac115cd3b56d5559"
+                              marketplace:
+                                type: string
+                                example: "0xca9337244b5f04cb946391bc8b8a980e988f9a6a"
+                              fallbackRoyaltyRecipient:
+                                type: string
+                                example: "0x9ccf727dbb547d623ded5ab83c5b0e499eee5532"
+                              paymentMethod:
+                                type: string
+                                example: "0x4200000000000000000000000000000000000006"
+                              tokenAddress:
+                                type: string
+                                example: "0x00b5f2e672f6b8a176bf6ade71238b61360a29e9"
+                              amount:
+                                type: string
+                                example: "1"
+                              itemPrice:
+                                type: string
+                                example: "100000000000000"
+                              expiration:
+                                type: string
+                                example: "1722607020"
+                              marketplaceFeeNumerator:
+                                type: string
+                                example: "200"
+                              nonce:
+                                type: string
+                                example: "69005277841611552456666767078621072521642912468796321438269508217196416860176"
+                              masterNonce:
+                                type: string
+                                example: "0"
+                              r:
+                                type: string
+                                example: "0x0000000000000000000000000000000000000000000000000000000000000000"
+                              s:
+                                type: string
+                                example: "0x0000000000000000000000000000000000000000000000000000000000000000"
+                              v:
+                                type: integer
+                                example: 0
+                      orderbook:
+                        type: string
+                        example: reservoir
+                source:
+                  type: string
+                  example: magiceden.io
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Order processed successfully
+
+  /v3/rtp/{chain}/execute/bid/v5:
+    post:
+      tags:
+        - EVM
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: ["ethereum", "base", "polygon"]
+      summary: Submit offer
+      description: Submit offer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                maker:
+                  type: string
+                  example: "0xb71425024868e0c9156c3942AC115Cd3b56d5559"
+                source:
+                  type: string
+                  example: magiceden.io
+                params:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      collection:
+                        type: string
+                        example: "0x00b5f2e672f6b8a176bf6ade71238b61360a29e9"
+                      currency:
+                        type: string
+                        example: "0x4200000000000000000000000000000000000006"
+                      quantity:
+                        type: integer
+                        example: 1
+                      weiPrice:
+                        type: string
+                        example: "100000000000000"
+                      expirationTime:
+                        type: string
+                        example: "1722607020"
+                      orderKind:
+                        type: string
+                        example: payment-processor-v2
+                      orderbook:
+                        type: string
+                        example: reservoir
+                      options:
+                        type: object
+                        properties:
+                          payment-processor-v2:
+                            type: object
+                            properties:
+                              useOffChainCancellation:
+                                type: boolean
+                                example: true
+                      automatedRoyalties:
+                        type: boolean
+                        example: true
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+
+  /v3/rtp/{chain}/execute/list/v5:
+    post:
+      tags:
+        - EVM
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: ["ethereum", "base", "polygon"]
+      summary: Execute List
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                maker:
+                  type: string
+                  example: "0xb71425024868e0c9156c3942AC115Cd3b56d5559"
+                source:
+                  type: string
+                  example: magiceden.io
+                params:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        example: "0x9db39ac416c5ec75c2c3ae622d2013ecccc2d74a:9310"
+                      weiPrice:
+                        type: string
+                        example: "10000000000000"
+                      orderbook:
+                        type: string
+                        example: reservoir
+                      orderKind:
+                        type: string
+                        example: payment-processor-v2
+                      quantity:
+                        type: integer
+                        example: 1
+                      currency:
+                        type: string
+                        example: "0x0000000000000000000000000000000000000000"
+                      expirationTime:
+                        type: string
+                        example: "1722598814"
+                      automatedRoyalties:
+                        type: boolean
+                        example: true
+                      options:
+                        type: object
+                        properties:
+                          payment-processor-v2:
+                            type: object
+                            properties:
+                              useOffChainCancellation:
+                                type: boolean
+                                example: true
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+
+  /v3/rtp/{chain}/order/v4?signature=%24{encodeURIComponent(signature)}:
+    post:
+      tags:
+        - EVM
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: ["ethereum", "base", "polygon"]
+      summary: Submit signed listing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      order:
+                        type: object
+                        properties:
+                          kind:
+                            type: string
+                            example: payment-processor-v2
+                          data:
+                            type: object
+                            properties:
+                              kind:
+                                type: string
+                                example: sale-approval
+                              sellerOrBuyer:
+                                type: string
+                                example: "0xb71425024868e0c9156c3942ac115cd3b56d5559"
+                              protocol:
+                                type: integer
+                                example: "0"
+                              cosigner:
+                                type: string
+                                example: "0x32da57e736e05f75aa4fae2e9be60fd904492726"
+                              marketplace:
+                                type: string
+                                example: "0xca9337244b5f04cb946391bc8b8a980e988f9a6a"
+                              fallbackRoyaltyRecipient:
+                                type: string
+                                example: "0x9db39ac416c5ec75c2c3ae622d2013ecccc2d74a"
+                              paymentMethod:
+                                type: string
+                                example: "0x0000000000000000000000000000000000000000"
+                              tokenAddress:
+                                type: string
+                                example: "0x9db39ac416c5ec75c2c3ae622d2013ecccc2d74a"
+                              tokenId:
+                                type: string
+                                example: "9310"
+                              amount:
+                                type: string
+                                example: "1"
+                              itemPrice:
+                                type: string
+                                example: "10000000000000"
+                              expiration:
+                                type: string
+                                example: "1722598814"
+                              marketplaceFeeNumerator:
+                                type: string
+                                example: "200"
+                              maxRoyaltyFeeNumerator:
+                                type: string
+                                example: "700"
+                              nonce:
+                                type: string
+                                example: "69005277841611552456666767078621072521642912468796321438269508217196416860167"
+                              masterNonce:
+                                type: string
+                                example: 0
+                              r:
+                                type: string
+                                example: "0x0000000000000000000000000000000000000000000000000000000000000000"
+                              s:
+                                type: string
+                                example: "0x0000000000000000000000000000000000000000000000000000000000000000"
+                              v:
+                                type: integer
+                                example: 0
+                      orderbook:
+                        type: string
+                        example: reservoir
+                source:
+                  type: string
+                  example: magiceden.io
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+
+  /v3/rtp/{chain}/collections/0x9db39ac416c5ec75c2c3ae622d2013ecccc2d74a/marketplace-configurations/v2:
+    get:
+      tags:
+        - EVM
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: ["ethereum", "base", "polygon"]
+      summary: Get Marketplace configuration
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+
+  /v3/rtp/{chain}/collections-sets/v1:
+    post:
+      tags:
+        - EVM
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: ["ethereum", "base", "polygon"]
+      summary: Get Collection Set Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                collections:
+                  type: array
+                  items:
+                    type: string
+                    example: "0x9db39ac416c5ec75c2c3ae622d2013ecccc2d74a"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+
+  /v3/rtp/{chain}/users/{address}/tokens/v10:
+    get:
+      summary: Retrieve user tokens
+      tags:
+        - EVM
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: ["ethereum", "base", "polygon"]
+
+        - name: address
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "0xb71425024868e0c9156c3942AC115Cd3b56d5559"
+        - name: includeLastSale
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          example: true
+        - name: excludeSpam
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          example: true
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+          example: 50
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [acquiredAt, price]
+            default: acquiredAt
+          example: acquiredAt
+        - name: sortDirection
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          example: desc
+        - name: onlyListed
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          example: false
+        - name: normalizeRoyalties
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          example: false
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: User not found
+        "500":
+          description: Internal server error
+
+  /v3/rtp/{chain}/tokens/{token}/activity/v5:
+    get:
+      tags:
+        - EVM
+      summary: Retrieve token activity
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: ["ethereum", "base", "polygon"]
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "0x9db39ac416c5ec75c2c3ae622d2013ecccc2d74a:9310"
+        - name: types
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+          example:
+            [
+              "sale",
+              "ask",
+              "transfer",
+              "mint",
+              "bid",
+              "bid_cancel",
+              "ask_cancel",
+            ]
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [eventTimestamp]
+            default: eventTimestamp
+          example: eventTimestamp
+      responses:
+        "200":
+          description: Successful response
+      "400":
+        description: Invalid request
+      "404":
+        description: Token not found
+      "500":
+        description: Internal server error
+
+  /v3/rtp/{chain}/orders/asks/v5:
+    get:
+      tags:
+        - EVM
+      summary: Retrieve active ask orders
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: ["ethereum", "base", "polygon"]
+        - name: token
+          in: header
+          required: true
+          schema:
+            type: string
+          example: "0xcb28749c24af4797808364d71d71539bc01e76d4:4865"
+        - name: status
+          in: header
+          required: false
+          schema:
+            type: string
+          example: active
+        - name: sortBy
+          in: header
+          required: false
+          schema:
+            type: string
+          example: price
+        - name: excludeEOA
+          in: header
+          required: true
+          schema:
+            type: boolean
+          example: false
+        - name: limit
+          in: header
+          required: false
+          schema:
+            type: integer
+          example: 100
+        - name: normalizeRoyalties
+          in: header
+          required: true
+          schema:
+            type: boolean
+          example: false
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "401":
+          description: Unauthorized - Token invalid or expired
+        "500":
+          description: Internal server error
+  /v3/rtp/{chain}/orders/bids/v6:
+    get:
+      summary: Retrieve bids for a collection
+      description: Get detailed information about active bids for a specific collection, including criteria metadata and depth.
+      tags:
+        - EVM
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: ["ethereum", "base", "polygon"]
+        - name: collection
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The address of the collection
+          example: "0x5ca0c41a50fcfec85b91bb4ca5b024b36d9bb120"
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [price]
+          description: The field to sort the results by
+        - name: status
+          required: false
+          in: query
+          schema:
+            type: string
+            enum: [active]
+          description: The status of the bids to retrieve
+        - name: excludeEOA
+          in: query
+          schema:
+            type: boolean
+          description: Whether to exclude EOA (Externally Owned Account) bids
+        - name: includeCriteriaMetadata
+          in: query
+          schema:
+            type: boolean
+          description: Whether to include criteria metadata
+        - name: includeDepth
+          in: query
+          schema:
+            type: boolean
+          description: Whether to include depth information
+        - name: normalizeRoyalties
+          in: query
+          schema:
+            type: boolean
+          description: Whether to normalize royalties
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                # Define the response schema here
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
+
+  /v3/rtp/{chain}/users/{address}/collections/v4:
+    get:
+      summary: Retrieve user's collections
+      description: Get detailed information about collections owned by a specific user address.
+      tags:
+        - EVM
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: ["ethereum", "base", "polygon"]
+        - name: address
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The address of the user
+          example: "0xb71425024868e0c9156c3942AC115Cd3b56d5559"
+        - name: offset
+          required: false
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+          description: The number of items to skip before starting to collect the result set
+        - name: limit
+          required: false
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          description: The numbers of items to return
+        - name: collection
+          in: query
+          schema:
+            type: string
+          description: The address of a specific collection to filter by
+          example: "0x9db39ac416c5ec75c2c3ae622d2013ecccc2d74a"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                # Define the response schema here
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
+
+  /v3/rtp/{chain}/collections/{collectionAddress}/attributes/all/v4:
+    get:
+      summary: Retrieve all attributes for a collection
+      description: Get detailed information about all attributes associated with a specific collection.
+      tags:
+        - EVM
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: ["ethereum", "base", "polygon"]
+        - name: collectionAddress
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The address of the collection
+          example: "0x5ca0c41a50fcfec85b91bb4ca5b024b36d9bb120"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                # Define the response schema here
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
+
+  /v3/rtp/{chain}/collections/v7:
+    get:
+      summary: Retrieve collection information
+      description: Get detailed information about specific collections, including sales count, floor price, and other metadata.
+      tags:
+        - EVM
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: ["ethereum", "base", "polygon"]
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The address of the collection
+          example: "0x5ca0c41a50fcfec85b91bb4ca5b024b36d9bb120"
+        - name: limit
+          required: false
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          description: The number of items to return
+        - name: includeSalesCount
+          in: query
+          schema:
+            type: boolean
+          description: Whether to include the sales count
+        - name: excludeSpam
+          in: query
+          schema:
+            type: boolean
+          description: Whether to exclude spam collections
+        - name: displayCurrency
+          in: query
+          schema:
+            type: string
+          description: The address of the currency to display prices in
+          example: "0x4200000000000000000000000000000000000006"
+        - name: normalizeRoyalties
+          in: query
+          schema:
+            type: boolean
+          description: Whether to normalize royalties
+        - name: includeQuantity
+          in: query
+          schema:
+            type: boolean
+          description: Whether to include quantity information
+        - name: includeLastSale
+          in: query
+          schema:
+            type: boolean
+          description: Whether to include the last sale information
+        - name: excludeBurnt
+          in: query
+          schema:
+            type: boolean
+          description: Whether to exclude burnt tokens
+        - name: sortBy
+          required: false
+          in: query
+          schema:
+            type: string
+            enum: [floorAskPrice]
+          description: The field to sort the results by
+        - name: sortDirection
+          in: query
+          schema:
+            type: string
+            enum: [desc, asc]
+          description: The direction to sort the results
+        - name: includeAttributes
+          in: query
+          schema:
+            type: boolean
+          description: Whether to include attribute information
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                # Define the response schema here
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
+
+  /v3/rtp/{chain}/collections/activity/v6:
+    get:
+      summary: Fetch collection activity
+      tags:
+        - EVM
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: ["ethereum", "base", "polygon"]
+        - in: query
+          name: collection
+          required: true
+          schema:
+            type: string
+            example: "0x306b1ea3ecdf94ab739f1910bbda052ed4a9f949"
+          description: The Ethereum collection address
+        - in: query
+          name: types
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+              enum: ["sale", "ask", "bid", "transfer", "mint"]
+          description: |
+            Types of activities to fetch. Can include multiple types (sale, ask, bid, transfer, mint).
+      responses:
+        "200":
+          description: Successful response
+
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Bad request parameters
+
+  /v3/rtp/{chain}/tokens/v7:
+    get:
+      tags:
+        - EVM
+      summary: Fetch Ethereum Tokens
+      description: Fetches Ethereum tokens from the specified collection with various filters and sorting options.
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: ["ethereum", "base", "polygon"]
+
+        - name: includeQuantity
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Whether to include quantity.
+        - name: includeLastSale
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Whether to include the last sale.
+        - name: excludeSpam
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Whether to exclude spam tokens.
+        - name: excludeBurnt
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Whether to exclude burnt tokens.
+        - name: collection
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The collection contract address.
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [floorAskPrice, otherPossibleSortFields]
+            default: floorAskPrice
+          description: The field to sort by.
+        - name: sortDirection
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+          description: The direction to sort the results.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+          description: The number of results to return.
+        - name: includeAttributes
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Whether to include attributes.
+        - name: normalizeRoyalties
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Whether to normalize royalties.
+      responses:
+        "200":
+          description: A list of Ethereum tokens.
+        "400":
+          description: Bad Request
+        "500":
+          description: Server Error
+
+  /auth/user/{walletAddress}:
+    get:
+      summary: Fetch user authentication data
+      tags:
+        - General
+      parameters:
+        - in: path
+          name: walletAddress
+          required: true
+          schema:
+            type: string
+          description: The wallet address of the user
+        - in: query
+          name: enableSNS
+          schema:
+            type: boolean
+          required: false
+          default: true
+          description: Flag to enable SNS (Social Network Sharing)
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not found
+
+  /v3/rtp/{chain}/order/v4:
+    post:
+      tags:
+        - EVM
+      summary: Submit Signed Order Data
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      order:
+                        type: object
+                        properties:
+                          kind:
+                            type: string
+                            example: payment-processor-v2
+                          data:
+                            type: object
+                            properties:
+                              kind:
+                                type: string
+                                example: collection-offer-approval
+                              sellerOrBuyer:
+                                type: string
+                              protocol:
+                                type: number
+                              cosigner:
+                                type: string
+                              marketplace:
+                                type: string
+                              paymentMethod:
+                                type: string
+                              tokenAddress:
+                                type: string
+                              amount:
+                                type: string
+                              itemPrice:
+                                type: string
+                              expiration:
+                                type: string
+                              marketplaceFeeNumerator:
+                                type: string
+                              nonce:
+                                type: string
+                              masterNonce:
+                                type: string
+                              fallbackRoyaltyRecipient:
+                                type: string
+                              beneficiary:
+                                type: string
+                              r:
+                                type: string
+                                example: "0x0000000000000000000000000000000000000000000000000000000000000000"
+                              s:
+                                type: string
+                                example: "0x0000000000000000000000000000000000000000000000000000000000000000"
+                              v:
+                                type: number
+                                example: 0
+                      orderbook:
+                        type: string
+                        example: reservoir
+                source:
+                  type: string
+                  example: magiceden.io
+      parameters:
+        - name: signature
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: ["ethereum", "base", "polygon"]
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+        "400":
+          description: Bad request
+        "500":
+          description: Server error
+
+  /v2/ord/btc/activities:
+    get:
+      summary: Retrieve Ordinal activities from Magic Eden
+      tags:
+        - Bitcoin
+      parameters:
+        - name: limit
+          required: false
+          in: query
+          schema:
+            type: integer
+            example: 100
+          description: Number of results to return (default is 100)
+        - name: collectionSymbol
+          in: query
+          required: true
+          schema:
+            type: string
+            example: nodemonkes
+
+          description: Symbol of the NFT collection
+        - name: kind
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+            example:
+              [
+                "list",
+                "offer_placed",
+                "buying_broadcasted",
+                "offer_accepted_broadcasted",
+              ]
+          style: simple
+          explode: true
+          description: |
+            Array of activity types to include.
+            Possible values: list, offer_placed, buying_broadcasted, offer_accepted_broadcasted
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  activities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        activityType:
+                          type: string
+                          example: offer_placed
+                        timestamp:
+                          type: string
+                          format: date-time
+                          example: "2023-07-04T12:34:56Z"
+                        details:
+                          type: object
+                          description: Additional details specific to the activity type
+        "400":
+          description: Invalid request
+        "404":
+          description: Activities not found
+        "500":
+          description: Internal server error
+
+  /v2/ord/btc/tokens:
+    get:
+      summary: Retrieve BTC tokens from Magic Eden
+      tags:
+        - Bitcoin
+      parameters:
+        - name: limit
+          required: false
+          in: query
+          schema:
+            type: integer
+            example: 40
+          description: Number of tokens to return (default is determined dynamically)
+        - name: offset
+          required: false
+          in: query
+          schema:
+            type: integer
+            example: 0
+          description: Number of tokens to skip
+        - name: sortBy
+          required: false
+          in: query
+          schema:
+            type: string
+            enum: [priceAsc, priceDesc, updatedAt]
+            example: priceAsc
+          description: Field to sort tokens by
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+            example: 0
+          description: Minimum price filter
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+            example: 0
+          description: Maximum price filter
+        - name: collectionSymbol
+          in: query
+          schema:
+            type: string
+            example: nodemonkes
+          description: Symbol of the NFT collection
+        - name: disablePendingTransactions
+          in: query
+          schema:
+            type: boolean
+            example: true
+          description: Disable fetching pending transactions
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties: // Define the structure of the response data as per your application's needs
+        "400":
+          description: Invalid request
+        "404":
+          description: Tokens not found
+        "500":
+          description: Internal server error
+
+  /v2/ord/btc/attributes:
+    get:
+      summary: Retrieve BTC attributes from Magic Eden
+      tags:
+        - Bitcoin
+      parameters:
+        - name: attributes
+          in: query
+          schema:
+            type: string
+            example: "%5B%7B%22traitType%22%3A%22color%22%2C%22value%22%3A%22blue%22%7D%2C%7B%22traitType%22%3A%22rarity%22%2C%22value%22%3A%22legendary%22%7D%5D"
+          description: Encoded JSON string of transformed attributes
+        - name: collectionSymbol
+          in: query
+          schema:
+            type: string
+            example: nodemonkes
+          description: Symbol of the NFT collection
+        - name: disablePendingTransactions
+          in: query
+          schema:
+            type: boolean
+            example: true
+          description: Disable fetching pending transactions
+        - name: limit
+          required: false
+          in: query
+          schema:
+            type: integer
+            example: 100
+          description: Number of attributes to return (default is determined dynamically)
+        - name: offset
+          required: false
+          in: query
+          schema:
+            type: integer
+            example: 0
+          description: Number of attributes to skip
+        - name: sortBy
+          required: false
+          in: query
+          schema:
+            type: string
+            enum: [priceAsc, priceDesc, updatedAt]
+            example: priceAsc
+          description: Field to sort attributes by
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties: // Define the structure of the response data as per your application's needs
+        "400":
+          description: Invalid request
+        "404":
+          description: Attributes not found
+        "500":
+          description: Internal server error
+
+  /v2/ord/btc/tokens/{tokenId}:
+    get:
+      summary: Retrieve BTC token by tokenId
+      tags:
+        - Bitcoin
+      parameters:
+        - name: tokenId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: ccfb3ea4e5de0caf3236a2073ed6d3365e6b0d5be0c22aa38b2071ac8db644bfi0
+          description: Example token ID for Magic Eden
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Token not found
+        "500":
+          description: Internal server error
+
+  /v2/ord/btc/stat:
+    get:
+      summary: Retrieve BTC collection statistics
+      tags:
+        - Bitcoin
+      parameters:
+        - name: collectionSymbol
+          in: query
+          required: true
+          schema:
+            type: string
+            example: nodemonkes
+          description: Symbol of the collection for BTC statistics
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Collection not found
+        "500":
+          description: Internal server error
+  /collection_stats/search/bitcoin:
+    servers:
+      - url: https://nfttools.pro/magiceden_stats
+    get:
+      summary: Search Bitcoin collection statistics
+      tags:
+        - Bitcoin
+      parameters:
+        - name: window
+          in: query
+          schema:
+            type: string
+            example: 7d
+          description: Time window for statistics aggregation
+        - name: limit
+          required: false
+          in: query
+          schema:
+            type: integer
+            example: 100
+          description: Maximum number of results to return
+        - name: offset
+          required: false
+          in: query
+          schema:
+            type: integer
+            example: 0
+          description: Number of results to skip before returning data
+        - name: sort
+          in: query
+          schema:
+            type: string
+            example: volume
+          description: Field to sort results by
+        - name: direction
+          in: query
+          schema:
+            type: string
+            example: desc
+          description: Sort direction (asc or desc)
+        - name: filter
+          in: query
+          schema:
+            type: string
+            example: '{"timeWindow":"7d","collectionType":"all","sortColumn":"volume","sortDirection":"desc","featuredCollection":false}'
+          description: JSON string representing additional filters
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
+
+  /v2/ord/btc/collection-offers/psbt/cancel:
+    get:
+      summary: Cancel Collection Offers
+      tags:
+        - Bitcoin
+      parameters:
+        - name: offerIds
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+            description: Array of offer IDs to be cancelled
+            example: "6de493e5-4f1d-437d-8aa8-b87368dbe5ab"
+        - name: makerPublicKey
+          in: query
+          schema:
+            type: string
+            description: Maker's public key
+        - name: makerPaymentType
+          in: query
+          schema:
+            type: string
+            description: Payment type of the maker
+            example: p2wpkh
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
+
+    post:
+      summary: Cancel Collection Offers
+      tags:
+        - Bitcoin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                makerPublicKey:
+                  type: string
+                  description: Maker's public key
+                  example: "0300db232186bd7de491b45d5e703d6aebaf926b0c........."
+                offerIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of offer IDs to be cancelled
+                  example:
+                    [
+                      "6de493e5-4f1d-437d-8aa8-b87368dbe5ab",
+                      "6de493e5-4f1d-437d-8aa8-b87368dbe5ab",
+                    ]
+                signedPsbtBase64:
+                  type: string
+                  description: Signed PSBT in Base64 format
+                  example: "cHNidP8BAHcCAAAAAZX6s......."
+                makerPaymentType:
+                  type: string
+                  description: Payment type of the maker
+                  example: "p2wpkh"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Offers cancelled successfully"
+        "400":
+          description: Invalid request
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
+
+  /v2/ord/btc/collection-offers/psbt/create:
+    get:
+      summary: Create Collection Offers
+      tags:
+        - Bitcoin
+      parameters:
+        - name: collectionSymbol
+          in: query
+          required: true
+          schema:
+            type: string
+          example: nodemonkes
+        - name: quantity
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 1
+        - name: priceSats
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 100000
+        - name: expirationAt
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          example: "2024-12-31T23:59:59Z"
+        - name: feeSatsPerVbyte
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 5
+        - name: makerPublicKey
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "0600db232186bd7de491b45g5e703d6aebaf976b0ce52d721640a1bd3f1f110752"
+        - name: makerPaymentType
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [p2wpkh, p2sh, p2pkh]
+          example: p2wpkh
+        - name: makerReceiveAddress
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8jzg5"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: object
+                    properties:
+                      offerId:
+                        type: string
+                        example: "offer123456"
+                      psbt:
+                        type: string
+                        example: "cHNidP8BAHcCAAAAAZX6s......."
+        "400":
+          description: Invalid request
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
+
+    post:
+      summary: Submit Collection Offers
+      tags:
+        - Bitcoin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                collectionSymbol:
+                  type: string
+                  example: nodemonkes
+                quantity:
+                  type: integer
+                  example: 1
+                priceSats:
+                  type: integer
+                  example: 100000
+                expirationAt:
+                  type: string
+                  format: date-time
+                  example: "2024-12-31T23:59:59Z"
+                makerPublicKey:
+                  type: string
+                  example: "0600db232186bd7de491b45g5e703d6aebaf976b0ce52d721640a1bd3f1f110752"
+                makerPaymentType:
+                  type: string
+                  enum: [p2wpkh, p2sh, p2pkh]
+                  example: p2wpkh
+                makerReceiveAddress:
+                  type: string
+                  example: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8jzg5"
+                offers:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      signedPsbtBase64:
+                        type: string
+                        example: "cHNidP8BAHcCAAAAAZX6s......."
+                      signedCancelPsbtBase64:
+                        type: string
+                        example: "cHNidP8BAHcCAAAAAZX6s......."
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
+
+  /v2/ord/btc/offers/create:
+    get:
+      summary: Create Offer for a Token
+      tags:
+        - Bitcoin
+      parameters:
+        - name: tokenId
+          in: query
+          required: true
+          schema:
+            type: string
+          example: ccfb3ea4e5de0caf3236a2073ed6d3365e6b0d5be0c22aa38b2071ac8db644bfi0
+        - name: price
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 100000
+        - name: expirationDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          example: "2024-12-31T23:59:59Z"
+        - name: buyerTokenReceiveAddress
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8jzg5"
+        - name: buyerPaymentAddress
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+        - name: buyerPaymentPublicKey
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "0600db232186bd7de491b45g5e703d6aebaf976b0ce52d721640a1bd3f1f110752"
+        - name: feerateTier
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [halfHourFee, hourFee, fastestFee]
+          example: halfHourFee
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Invalid request
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
+
+    post:
+      tags:
+        - Bitcoin
+      summary: Submit a signed offer order for a Bitcoin NFT
+      operationId: submitSignedOfferOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                signedPSBTBase64:
+                  type: string
+                  example: "cHNidP8BAHECAAAAAYb6xNH9fhgkTybG4ZH52wKROs..."
+                feerateTier:
+                  type: string
+                  enum: [halfHourFee, hourFee, dayFee]
+                  example: halfHourFee
+                tokenId:
+                  type: string
+                  example: ccfb3ea4e5de0caf3236a2073ed6d3365e6b0d5be0c22aa38b2071ac8db644bfi0
+                price:
+                  type: number
+                  format: int64
+                  example: 100000
+                expirationDate:
+                  type: string
+                  format: date-time
+                  example: "1672531199000"
+                buyerPaymentAddress:
+                  type: string
+                  example: 1BoatSLRHtKNngkdXEeobR76b53LETtpyT
+                buyerPaymentPublicKey:
+                  type: string
+                  example: 0600db232186bd7de491b45g5e703d6aebaf976b0ce52d721640a1bd3f1f110752
+                buyerReceiveAddress:
+                  type: string
+                  example: 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa
+              required:
+                - signedPSBTBase64
+                - feerateTier
+                - tokenId
+                - price
+                - expirationDate
+                - buyerPaymentAddress
+                - buyerPaymentPublicKey
+                - buyerReceiveAddress
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+
+  /v2/ord/btc/collection-offers/collection/{collectionSymbol}:
+    get:
+      tags:
+        - Bitcoin
+      summary: Get collection offers for a Bitcoin NFT collection
+      operationId: getCollectionOffers
+      parameters:
+        - name: collectionSymbol
+          in: path
+          required: true
+          schema:
+            type: string
+          example: nodemonkes
+        - name: sort
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [priceAsc, priceDesc, dateAsc, dateDesc]
+          example: priceDesc
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          example: 100
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          example: 0
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+
+  /v2/ord/btc/offers/:
+    get:
+      tags:
+        - Bitcoin
+      summary: Retrieve best offers for a specific token.
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [valid, invalid, expired]
+          example: valid
+          description: Filter offers by status.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 2
+          description: Maximum number of offers to return.
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 0
+          description: Number of offers to skip (pagination offset).
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [priceAsc, priceDesc]
+          example: priceDesc
+          description: Sort offers by price in ascending or descending order.
+        - name: token_id
+          in: query
+          required: true
+          schema:
+            type: string
+          example: ccfb3ea4e5de0caf3236a2073ed6d3365e6b0d5be0c22aa38b2071ac8db644bfi0
+          description: The token ID for which offers are retrieved.
+        - name: wallet_address_buyer
+          in: query
+          schema:
+            type: string
+          required: false
+          description: The buyer's wallet address
+          example: bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh
+
+      responses:
+        "200":
+          description: Successful response
+
+  /v2/ord/btc/offers/cancel:
+    get:
+      summary: Retrieve cancel offer format
+      tags:
+        - Bitcoin
+      operationId: retrieveCancelOfferFormat
+      parameters:
+        - in: query
+          name: offerId
+          required: true
+          schema:
+            type: string
+          description: The ID of the offer to be cancelled
+          example: 6de493e5-4f1d-437d-8aa8-b87368dbe5ab
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                # Add more specific properties if known
+        "400":
+          description: Bad request
+        "404":
+          description: Offer not found
+        "500":
+          description: Internal server error
+    post:
+      summary: Submit cancel offer data
+      tags:
+        - Bitcoin
+      operationId: submitCancelOfferData
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                offerId:
+                  type: string
+                  description: The ID of the offer to be cancelled
+                  example: 7ab12cd3-45ef-67gh-89ij-klmn12op34qr
+                signedPSBTBase64:
+                  type: string
+                  description: The signed Partially Signed Bitcoin Transaction (PSBT) in Base64 format
+                  example: cHNidP8BAHECAAAAAbFNrlBpjUdXy0qFcCUJjkl7AClYQJh53OFWMO9eOZe9AAAAAAD/////AhAnAAAAAAAAFgAUFK4qK4oWGApqikklz1HVyewNfZ4wdQAAAAAAACIAIJnpjiwz0/PmQy8qwtxpzBkb+EGrjf8odZMwKwBzpccAAAAAAAAA
+      responses:
+        "200":
+          description: Successful response
+        "400":
+          description: Bad request
+        "404":
+          description: Offer not found
+        "500":
+          description: Internal server error
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-NFT-API-Key
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: Cookie
+    bearerAuth:
+      type: http
+      scheme: bearer
+      name: Authorization
+      bearerFormat: JWT
