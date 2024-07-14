@@ -1,4 +1,4 @@
-openapi: 3.0.0
+openapi: 3.0.3
 info:
   title: Opensea API
   description: API documentation for accessing collections from Opensea.
@@ -13,6 +13,8 @@ tags:
     description: The tokens endpoint allows you to retrieve detailed information about various tokens available on Opensea.
   - name: Users
     description: The users endpoint allows you to retrieve and manage user account information on Opensea.
+  - name: Bids
+    description: Operations related to creating and managing bids on Opensea Pro.
 
 security:
   - ApiKeyAuth: []
@@ -298,7 +300,7 @@ paths:
             type: string
           description: The ID of the user account to retrieve profile information for.
           required: true
-          example: "0x9adcFFff1DEf95F7E58B587c1A6B06Ac6A7aE1E5"
+          example: "0xb71425024868e0c9156c3942AC115Cd3b56d5559"
       responses:
         "200":
           description: User profile information retrieved successfully.
@@ -322,7 +324,7 @@ paths:
             type: string
           description: The ID of the user account to retrieve watchlist information for.
           required: true
-          example: "0x9adcFFff1DEf95F7E58B587c1A6B06Ac6A7aE1E5"
+          example: "0xb71425024868e0c9156c3942AC115Cd3b56d5559"
         - in: query
           name: limit
           schema:
@@ -410,7 +412,7 @@ paths:
             type: string
           description: The ID of the user account to retrieve ERC20 token information for.
           required: true
-          example: "0x9adcFFff1DEf95F7E58B587c1A6B06Ac6A7aE1E5"
+          example: "0xb71425024868e0c9156c3942AC115Cd3b56d5559"
       requestBody:
         required: true
         content:
@@ -557,7 +559,7 @@ paths:
           schema:
             type: integer
             example: 1
-          description: Include the OpenSea fees of the collection in the response.
+          description: Include the Opensea fees of the collection in the response.
         - in: query
           name: fields[fees]
           schema:
@@ -903,7 +905,7 @@ paths:
       tags:
         - Collections
       summary: Get Collection Sales
-      description: Retrieve the sales data for a specific collection on OpenSea.
+      description: Retrieve the sales data for a specific collection on Opensea.
       parameters:
         - in: path
           name: slug
@@ -941,7 +943,7 @@ paths:
       tags:
         - Collections
       summary: Get Orderbook Depth
-      description: Retrieve the orderbook depth data for a specific collection on OpenSea.
+      description: Retrieve the orderbook depth data for a specific collection on Opensea.
       parameters:
         - in: path
           name: slug
@@ -965,7 +967,7 @@ paths:
       tags:
         - Collections
       summary: Get Collection Activity
-      description: Retrieve the activity data for a specific collection on OpenSea.
+      description: Retrieve the activity data for a specific collection on Opensea.
       parameters:
         - in: path
           name: slug
@@ -1021,7 +1023,7 @@ paths:
       tags:
         - Users
       summary: Get Account Profiles
-      description: Retrieve profiles for multiple Ethereum addresses on OpenSea.
+      description: Retrieve profiles for multiple Ethereum addresses on Opensea.
       parameters:
         - in: query
           name: address
@@ -1061,7 +1063,7 @@ paths:
     get:
       tags:
         - Collections
-      summary: Get trending collections on OpenSea.
+      summary: Get trending collections on Opensea.
       parameters:
         - in: query
           name: limit
@@ -1096,7 +1098,7 @@ paths:
     get:
       tags:
         - Collections
-      summary: Get assets from the Mocaverse collection on OpenSea.
+      summary: Get assets from the Mocaverse collection on Opensea.
       parameters:
         - in: path
           name: slug
@@ -1396,6 +1398,582 @@ paths:
           description: Not found. Rarity information not available for the asset.
         "500":
           description: Internal server error.
+  /opensea/buildSeaportOffer:
+    post:
+      tags:
+        - Bids
+      summary: Build a Seaport Offer
+      description: Build an offer on the Opensea Seaport.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                offerer:
+                  type: string
+                  description: The address of the offerer.
+                  example: "0xb71425024868e0c9156c3942AC115Cd3b56d5559"
+                quantity:
+                  type: integer
+                  description: The quantity of the offer.
+                  example: 1
+                protocol_address:
+                  type: string
+                  description: The protocol address.
+                  example: "0x0000000000000068F116a894984e2DB1123eB395"
+                criteria:
+                  type: object
+                  properties:
+                    collection:
+                      type: object
+                      properties:
+                        slug:
+                          type: string
+                          description: The collection slug.
+                          example: the-flowers-project-v2
+      responses:
+        "200":
+          description: Offer created successfully
+
+        "400":
+          description: Bad request
+
+        "500":
+          description: Internal server error
+
+  /opensea/seaportOffer:
+    post:
+      tags:
+        - Bids
+      summary: Post a Seaport Offer
+      description: Posts an offer on the Opensea Seaport.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                criteria:
+                  type: object
+                  properties:
+                    collection:
+                      type: object
+                      properties:
+                        slug:
+                          type: string
+                          description: The collection slug.
+                          example: the-flowers-project-v2
+                protocol_data:
+                  type: object
+                  properties:
+                    parameters:
+                      type: object
+                      properties:
+                        offerer:
+                          type: string
+                          description: The address of the offerer.
+                          example: "0xb71425024868e0c9156c3942AC115Cd3b56d5559"
+                        offer:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              itemType:
+                                type: integer
+                                description: The type of item.
+                                example: 1
+                              token:
+                                type: string
+                                description: The token address.
+                                example: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+                              identifierOrCriteria:
+                                type: integer
+                                description: The identifier or criteria.
+                                example: 0
+                              startAmount:
+                                type: string
+                                description: The starting amount.
+                                example: "1700000000000000"
+                              endAmount:
+                                type: string
+                                description: The ending amount.
+                                example: "1700000000000000"
+                        zone:
+                          type: string
+                          description: The zone address.
+                          example: "0x000056F7000000EcE9003ca63978907a00FFD100"
+                        zoneHash:
+                          type: string
+                          description: The zone hash.
+                          example: "0x0000000000000000000000000000000000000000000000000000000000000000"
+                        consideration:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              itemType:
+                                type: integer
+                                description: The type of item.
+                                example: 4
+                              token:
+                                type: string
+                                description: The token address.
+                                example: "0x49129a186169ecebf3c1ab036d99d4ecb9a95c67"
+                              identifierOrCriteria:
+                                type: string
+                                description: The identifier or criteria.
+                                example: "0"
+                              startAmount:
+                                type: string
+                                description: The starting amount.
+                                example: "1"
+                              endAmount:
+                                type: string
+                                description: The ending amount.
+                                example: "1"
+                              recipient:
+                                type: string
+                                description: The recipient address.
+                                example: "0xb71425024868e0c9156c3942AC115Cd3b56d5559"
+                        startTime:
+                          type: string
+                          description: The start time of the offer.
+                          example: "1720869309"
+                        endTime:
+                          type: integer
+                          description: The end time of the offer.
+                          example: "1720871109"
+                        orderType:
+                          type: integer
+                          description: The order type.
+                          example: 2
+                        salt:
+                          type: string
+                          description: The salt.
+                          example: "51951570786726798460324975021501917861654789585098516727730150596725994741544"
+                        conduitKey:
+                          type: string
+                          description: The conduit key.
+                          example: "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000"
+                        totalOriginalConsiderationItems:
+                          type: integer
+                          description: The total number of original consideration items.
+                          example: 2
+                        counter:
+                          type: string
+                          description: The counter.
+                          example: "0"
+                    signature:
+                      type: string
+                      description: The signature.
+                      example: "0xbdeff9c86c7e4fbf43352f1cbfe56c682b2ff74400c4984dedff16c65c94f72981acf538e1df822dadbd0268ca11494cfdd46b9d63f11cd97a6e0afe9f706ea2"
+                protocol_address:
+                  type: string
+                  description: The protocol address.
+                  example: "0x0000000000000068F116a894984e2DB1123eB395"
+                chainName:
+                  type: string
+                  description: The blockchain network name.
+                  example: ethereum
+      responses:
+        "200":
+          description: Offer created successfully
+
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+
+  /blur/auth/challenge:
+    post:
+      tags:
+        - Auth
+      summary: Request an authentication challenge
+      description: Request an authentication challenge by providing an Ethereum address.
+      requestBody:
+        description: Ethereum address for which the authentication challenge is requested.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                address:
+                  type: string
+                  description: Ethereum address of the user.
+                  example: "0xb71425024868e0c9156c3942AC115Cd3b56d5559"
+              required:
+                - address
+      responses:
+        "200":
+          description: Successfully retrieved authentication challenge.
+        "400":
+          description: Invalid request.
+        "500":
+          description: Internal server error.
+
+  /blur/auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Authenticate user login
+      description: Authenticate the user by providing the signed challenge message and other required details.
+      requestBody:
+        description: Signed authentication challenge details.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                walletAddress:
+                  type: string
+                  description: Ethereum address of the user.
+                  example: "0xb71425024868e0c9156c3942AC115Cd3b56d5559"
+                expiresOn:
+                  type: string
+                  format: date-time
+                  description: Expiration date and time of the challenge.
+                  example: "2024-07-14T07:32:02.728Z"
+                hmac:
+                  type: string
+                  description: HMAC of the challenge.
+                  example: "4da1b7cb9b0fa2df0c4bc958469272f8b755f0f4d1e9c964acf10a53c05f437a"
+                message:
+                  type: string
+                  description: The challenge message to be signed.
+                  example: "Sign in to Blur\n\nChallenge: 4da1b7cb9b0fa2df0c4bc958469272f8b755f0f4d1e9c964acf10a53c05f437a"
+                signature:
+                  type: string
+                  description: Signature of the challenge message.
+                  example: "0x866689061f7b38532fd864dd630a8104d7de78c989ed450ae8b7d65025f0ea011d893c27609184d13b522aa42e2fa1787da7e2bd2a70b982fa19b39ceb013bc81b"
+              required:
+                - walletAddress
+                - expiresOn
+                - hmac
+                - message
+                - signature
+      responses:
+        "200":
+          description: Successfully authenticated.
+
+        "400":
+          description: Invalid request.
+
+        "500":
+          description: Internal server error.
+
+  /route:
+    post:
+      tags:
+        - Buy
+      summary: Route a transaction
+      description: Route a transaction by providing the chain name, sender, balance token, and other details.
+      requestBody:
+        description: Transaction routing details.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                chainName:
+                  type: string
+                  description: Name of the blockchain network.
+                  example: "ethereum"
+                new:
+                  type: boolean
+                  description: Indicates if the transaction is new.
+                  example: true
+                sender:
+                  type: string
+                  description: Ethereum address of the sender.
+                  example: "0xb71425024868e0c9156c3942AC115Cd3b56d5559"
+                balanceToken:
+                  type: string
+                  description: Token address used for balance checking.
+                  example: "0x0000000000000000000000000000000000000000"
+                useFlashbots:
+                  type: boolean
+                  description: Indicates if Flashbots should be used.
+                  example: false
+                sells:
+                  type: array
+                  description: List of sell orders.
+                  items:
+                    type: object
+                buys:
+                  type: array
+                  description: List of buy orders.
+                  items:
+                    type: object
+                    properties:
+                      priceInfo:
+                        type: object
+                        properties:
+                          price:
+                            type: string
+                            description: Price of the item.
+                            example: "100000000000"
+                          address:
+                            type: string
+                            description: Token address for the price.
+                            example: "0x0000000000000000000000000000000000000000"
+                          decimals:
+                            type: integer
+                            description: Number of decimals for the price.
+                            example: 18
+                      market:
+                        type: string
+                        description: Market for the buy order.
+                        example: "seaport"
+                      standard:
+                        type: string
+                        description: Token standard.
+                        example: "ERC721"
+                      address:
+                        type: string
+                        description: Token address of the item.
+                        example: "0xa4991609c508b6d4fb7156426db0bd49fe298bd8"
+                      tokenId:
+                        type: string
+                        description: Token ID of the item.
+                        example: "3786"
+                      amount:
+                        type: integer
+                        description: Amount of tokens to buy.
+                        example: 1
+              required:
+                - chainName
+                - new
+                - sender
+                - balanceToken
+                - useFlashbots
+                - buys
+      responses:
+        "200":
+          description: Successfully routed the transaction.
+
+        "400":
+          description: Invalid request.
+
+        "500":
+          description: Internal server error.
+
+  /__api/graphql/:
+    servers:
+      - url: https://nfttools.pro/opensea
+    post:
+      tags:
+        - GraphQL
+      summary: GraphQL Operations
+      description: Handles different GraphQL operations on Opensea.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: The operation ID, which determines the type of GraphQL query or mutation.
+
+                query:
+                  type: string
+                  description: The GraphQL query or mutation.
+                variables:
+                  type: object
+                  description: The body of the request
+
+            examples:
+              ChallengeLoginMessageQueryExample:
+                summary: Example for challengeLoginMessageQuery
+                description: "Sends a request to create a new listing on Opensea 'x-signed-query':'e35fa1b7ede16cf8e95a6867a739cc0002ae8bfde2a8a1926d05d2919170e33a'"
+                value:
+                  id: challengeLoginMessageQuery
+                  query: "query challengeLoginMessageQuery(\n  $address: AddressScalar!\n) {\n  auth {\n    loginMessage(address: $address)\n  }\n}\n"
+                  variables:
+                    address: "0xb71425024868e0c9156c3942AC115Cd3b56d5559"
+
+              AuthLoginV2AuthSimplifiedMutationExample:
+                summary: Example for authLoginV2AuthSimplifiedMutation
+                description: "Sends an authentication login mutation with the provided address, message, device ID, signature, and chain 'x-signed-query': 'f6b83e92d7ef2ba14a46f695d07198b7eae0403f0e2164270438eff613755981'."
+                value:
+                  id: authLoginV2AuthSimplifiedMutation
+                  query: "mutation authLoginV2AuthSimplifiedMutation(\n  $address: AddressScalar!\n  $message: String!\n  $deviceId: String!\n  $signature: String!\n  $chain: ChainScalar\n) {\n  AuthTypeV2 {\n    webLoginV2(address: $address, deviceId: $deviceId, message: $message, signature: $signature, chain: $chain) {\n      address\n      isEmployee\n    }\n  }\n}\n"
+                  variables:
+                    address: "0xb71425024868e0c9156c3942AC115Cd3b56d5559"
+                    message: "Welcome to Opensea!\n\nClick to sign in and accept the Opensea Terms of Service (https://opensea.io/tos) and Privacy Policy (https://opensea.io/privacy).\n\nThis request will not trigger a blockchain transaction or cost any gas fees.\n\nWallet address:\n0xb71425024868e0c9156c3942AC115Cd3b56d5559\n\nNonce:\ne452e2b6-116b-4142-a26f-29a403f527b3"
+                    deviceId: "4c1bc3c7-27e8-4b55-a883-1eeecf69e02a"
+                    signature: "0x12abf2ce370382d4bd0a8ee987ab0c57d88727f4d3b07bf7b6741a43ca89b49b49e6324d51fd46d1eb8c0b27645fbe03c6c5836c9f23439955f179d4a62613321c"
+                    chain: "ETHEREUM"
+
+              AuthRefreshMutationExample:
+                summary: Example for authRefreshMutation
+                description: "returns refresh token 'x-signed-query':'b7e62623eb6dc115cc77bc30144d64ab87d2d7a56dfb2866a16045df4e479f70'"
+                value:
+                  id: authRefreshMutation
+                  query: "mutation authRefreshMutation(\n  $address: AddressScalar!\n  $deviceId: String!\n) {\n  AuthTypeV2 {\n    webRefresh(address: $address, deviceId: $deviceId) {\n      isEmployee\n    }\n  }\n}\n"
+                  variables:
+                    address: "0xb71425024868e0c9156c3942AC115Cd3b56d5559"
+                    deviceId: "4c1bc3c7-27e8-4b55-a883-1eeecf69e02a"
+
+              AssetPageQueryExample:
+                summary: Example for AssetPageQuery
+                description: "returns Opensea Asset ID 'x-signed-query':'be770800bdd51c9042b4c4cbb9e4706d49bc571908f18c38172d739c13fdbb45'"
+                value:
+                  id: AssetPageQuery
+                  query: "query AssetPageQuery(\n  $tokenId: String!\n  $contractAddress: AddressScalar!\n  $chain: ChainScalar!\n) {\n  ...AssetPage_data_3gcux1\n}\n\nfragment AcceptHighestOfferButton_asset on AssetType {\n  ...AcceptOfferButton_asset\n  ...itemEvents_dataV2\n}\n\nfragment AcceptHighestOfferButton_tradeSummary on TradeSummaryType {\n  bestBid {\n    item {\n      __typename\n      ...itemEvents_dataV2\n      ... on Node {\n        __isNode: __typename\n        id\n      }\n    }\n    perUnitPriceType {\n      unit\n      symbol\n    }\n    ...AcceptOfferButton_order\n    id\n  }\n}\n\nfragment AcceptOfferButton_asset on AssetType {\n  relayId\n  acceptOfferDisabled {\n    __typename\n  }\n  ownedQuantity(identity: {})\n  ...AcceptOfferModalContent_criteriaAsset_3z4lq0\n  ...itemEvents_dataV2\n}\n\nfragment AcceptOfferButton_order on OrderV2Type {\n  relayId\n  side\n  orderType\n  item {\n    __typename\n    ... on AssetType {\n      acceptOfferDisabled {\n        __typename\n      }\n      collection {\n        statsV2 {\n          floorPrice {\n            eth\n          }\n        }\n        id\n      }\n      chain {\n        identifier\n      }\n      ownedQuantity(identity: {})\n      ...itemEvents_dataV2\n    }\n    ... on AssetBundleType {\n      bundleCollection: collection {\n        statsV2 {\n          floorPrice {\n            eth\n          }\n        }\n        id\n      }\n      chain {\n        identifier\n      }\n      assetQuantities(first: 30) {\n        edges {\n          node {\n            asset {\n              ownedQuantity(identity: {})\n              id\n            }\n            id\n          }\n        }\n      }\n      ...itemEvents_dataV2\n    }\n    ... on Node {\n      __isNode: __typename\n      id\n    }\n  }\n  maker {\n    address\n    id\n  }\n  perUnitPriceType {\n    eth\n  }\n}\n\nfragment AcceptOfferDisabledAlert_asset on AssetType {\n  decimals\n  ownedQuantity(identity: {})\n  acceptOfferDisabled {\n    ...useAcceptOfferDisabledReason_data\n  }\n}\n\nfragment AcceptOfferModalContent_criteriaAsset_3z4lq0 on AssetType {\n  __typename\n  assetContract {\n    address\n    id\n  }\n  chain {\n    identifier\n  }\n  tokenId\n  relayId\n  ownedQuantity(identity: {})\n  isCurrentlyFungible\n  defaultRarityData {\n    rank\n    id\n  }\n  ...ItemOfferDetails_item\n  ...FloorPriceDifference_item\n  ...readOptionalCreatorFees_item\n}\n\nfragment AcceptOffersButton_asset on AssetType {\n  relayId\n  ...readOptionalCreatorFees_item\n  ...CreatorFeeInputModalContent_asset\n}\n\nfragment AcceptOffersButton_orders on OrderV2Type {\n  relayId\n  ...readOrderFees_order\n  ...CreatorFeeInputModalContent_orders\n}\n\nfragment AccountLink_data on AccountType {\n  address\n  config\n  isCompromised\n  user {\n    publicUsername\n    id\n  }\n  displayName\n  ...ProfileImage_data\n  ...wallet_accountKey\n  ...accounts_url\n}\n\nfragment AddToCartAndQuickBuyButton_order on OrderV2Type {\n  ...useIsQuickBuyEnabled_order\n  ...ItemAddToCartButton_order\n  ...QuickBuyButton_order\n}\n\nfragment AssetDealLink_asset on AssetType {\n  assetContract {\n    address\n    id\n  }\n  tokenId\n  chain {\n    identifier\n  }\n  assetOwners(first: 1) {\n    edges {\n      node {\n        owner {\n          address\n          id\n        }\n        id\n      }\n    }\n  }\n  ...useGetDealAssetDisabledReason_asset\n}\n\nfragment AssetDetails_data on AssetType {\n  assetContract {\n    openseaVersion\n    address\n    chain\n    blockExplorerLink\n    tokenStandard\n    id\n  }\n  metadataStatus\n  tokenId\n  isFrozen\n  frozenAt\n  tokenMetadata\n  lastUpdatedAt\n  ...useItemFees_item\n}\n\nfragment AssetListButton_asset on AssetType {\n  ...CreateListingButton_item\n}\n\nfragment AssetMediaAnimation_asset on AssetType {\n  ...AssetMediaImage_asset\n  ...AssetMediaContainer_asset\n  ...AssetMediaPlaceholderImage_asset\n}\n\nfragment AssetMediaAudio_asset on AssetType {\n  backgroundColor\n  ...AssetMediaImage_asset\n}\n\nfragment AssetMediaContainer_asset on AssetType {\n  backgroundColor\n  ...AssetMediaEditions_asset_1mZMwQ\n  collection {\n    ...useIsRarityEnabled_collection\n    id\n  }\n}\n\nfragment AssetMediaContainer_asset_1LNk0S on AssetType {\n  backgroundColor\n  ...AssetMediaEditions_asset_1mZMwQ\n  collection {\n    ...useIsRarityEnabled_collection\n    id\n  }\n}\n\nfragment AssetMediaEditions_asset_1mZMwQ on AssetType {\n  decimals\n}\n\nfragment AssetMediaImage_asset on AssetType {\n  backgroundColor\n  imageUrl\n  collection {\n    displayData {\n      cardDisplayStyle\n    }\n    id\n  }\n}\n\nfragment AssetMediaPlaceholderImage_asset on AssetType {\n  collection {\n    displayData {\n      cardDisplayStyle\n    }\n    id\n  }\n}\n\nfragment AssetMediaVideo_asset on AssetType {\n  backgroundColor\n  ...AssetMediaImage_asset\n}\n\nfragment AssetMediaWebgl_asset on AssetType {\n  backgroundColor\n  ...AssetMediaImage_asset\n}\n\nfragment AssetMedia_asset on AssetType {\n  animationUrl\n  displayImageUrl\n  imageUrl\n  isDelisted\n  ...AssetMediaAnimation_asset\n  ...AssetMediaAudio_asset\n  ...AssetMediaContainer_asset_1LNk0S\n  ...AssetMediaImage_asset\n  ...AssetMediaPlaceholderImage_asset\n  ...AssetMediaVideo_asset\n  ...AssetMediaWebgl_asset\n}\n\nfragment AssetOfferModal_asset on AssetType {\n  relayId\n  chain {\n    identifier\n  }\n}\n\nfragment AssetPageMediaHeader__accountInfo_1mZMwQ on AssetType {\n  isFavorite\n  animationUrl\n  imageUrl\n  imageStorageUrl\n}\n\nfragment AssetPageMediaHeader_item on ItemType {\n  __isItemType: __typename\n  relayId\n  __typename\n  ... on AssetType {\n    chain {\n      identifier\n    }\n    decimals\n    favoritesCount\n    isDelisted\n    isFrozen\n    hasUnlockableContent\n  }\n  ... on AssetBundleType {\n    chain {\n      identifier\n    }\n    assetCount\n  }\n}\n\nfragment AssetPage_data_3gcux1 on Query {\n  nft(tokenId: $tokenId, contractAddress: $contractAddress, chain: $chain) {\n    ...AssetPageMediaHeader_item\n    ...AssetPageMediaHeader__accountInfo_1mZMwQ\n    ...asset_display_name\n    ...ContentAuthenticity_data\n    assetContract {\n      address\n      chain\n      ...CollectionLink_assetContract\n      id\n    }\n    creator {\n      address\n      user {\n        publicUsername\n        id\n      }\n      displayName\n      ...AccountLink_data\n      id\n    }\n    animationUrl\n    backgroundColor\n    collection {\n      description\n      isSensitiveContent\n      displayData {\n        cardDisplayStyle\n      }\n      category {\n        slug\n      }\n      hidden\n      imageUrl\n      name\n      slug\n      ...CollectionLink_collection\n      ...Boost_collection\n      ...Property_collection\n      ...NumericTrait_collection\n      ...SocialBar_data\n      ...useIsLiveUpdatesEnabledForCollection_collection\n      ...useIsRarityEnabled_collection\n      ...CollectionInspiredBy_data\n      id\n    }\n    decimals\n    description\n    imageUrl\n    name\n    numVisitors\n    isDelisted\n    isListable\n    isReportedSuspicious\n    isSensitiveContent\n    isUnderReview\n    isCompromised\n    isBiddingEnabled {\n      value\n      reason\n    }\n    relayId\n    tokenId\n    hasUnlockableContent\n    favoritesCount\n    tradeSummary {\n      bestAsk {\n        closedAt\n        orderType\n        priceType {\n          usd\n        }\n        maker {\n          ...wallet_accountKey\n          id\n        }\n        relayId\n        ...PrivateListingBanner_data\n        id\n      }\n      bestBid {\n        __typename\n        id\n      }\n      ...TradeStation_data\n    }\n    acceptHighestOffer: tradeSummary(excludeAccountAsMaker: true) {\n      ...TradeStation_acceptHighestOffer\n    }\n    traits(first: 100) {\n      edges {\n        node {\n          relayId\n          displayType\n          floatValue\n          intValue\n          traitType\n          value\n          ...Boost_trait\n          ...Property_trait\n          ...NumericTrait_trait\n          ...Date_trait\n          id\n        }\n      }\n    }\n    defaultRarityData {\n      ...RarityIndicator_data\n      id\n    }\n    ...AssetMedia_asset\n    ...Toolbar_asset\n    ...asset_url\n    ...itemEvents_data\n    ...AssetDetails_data\n    ownedQuantity(identity: {})\n    assetOwners(first: 1) {\n      edges {\n        node {\n          quantity\n          owner {\n            ...AccountLink_data\n            id\n          }\n          id\n        }\n      }\n      count\n    }\n    totalQuantity\n    isCurrentlyFungible\n    ...RedeemableItemCard_itemToBurn\n    ...TradeStation_archetype\n    ...OffersPanel_asset\n    ...ListingsPanel_asset\n    ...SemiFungibleTradeStation_asset\n    ...OrderManager_item\n    ...ItemTrackingContext_item\n    activity(first: 11) {\n      edges {\n        node {\n          __typename\n          id\n        }\n      }\n    }\n    id\n  }\n  ...SemiFungibleTradeStation_bestListings_3gcux1\n  ...SemiFungibleTradeStation_bestOffers_3gcux1\n  ...CampaignAnnouncementModal_data\n}\n\nfragment Boost_collection on CollectionType {\n  numericTraits {\n    key\n    value {\n      max\n    }\n  }\n  ...collection_url\n}\n\nfragment Boost_trait on TraitType {\n  displayType\n  floatValue\n  intValue\n  traitType\n}\n\nfragment BulkPurchaseModal_orders on OrderV2Type {\n  relayId\n  item {\n    __typename\n    relayId\n    chain {\n      identifier\n    }\n    ... on AssetType {\n      collection {\n        slug\n        isSafelisted\n        id\n      }\n    }\n    ... on Node {\n      __isNode: __typename\n      id\n    }\n  }\n  payment {\n    relayId\n    symbol\n    id\n  }\n  ...useTotalPrice_orders\n  ...useFulfillingListingsWillReactivateOrders_orders\n}\n\nfragment BuyNowButton_orders on OrderV2Type {\n  ...BulkPurchaseModal_orders\n}\n\nfragment CampaignAnnouncementModal_data on Query {\n  campaignAnnouncementModal {\n    campaignId\n    title\n    description\n    overrideUrl\n    ctaText\n    ctaUrl\n    id\n  }\n}\n\nfragment CollectionInspiredBy_data on CollectionType {\n  inspiredBy(first: 2) {\n    edges {\n      node {\n        slug\n        name\n        ...collection_url\n        id\n      }\n    }\n  }\n}\n\nfragment CollectionLink_assetContract on AssetContractType {\n  address\n  blockExplorerLink\n}\n\nfragment CollectionLink_collection on CollectionType {\n  name\n  slug\n  verificationStatus\n  ...collection_url\n}\n\nfragment ContentAuthenticity_data on AssetType {\n  authenticityMetadata {\n    signedOn\n    signedBy\n    producedWith\n    walletAddress\n    id\n  }\n  imageUrl\n  creator {\n    address\n    id\n  }\n  chain {\n    identifier\n  }\n}\n\nfragment ContextualPriceListBestOfferItem_tradeSummary on TradeSummaryType {\n  bestBid {\n    perUnitPriceType {\n      unit\n      symbol\n      usd\n    }\n    id\n  }\n}\n\nfragment ContextualPriceList_tradeSummary on TradeSummaryType {\n  ...ContextualPriceListBestOfferItem_tradeSummary\n}\n\nfragment CreateListingButton_item on ItemType {\n  __isItemType: __typename\n  __typename\n  ... on AssetType {\n    ...CreateQuickSingleListingFlowModal_asset\n  }\n  ...itemEvents_dataV2\n  ...item_sellUrl\n}\n\nfragment CreateQuickSingleListingFlowModal_asset on AssetType {\n  relayId\n  chain {\n    identifier\n  }\n  ...itemEvents_dataV2\n}\n\nfragment CreatorFeeInputModalContent_asset on AssetType {\n  ...ItemOfferDetails_item\n  ...readOptionalCreatorFees_item\n  ...useItemFees_item\n}\n\nfragment CreatorFeeInputModalContent_orders on OrderV2Type {\n  ...readOrderFees_order\n  ...ServiceFeeText_orders\n}\n\nfragment Date_trait on TraitType {\n  traitType\n  floatValue\n  intValue\n}\n\nfragment EditListingButton_item on ItemType {\n  __isItemType: __typename\n  chain {\n    identifier\n  }\n  ...EditListingModal_item\n  ...itemEvents_dataV2\n}\n\nfragment EditListingButton_listing on OrderV2Type {\n  ...EditListingModal_listing\n}\n\nfragment EditListingModal_item on ItemType {\n  __isItemType: __typename\n  __typename\n  ... on AssetType {\n    tokenId\n    assetContract {\n      address\n      id\n    }\n    chain {\n      identifier\n    }\n  }\n}\n\nfragment EditListingModal_listing on OrderV2Type {\n  relayId\n}\n\nfragment FloorPriceDifference_item on ItemType {\n  __isItemType: __typename\n  ... on AssetType {\n    collection {\n      statsV2 {\n        floorPrice {\n          eth\n        }\n      }\n      id\n    }\n  }\n}\n\nfragment ItemAddToCartButton_order on OrderV2Type {\n  maker {\n    address\n    id\n  }\n  taker {\n    address\n    id\n  }\n  item {\n    __typename\n    ... on AssetType {\n      isCurrentlyFungible\n    }\n    ...itemEvents_dataV2\n    ... on Node {\n      __isNode: __typename\n      id\n    }\n  }\n  openedAt\n  ...ShoppingCartContextProvider_inline_order\n}\n\nfragment ItemOfferDetails_item on ItemType {\n  __isItemType: __typename\n  __typename\n  ... on AssetType {\n    displayName\n    collection {\n      ...CollectionLink_collection\n      id\n    }\n    ...StackedAssetMedia_assets\n  }\n  ... on AssetBundleType {\n    displayName\n    bundleCollection: collection {\n      ...CollectionLink_collection\n      id\n    }\n    assetQuantities(first: 18) {\n      edges {\n        node {\n          asset {\n            ...StackedAssetMedia_assets\n            id\n          }\n          id\n        }\n      }\n    }\n  }\n}\n\nfragment ItemTrackingContext_item on ItemType {\n  __isItemType: __typename\n  relayId\n  verificationStatus\n  chain {\n    identifier\n  }\n  ... on AssetType {\n    tokenId\n    isReportedSuspicious\n    assetContract {\n      address\n      id\n    }\n  }\n  ... on AssetBundleType {\n    slug\n  }\n}\n\nfragment ListingFeesSupportsCreator_orders on OrderV2Type {\n  side\n  item {\n    __typename\n    ... on AssetType {\n      totalCreatorFee\n    }\n    ... on Node {\n      __isNode: __typename\n      id\n    }\n  }\n  ...readOrderFees_order\n}\n\nfragment ListingsPanel_asset on AssetType {\n  tokenId\n  isCurrentlyFungible\n  ownedQuantity(identity: {})\n  chain {\n    identifier\n  }\n  assetContract {\n    address\n    id\n  }\n}\n\nfragment MakeAssetOfferButton_asset on AssetType {\n  relayId\n  verificationStatus\n  isBiddingEnabled {\n    value\n    reason\n  }\n  chain {\n    identifier\n  }\n  ...AssetOfferModal_asset\n}\n\nfragment NumericTrait_collection on CollectionType {\n  numericTraits {\n    key\n    value {\n      max\n    }\n  }\n  ...collection_url\n}\n\nfragment NumericTrait_trait on TraitType {\n  floatValue\n  intValue\n  maxValue\n  traitType\n}\n\nfragment OfferModal_tradeSummary on TradeSummaryType {\n  bestAsk {\n    relayId\n    closedAt\n    payment {\n      relayId\n      id\n    }\n    id\n  }\n  ...useOfferModalAdapter_tradeData\n  ...ContextualPriceList_tradeSummary\n}\n\nfragment OffersPanel_asset on AssetType {\n  relayId\n  tokenId\n  isCurrentlyFungible\n  ownedQuantity(identity: {})\n  chain {\n    identifier\n  }\n  assetContract {\n    address\n    id\n  }\n  ...AcceptOfferDisabledAlert_asset\n}\n\nfragment OrderListItem_order on OrderV2Type {\n  relayId\n  makerOwnedQuantity\n  item {\n    __typename\n    displayName\n    ... on AssetType {\n      assetContract {\n        ...CollectionLink_assetContract\n        id\n      }\n      collection {\n        ...CollectionLink_collection\n        id\n      }\n      ...AssetMedia_asset\n      ...asset_url\n      ...useItemFees_item\n    }\n    ... on AssetBundleType {\n      assetQuantities(first: 30) {\n        edges {\n          node {\n            asset {\n              displayName\n              relayId\n              assetContract {\n                ...CollectionLink_assetContract\n                id\n              }\n              collection {\n                ...CollectionLink_collection\n                id\n              }\n              ...StackedAssetMedia_assets\n              ...AssetMedia_asset\n              ...asset_url\n              id\n            }\n            id\n          }\n        }\n      }\n    }\n    ...itemEvents_dataV2\n    ...useIsItemSafelisted_item\n    ...ItemTrackingContext_item\n    ... on Node {\n      __isNode: __typename\n      id\n    }\n  }\n  remainingQuantityType\n  ...OrderPrice\n}\n\nfragment OrderList_orders on OrderV2Type {\n  item {\n    __typename\n    ... on AssetType {\n      __typename\n      relayId\n    }\n    ... on AssetBundleType {\n      __typename\n      assetQuantities(first: 30) {\n        edges {\n          node {\n            asset {\n              relayId\n              id\n            }\n            id\n          }\n        }\n      }\n    }\n    ... on Node {\n      __isNode: __typename\n      id\n    }\n  }\n  relayId\n  ...OrderListItem_order\n  ...useFulfillingListingsWillReactivateOrders_orders\n}\n\nfragment OrderManager_item on ItemType {\n  __isItemType: __typename\n  __typename\n  chain {\n    isTradingEnabled\n  }\n  tradeSummary {\n    bestAsk {\n      __typename\n      ...EditListingButton_listing\n      id\n    }\n  }\n  ... on AssetType {\n    isEditable {\n      value\n    }\n    ownedQuantity(identity: {})\n    isCurrentlyFungible\n    ...asset_edit_url\n  }\n  ...CreateListingButton_item\n  ...EditListingButton_item\n}\n\nfragment OrderPrice on OrderV2Type {\n  priceType {\n    unit\n  }\n  perUnitPriceType {\n    unit\n  }\n  payment {\n    ...TokenPricePayment\n    id\n  }\n}\n\nfragment OrderUsdPrice on OrderV2Type {\n  priceType {\n    usd\n  }\n  perUnitPriceType {\n    usd\n  }\n}\n\nfragment PrivateListingBanner_data on OrderV2Type {\n  taker {\n    address\n    ...AccountLink_data\n    ...wallet_accountKey\n    id\n  }\n  maker {\n    ...wallet_accountKey\n    id\n  }\n}\n\nfragment ProfileImage_data on AccountType {\n  imageUrl\n}\n\nfragment Property_collection on CollectionType {\n  ...collection_url\n  statsV2 {\n    totalSupply\n  }\n}\n\nfragment Property_trait on TraitType {\n  traitCount\n  traitType\n  value\n}\n\nfragment QuickBuyButton_order on OrderV2Type {\n  maker {\n    address\n    id\n  }\n  taker {\n    address\n    ...wallet_accountKey\n    id\n  }\n  item {\n    __typename\n    chain {\n      identifier\n    }\n    ...itemEvents_dataV2\n    ... on Node {\n      __isNode: __typename\n      id\n    }\n  }\n  openedAt\n  relayId\n}\n\nfragment RarityIndicator_data on RarityDataType {\n  rank\n  rankPercentile\n  rankCount\n  maxRank\n}\n\nfragment RedeemableItemCard_itemToBurn on AssetType {\n  collection {\n    name\n    id\n  }\n  ...asset_url\n}\n\nfragment SemiFungibleTradeStation_asset on AssetType {\n  ownedQuantity(identity: {})\n  ...TradeStationBuyTab_asset\n  ...TradeStationSellTab_asset\n}\n\nfragment SemiFungibleTradeStation_bestListings_3gcux1 on Query {\n  ...TradeStationBuyTab_bestListings_3gcux1\n}\n\nfragment SemiFungibleTradeStation_bestOffers_3gcux1 on Query {\n  ...TradeStationSellTab_bestOffers_3gcux1\n}\n\nfragment ServiceFeeText_orders on OrderV2Type {\n  ...readOrderFees_order\n}\n\nfragment ShoppingCartContextProvider_inline_order on OrderV2Type {\n  relayId\n  makerOwnedQuantity\n  item {\n    __typename\n    chain {\n      identifier\n    }\n    relayId\n    ... on AssetBundleType {\n      assetQuantities(first: 30) {\n        edges {\n          node {\n            asset {\n              relayId\n              id\n            }\n            id\n          }\n        }\n      }\n    }\n    ... on Node {\n      __isNode: __typename\n      id\n    }\n  }\n  maker {\n    relayId\n    id\n  }\n  taker {\n    address\n    ...wallet_accountKey\n    id\n  }\n  priceType {\n    usd\n  }\n  payment {\n    relayId\n    id\n  }\n  remainingQuantityType\n  ...useTotalItems_orders\n  ...ShoppingCart_orders\n}\n\nfragment ShoppingCartDetailedView_orders on OrderV2Type {\n  relayId\n  item {\n    __typename\n    chain {\n      identifier\n    }\n    ... on Node {\n      __isNode: __typename\n      id\n    }\n  }\n  supportsGiftingOnPurchase\n  ...useTotalPrice_orders\n  ...OrderList_orders\n}\n\nfragment ShoppingCart_orders on OrderV2Type {\n  ...ShoppingCartDetailedView_orders\n  ...BulkPurchaseModal_orders\n}\n\nfragment SocialBar_data on CollectionType {\n  relayId\n  discordUrl\n  externalUrl\n  mediumUsername\n  slug\n  telegramUrl\n  twitterUsername\n  connectedInstagramUsername\n  connectedTwitterUsername\n  assetContracts(first: 2) {\n    edges {\n      node {\n        blockExplorerLink\n        chainData {\n          blockExplorer {\n            name\n            identifier\n          }\n        }\n        id\n      }\n    }\n  }\n}\n\nfragment StackedAssetMedia_assets on AssetType {\n  relayId\n  ...AssetMedia_asset\n  collection {\n    logo\n    id\n  }\n}\n\nfragment TokenPricePayment on PaymentAssetType {\n  symbol\n}\n\nfragment Toolbar_asset on AssetType {\n  ...asset_url\n  ...AssetDealLink_asset\n  ...itemEvents_data\n  assetContract {\n    address\n    id\n  }\n  collection {\n    externalUrl\n    id\n  }\n  externalLink\n  relayId\n}\n\nfragment TradeStationBuyTab_asset on AssetType {\n  tradeSummary {\n    bestAsk {\n      ...TradeStationOrderPrice_order\n      id\n    }\n  }\n  ...useFulfillSemiFungibleOrders_asset\n  ...MakeAssetOfferButton_asset\n  ...itemEvents_dataV2\n}\n\nfragment TradeStationBuyTab_bestListings_3gcux1 on Query {\n  nft(tokenId: $tokenId, contractAddress: $contractAddress, chain: $chain) {\n    bestListings(first: 10, forTaker: {}) {\n      edges {\n        node {\n          ...useFulfillSemiFungibleOrders_orders\n          id\n          __typename\n        }\n        cursor\n      }\n      pageInfo {\n        endCursor\n        hasNextPage\n      }\n    }\n    id\n  }\n}\n\nfragment TradeStationOrderPrice_order on OrderV2Type {\n  ...OrderPrice\n  ...OrderUsdPrice\n}\n\nfragment TradeStationSellTab_asset on AssetType {\n  ownedQuantity(identity: {})\n  tradeSummary {\n    bestBid {\n      ...TradeStationOrderPrice_order\n      id\n    }\n  }\n  ...useFulfillSemiFungibleOrders_asset\n  ...AssetListButton_asset\n  ...itemEvents_dataV2\n}\n\nfragment TradeStationSellTab_bestOffers_3gcux1 on Query {\n  nft(tokenId: $tokenId, contractAddress: $contractAddress, chain: $chain) {\n    bestOffers(first: 10, forTaker: {}) {\n      edges {\n        node {\n          ...useFulfillSemiFungibleOrders_orders\n          id\n          __typename\n        }\n        cursor\n      }\n      pageInfo {\n        endCursor\n        hasNextPage\n      }\n    }\n    id\n  }\n}\n\nfragment TradeStation_acceptHighestOffer on TradeSummaryType {\n  bestBid {\n    relayId\n    id\n  }\n  ...AcceptHighestOfferButton_tradeSummary\n}\n\nfragment TradeStation_archetype on AssetType {\n  verificationStatus\n  chain {\n    identifier\n    isTradingEnabled\n  }\n  largestOwner {\n    owner {\n      ...wallet_accountKey\n      id\n    }\n    id\n  }\n  isCurrentlyFungible\n  isListable\n  isBiddingEnabled {\n    value\n    reason\n  }\n  relayId\n  acceptOfferDisabled {\n    __typename\n  }\n  isFastPollingEnabled\n  ...AcceptHighestOfferButton_asset\n  ...useFulfillSemiFungibleOrders_asset\n  ...AssetOfferModal_asset\n}\n\nfragment TradeStation_bestAsk on OrderV2Type {\n  closedAt\n  openedAt\n  orderType\n  englishAuctionReservePriceType {\n    unit\n  }\n  relayId\n  maker {\n    address\n    ...wallet_accountKey\n    id\n  }\n  item {\n    __typename\n    verificationStatus\n    relayId\n    chain {\n      identifier\n      isTradingEnabled\n    }\n    ... on AssetType {\n      tokenId\n      isCurrentlyFungible\n      assetContract {\n        address\n        id\n      }\n      collection {\n        slug\n        id\n      }\n    }\n    ...itemEvents_dataV2\n    ... on Node {\n      __isNode: __typename\n      id\n    }\n  }\n  priceType {\n    unit\n    usd\n  }\n  remainingQuantityType\n  perUnitPriceType {\n    usd\n  }\n  payment {\n    symbol\n    relayId\n    asset {\n      relayId\n      id\n    }\n    ...TokenPricePayment\n    id\n  }\n  taker {\n    ...wallet_accountKey\n    id\n  }\n  ...OrderPrice\n  ...OrderUsdPrice\n  ...AddToCartAndQuickBuyButton_order\n  ...QuickBuyButton_order\n}\n\nfragment TradeStation_bestBid on OrderV2Type {\n  ...OrderPrice\n  ...OrderUsdPrice\n  payment {\n    relayId\n    id\n  }\n  priceType {\n    unit\n  }\n  perUnitPriceType {\n    usd\n  }\n}\n\nfragment TradeStation_data on TradeSummaryType {\n  bestAsk {\n    ...TradeStation_bestAsk\n    ...ListingFeesSupportsCreator_orders\n    id\n  }\n  bestBid {\n    ...TradeStation_bestBid\n    id\n  }\n  ...OfferModal_tradeSummary\n}\n\nfragment accounts_url on AccountType {\n  address\n  user {\n    publicUsername\n    id\n  }\n}\n\nfragment asset_display_name on AssetType {\n  tokenId\n  name\n}\n\nfragment asset_edit_url on AssetType {\n  assetContract {\n    address\n    chain\n    id\n  }\n  tokenId\n  collection {\n    slug\n    id\n  }\n}\n\nfragment asset_url on AssetType {\n  assetContract {\n    address\n    id\n  }\n  tokenId\n  chain {\n    identifier\n  }\n}\n\nfragment collection_url on CollectionType {\n  slug\n  isCategory\n}\n\nfragment itemEvents_data on AssetType {\n  relayId\n  assetContract {\n    address\n    id\n  }\n  tokenId\n  chain {\n    identifier\n  }\n}\n\nfragment itemEvents_dataV2 on ItemType {\n  __isItemType: __typename\n  relayId\n  chain {\n    identifier\n  }\n  ... on AssetType {\n    tokenId\n    assetContract {\n      address\n      id\n    }\n  }\n}\n\nfragment item_sellUrl on ItemType {\n  __isItemType: __typename\n  __typename\n  ... on AssetType {\n    ...asset_url\n  }\n  ... on AssetBundleType {\n    slug\n    chain {\n      identifier\n    }\n    assetQuantities(first: 18) {\n      edges {\n        node {\n          asset {\n            relayId\n            id\n          }\n          id\n        }\n      }\n    }\n  }\n}\n\nfragment price on OrderV2Type {\n  priceType {\n    unit\n  }\n}\n\nfragment readOptionalCreatorFees_item on ItemType {\n  __isItemType: __typename\n  __typename\n  ... on AssetType {\n    collection {\n      isCreatorFeesEnforced\n      totalCreatorFeeBasisPoints\n      id\n    }\n  }\n}\n\nfragment readOrderFees_order on OrderV2Type {\n  makerFees(first: 10) {\n    edges {\n      node {\n        basisPoints\n        isOpenseaFee\n        id\n      }\n    }\n  }\n  takerFees(first: 10) {\n    edges {\n      node {\n        basisPoints\n        isOpenseaFee\n        id\n      }\n    }\n  }\n}\n\nfragment useAcceptOfferDisabledReason_data on AcceptOfferDisabledType {\n  until\n}\n\nfragment useFulfillSemiFungibleOrders_asset on AssetType {\n  relayId\n  totalQuantity\n  ownedQuantity(identity: {})\n  ...AcceptOffersButton_asset\n}\n\nfragment useFulfillSemiFungibleOrders_orders on OrderV2Type {\n  relayId\n  payment {\n    symbol\n    id\n  }\n  perUnitPriceType {\n    unit\n  }\n  remainingQuantityType\n  ...useOrdersWithValidMakerOwnedQuantity_order\n  ...useTotalPrice_orders\n  ...BuyNowButton_orders\n  ...AcceptOffersButton_orders\n  ...ListingFeesSupportsCreator_orders\n}\n\nfragment useFulfillingListingsWillReactivateOrders_orders on OrderV2Type {\n  ...useTotalItems_orders\n}\n\nfragment useGetDealAssetDisabledReason_asset on AssetType {\n  isCompromised\n  isCurrentlyFungible\n  isListable\n  tokenStandard\n  chain {\n    isTradingEnabled\n  }\n  collection {\n    safelistRequestStatus\n    id\n  }\n}\n\nfragment useIsItemSafelisted_item on ItemType {\n  __isItemType: __typename\n  __typename\n  ... on AssetType {\n    collection {\n      slug\n      verificationStatus\n      id\n    }\n  }\n  ... on AssetBundleType {\n    assetQuantities(first: 30) {\n      edges {\n        node {\n          asset {\n            collection {\n              slug\n              verificationStatus\n              id\n            }\n            id\n          }\n          id\n        }\n      }\n    }\n  }\n}\n\nfragment useIsLiveUpdatesEnabledForCollection_collection on CollectionType {\n  statsV2 {\n    hasFungibles\n  }\n}\n\nfragment useIsQuickBuyEnabled_order on OrderV2Type {\n  orderType\n  item {\n    __typename\n    ... on AssetType {\n      isCurrentlyFungible\n    }\n    ... on Node {\n      __isNode: __typename\n      id\n    }\n  }\n}\n\nfragment useIsRarityEnabled_collection on CollectionType {\n  slug\n  enabledRarities\n}\n\nfragment useItemFees_item on ItemType {\n  __isItemType: __typename\n  __typename\n  ... on AssetType {\n    totalCreatorFee\n    collection {\n      openseaSellerFeeBasisPoints\n      isCreatorFeesEnforced\n      id\n    }\n  }\n  ... on AssetBundleType {\n    bundleCollection: collection {\n      openseaSellerFeeBasisPoints\n      totalCreatorFeeBasisPoints\n      isCreatorFeesEnforced\n      id\n    }\n  }\n}\n\nfragment useOfferModalAdapter_tradeData on TradeSummaryType {\n  bestAsk {\n    orderType\n    relayId\n    item {\n      __typename\n      verificationStatus\n      ... on Node {\n        __isNode: __typename\n        id\n      }\n    }\n    payment {\n      relayId\n      id\n    }\n    perUnitPriceType {\n      unit\n    }\n    id\n  }\n  bestBid {\n    relayId\n    payment {\n      relayId\n      id\n    }\n    ...price\n    id\n  }\n}\n\nfragment useOrdersWithValidMakerOwnedQuantity_order on OrderV2Type {\n  makerOwnedQuantity\n  remainingQuantityType\n  side\n  perUnitPriceType {\n    unit\n  }\n  maker {\n    relayId\n    id\n  }\n}\n\nfragment useTotalItems_orders on OrderV2Type {\n  item {\n    __typename\n    relayId\n    ... on AssetBundleType {\n      assetQuantities(first: 30) {\n        edges {\n          node {\n            asset {\n              relayId\n              id\n            }\n            id\n          }\n        }\n      }\n    }\n    ... on Node {\n      __isNode: __typename\n      id\n    }\n  }\n}\n\nfragment useTotalPrice_orders on OrderV2Type {\n  relayId\n  perUnitPriceType {\n    usd\n    unit\n  }\n  payment {\n    symbol\n    ...TokenPricePayment\n    id\n  }\n}\n\nfragment wallet_accountKey on AccountType {\n  address\n}\n"
+                  variables:
+                    tokenId: "3786"
+                    contractAddress: "0xa4991609c508b6d4fb7156426db0bd49fe298bd8"
+                    chain: "ETHEREUM"
+
+              CreateListingActionModalQueryExample:
+                summary: Example for CreateListingActionModalQuery
+                description: "Create Lisitng on Opensea Pro 'x-signed-query':'7cf0e05871dfc5136fd7fe6244a57ed106a5d073530affee3d78dc63aee694fe' requires 'x-auth-address': 0xb71425024868e0c9156c3942AC115Cd3b56d5559 requires: cookie"
+                value:
+                  id: CreateListingActionModalQuery
+                  query: "query CreateListingActionModalQuery(\n  $item: AssetQuantityInputType!\n  $price: PaymentAssetQuantityInputType!\n  $recipient: AddressScalar\n  $openedAt: DateTime!\n  $closedAt: DateTime!\n  $englishAuctionReservePrice: BigNumberScalar\n  $optionalCreatorFeeBasisPoints: Int\n) {\n  blockchain {\n    createListingActions(item: $item, price: $price, recipient: $recipient, openedAt: $openedAt, closedAt: $closedAt, englishAuctionReservePrice: $englishAuctionReservePrice, optionalCreatorFeeBasisPoints: $optionalCreatorFeeBasisPoints) {\n      __typename\n      ...BlockchainActionList_data\n    }\n  }\n}\n\nfragment AskForDepositAction_data on AskForDepositType {\n  asset {\n    chain {\n      identifier\n    }\n    decimals\n    symbol\n    usdSpotPrice\n    id\n  }\n  minQuantity\n}\n\nfragment AskForSwapAction_data on AskForSwapType {\n  __typename\n  fromAsset {\n    chain {\n      identifier\n    }\n    decimals\n    symbol\n    id\n  }\n  toAsset {\n    chain {\n      identifier\n    }\n    symbol\n    id\n  }\n  minQuantity\n  maxQuantity\n  ...useHandleBlockchainActions_ask_for_asset_swap\n}\n\nfragment AssetApprovalAction_data on AssetApprovalActionType {\n  __typename\n  asset {\n    chain {\n      identifier\n    }\n    ...StackedAssetMedia_assets\n    assetContract {\n      ...CollectionLink_assetContract\n      id\n    }\n    collection {\n      __typename\n      ...CollectionLink_collection\n      id\n    }\n    id\n  }\n  ...useHandleBlockchainActions_approve_asset\n}\n\nfragment AssetBurnToRedeemAction_data on AssetBurnToRedeemActionType {\n  __typename\n  ...useHandleBlockchainActions_burnToRedeem\n  asset {\n    chain {\n      identifier\n    }\n    assetContract {\n      ...CollectionLink_assetContract\n      id\n    }\n    collection {\n      __typename\n      ...CollectionLink_collection\n      id\n    }\n    displayName\n    ...StackedAssetMedia_assets\n    id\n  }\n}\n\nfragment AssetItem_asset on AssetType {\n  chain {\n    identifier\n  }\n  displayName\n  relayId\n  collection {\n    name\n    id\n  }\n  ...StackedAssetMedia_assets\n}\n\nfragment AssetMediaAnimation_asset on AssetType {\n  ...AssetMediaImage_asset\n  ...AssetMediaContainer_asset\n  ...AssetMediaPlaceholderImage_asset\n}\n\nfragment AssetMediaAudio_asset on AssetType {\n  backgroundColor\n  ...AssetMediaImage_asset\n}\n\nfragment AssetMediaContainer_asset on AssetType {\n  backgroundColor\n  ...AssetMediaEditions_asset_1mZMwQ\n  collection {\n    ...useIsRarityEnabled_collection\n    id\n  }\n}\n\nfragment AssetMediaContainer_asset_1LNk0S on AssetType {\n  backgroundColor\n  ...AssetMediaEditions_asset_1mZMwQ\n  collection {\n    ...useIsRarityEnabled_collection\n    id\n  }\n}\n\nfragment AssetMediaEditions_asset_1mZMwQ on AssetType {\n  decimals\n}\n\nfragment AssetMediaImage_asset on AssetType {\n  backgroundColor\n  imageUrl\n  collection {\n    displayData {\n      cardDisplayStyle\n    }\n    id\n  }\n}\n\nfragment AssetMediaPlaceholderImage_asset on AssetType {\n  collection {\n    displayData {\n      cardDisplayStyle\n    }\n    id\n  }\n}\n\nfragment AssetMediaVideo_asset on AssetType {\n  backgroundColor\n  ...AssetMediaImage_asset\n}\n\nfragment AssetMediaWebgl_asset on AssetType {\n  backgroundColor\n  ...AssetMediaImage_asset\n}\n\nfragment AssetMedia_asset on AssetType {\n  animationUrl\n  displayImageUrl\n  imageUrl\n  isDelisted\n  ...AssetMediaAnimation_asset\n  ...AssetMediaAudio_asset\n  ...AssetMediaContainer_asset_1LNk0S\n  ...AssetMediaImage_asset\n  ...AssetMediaPlaceholderImage_asset\n  ...AssetMediaVideo_asset\n  ...AssetMediaWebgl_asset\n}\n\nfragment AssetSwapAction_data on AssetSwapActionType {\n  __typename\n  ...useHandleBlockchainActions_swap_asset\n}\n\nfragment AssetTransferAction_data on AssetTransferActionType {\n  __typename\n  ...useHandleBlockchainActions_transfer_asset\n}\n\nfragment BlockchainActionList_data on BlockchainActionType {\n  __isBlockchainActionType: __typename\n  __typename\n  ... on AssetApprovalActionType {\n    ...AssetApprovalAction_data\n  }\n  ... on AskForDepositType {\n    __typename\n    ...AskForDepositAction_data\n  }\n  ... on AskForSwapType {\n    __typename\n    ...AskForSwapAction_data\n  }\n  ... on AssetSwapActionType {\n    __typename\n    ...AssetSwapAction_data\n  }\n  ... on AssetTransferActionType {\n    __typename\n    ...AssetTransferAction_data\n  }\n  ... on CreateOrderActionType {\n    __typename\n    ...CreateOrderAction_data\n  }\n  ... on CreateBulkOrderActionType {\n    __typename\n    ...CreateBulkOrderAction_data\n  }\n  ... on CreateSwapOrderActionType {\n    __typename\n    ...CreateSwapOrderAction_data\n  }\n  ... on CancelOrderActionType {\n    __typename\n    ...CancelOrderAction_data\n  }\n  ... on CancelSwapOrdersActionType {\n    __typename\n    ...CancelSwapOrdersAction_data\n  }\n  ... on FulfillOrderActionType {\n    __typename\n    ...FulfillOrderAction_data\n  }\n  ... on FulfillSwapOrderActionType {\n    __typename\n    ...FulfillSwapOrderAction_data\n  }\n  ... on BulkAcceptOffersActionType {\n    __typename\n    ...BulkAcceptOffersAction_data\n  }\n  ... on BulkFulfillOrdersActionType {\n    __typename\n    ...BulkFulfillOrdersAction_data\n  }\n  ... on PaymentAssetApprovalActionType {\n    __typename\n    ...PaymentAssetApprovalAction_data\n  }\n  ... on MintActionType {\n    __typename\n    ...MintAction_data\n  }\n  ... on DropContractDeployActionType {\n    __typename\n    ...DeployContractAction_data\n  }\n  ... on DropMechanicsUpdateActionType {\n    __typename\n    ...UpdateDropMechanicsAction_data\n  }\n  ... on SetCreatorFeesActionType {\n    __typename\n    ...SetCreatorFeesAction_data\n  }\n  ... on CollectionTokenMetadataUpdateActionType {\n    __typename\n    ...UpdatePreRevealAction_data\n  }\n  ... on AssetBurnToRedeemActionType {\n    __typename\n    ...AssetBurnToRedeemAction_data\n  }\n  ... on MintYourOwnCollectionActionType {\n    __typename\n    ...MintYourOwnCollectionAction_data\n  }\n}\n\nfragment BulkAcceptOffersAction_data on BulkAcceptOffersActionType {\n  __typename\n  maxQuantityToFill\n  offersToAccept {\n    itemFillAmount\n    orderData {\n      chain {\n        identifier\n      }\n      item {\n        __typename\n        ... on AssetQuantityDataType {\n          asset {\n            ...StackedAssetMedia_assets\n            id\n          }\n        }\n        ... on AssetBundleType {\n          assetQuantities(first: 30) {\n            edges {\n              node {\n                asset {\n                  ...StackedAssetMedia_assets\n                  id\n                }\n                id\n              }\n            }\n          }\n        }\n        ... on Node {\n          __isNode: __typename\n          id\n        }\n      }\n      ...useTotalItems_ordersData\n    }\n    criteriaAsset {\n      relayId\n      ...StackedAssetMedia_assets\n      id\n    }\n    ...useTotalPriceOfferDataToAccept_offersToAccept\n    ...readOfferDataToAcceptPrice_offerToAccept\n  }\n  ...useHandleBlockchainActions_bulk_accept_offers\n}\n\nfragment BulkFulfillOrdersAction_data on BulkFulfillOrdersActionType {\n  __typename\n  maxOrdersToFill\n  ordersToFill {\n    itemFillAmount\n    orderData {\n      chain {\n        identifier\n      }\n      item {\n        __typename\n        ... on AssetQuantityDataType {\n          asset {\n            ...StackedAssetMedia_assets\n            id\n          }\n        }\n        ... on AssetBundleType {\n          assetQuantities(first: 30) {\n            edges {\n              node {\n                asset {\n                  ...StackedAssetMedia_assets\n                  id\n                }\n                id\n              }\n            }\n          }\n        }\n        ... on Node {\n          __isNode: __typename\n          id\n        }\n      }\n      ...useTotalItems_ordersData\n    }\n    ...useTotalPriceOrderDataToFill_ordersToFill\n    ...readOrderDataToFillPrices_orderDataToFill\n  }\n  ...useHandleBlockchainActions_bulk_fulfill_orders\n}\n\nfragment CancelOrderActionGaslessContent_action on CancelOrderActionType {\n  ordersData {\n    side\n    orderType\n    item {\n      __typename\n      ... on AssetQuantityDataType {\n        asset {\n          displayName\n          ...StackedAssetMedia_assets\n          id\n        }\n      }\n      ... on Node {\n        __isNode: __typename\n        id\n      }\n    }\n    price {\n      unit\n      symbol\n    }\n    orderCriteria {\n      collection {\n        name\n        representativeAsset {\n          ...StackedAssetMedia_assets\n          id\n        }\n        id\n      }\n    }\n  }\n}\n\nfragment CancelOrderActionOnChainContent_action on CancelOrderActionType {\n  ordersData {\n    side\n    orderType\n    ...OrderDataHeader_order\n    ...OrdersHeaderData_orders\n  }\n}\n\nfragment CancelOrderAction_data on CancelOrderActionType {\n  __typename\n  ordersData {\n    orderType\n    side\n    item {\n      __typename\n      ... on AssetQuantityDataType {\n        asset {\n          ...GaslessCancellationProcessingModal_items\n          ...GaslessCancellationFailedModal_items\n          id\n        }\n        quantity\n      }\n      ... on Node {\n        __isNode: __typename\n        id\n      }\n    }\n    orderCriteria {\n      collection {\n        representativeAsset {\n          ...GaslessCancellationProcessingModal_items\n          ...GaslessCancellationFailedModal_items\n          id\n        }\n        id\n      }\n      quantity\n    }\n  }\n  method {\n    __typename\n  }\n  ...CancelOrderActionOnChainContent_action\n  ...useHandleBlockchainActions_cancel_orders\n  ...CancelOrderActionGaslessContent_action\n}\n\nfragment CancelSwapOrdersAction_data on CancelSwapOrdersActionType {\n  __typename\n  swapsData {\n    ...SwapDataHeader_swap\n  }\n  ...useHandleBlockchainActions_cancel_swap_orders\n}\n\nfragment CollectionLink_assetContract on AssetContractType {\n  address\n  blockExplorerLink\n}\n\nfragment CollectionLink_collection on CollectionType {\n  name\n  slug\n  verificationStatus\n  ...collection_url\n}\n\nfragment CollectionOfferDetails_collection on CollectionType {\n  representativeAsset {\n    assetContract {\n      ...CollectionLink_assetContract\n      id\n    }\n    ...StackedAssetMedia_assets\n    id\n  }\n  ...CollectionLink_collection\n}\n\nfragment ConfirmationItem_asset on AssetType {\n  chain {\n    displayName\n  }\n  ...AssetItem_asset\n}\n\nfragment ConfirmationItem_asset_item_payment_asset on PaymentAssetType {\n  ...ConfirmationItem_extra_payment_asset\n}\n\nfragment ConfirmationItem_assets on AssetType {\n  ...ConfirmationItem_asset\n}\n\nfragment ConfirmationItem_extra_payment_asset on PaymentAssetType {\n  symbol\n  usdSpotPrice\n}\n\nfragment ConfirmationItem_payment_asset on PaymentAssetType {\n  ...ConfirmationItem_asset_item_payment_asset\n}\n\nfragment CreateBulkOrderAction_data on CreateBulkOrderActionType {\n  __typename\n  orderDatas {\n    item {\n      __typename\n      ... on AssetQuantityDataType {\n        asset {\n          ...StackedAssetMedia_assets\n          id\n        }\n      }\n      ... on Node {\n        __isNode: __typename\n        id\n      }\n    }\n    ...useTotalItems_ordersData\n    ...useTotalPriceOrderData_orderData\n  }\n  ...useHandleBlockchainActions_create_bulk_order\n}\n\nfragment CreateOrderAction_data on CreateOrderActionType {\n  __typename\n  orderData {\n    item {\n      __typename\n      ... on AssetQuantityDataType {\n        quantity\n      }\n      ... on Node {\n        __isNode: __typename\n        id\n      }\n    }\n    side\n    isCounterOrder\n    perUnitPrice {\n      unit\n      symbol\n    }\n    ...OrderDataHeader_order\n  }\n  ...useHandleBlockchainActions_create_order\n}\n\nfragment CreateSwapOrderAction_data on CreateSwapOrderActionType {\n  __typename\n  swapData {\n    ...SwapDataHeader_swap\n  }\n  ...useHandleBlockchainActions_create_swap_order\n}\n\nfragment DeployContractAction_data on DropContractDeployActionType {\n  __typename\n  ...useHandleBlockchainActions_deploy_contract\n}\n\nfragment FulfillOrderAction_data on FulfillOrderActionType {\n  __typename\n  orderData {\n    side\n    ...OrderDataHeader_order\n  }\n  itemFillAmount\n  criteriaAsset {\n    ...OrderDataHeader_criteriaAsset\n    id\n  }\n  ...useHandleBlockchainActions_fulfill_order\n}\n\nfragment FulfillSwapOrderAction_data on FulfillSwapOrderActionType {\n  __typename\n  swapData {\n    ...SwapDataHeader_swap\n  }\n  ...useHandleBlockchainActions_fulfill_swap_order\n}\n\nfragment GaslessCancellationFailedModal_items on ItemType {\n  __isItemType: __typename\n  ...StackedAssetMedia_assets\n}\n\nfragment GaslessCancellationProcessingModal_items on ItemType {\n  __isItemType: __typename\n  ...StackedAssetMedia_assets\n}\n\nfragment MintAction_data on MintActionType {\n  __typename\n  ...useHandleBlockchainActions_mint_asset\n}\n\nfragment MintYourOwnCollectionAction_data on MintYourOwnCollectionActionType {\n  __typename\n  ...useHandleBlockchainActions_mint_your_own_collection\n}\n\nfragment OrderDataHeader_criteriaAsset on AssetType {\n  ...ConfirmationItem_assets\n}\n\nfragment OrderDataHeader_order on OrderDataType {\n  item {\n    __typename\n    ... on AssetQuantityDataType {\n      asset {\n        ...ConfirmationItem_assets\n        id\n      }\n      quantity\n    }\n    ... on Node {\n      __isNode: __typename\n      id\n    }\n  }\n  recipient {\n    address\n    id\n  }\n  side\n  openedAt\n  closedAt\n  perUnitPrice {\n    unit\n  }\n  price {\n    unit\n    symbol\n    usd\n  }\n  payment {\n    ...ConfirmationItem_payment_asset\n    id\n  }\n  englishAuctionReservePrice {\n    unit\n  }\n  isCounterOrder\n  orderCriteria {\n    collection {\n      ...CollectionOfferDetails_collection\n      id\n    }\n    trait {\n      traitType\n      value\n      id\n    }\n    quantity\n  }\n}\n\nfragment OrdersHeaderData_orders on OrderDataType {\n  chain {\n    identifier\n  }\n  item {\n    __typename\n    ... on AssetQuantityDataType {\n      asset {\n        ...StackedAssetMedia_assets\n        id\n      }\n    }\n    ... on AssetBundleType {\n      assetQuantities(first: 20) {\n        edges {\n          node {\n            asset {\n              ...StackedAssetMedia_assets\n              id\n            }\n            id\n          }\n        }\n      }\n    }\n    ... on AssetBundleToBeCreatedType {\n      assetQuantitiesToBeCreated: assetQuantities {\n        asset {\n          ...StackedAssetMedia_assets\n          id\n        }\n      }\n    }\n    ... on Node {\n      __isNode: __typename\n      id\n    }\n  }\n  orderCriteria {\n    collection {\n      representativeAsset {\n        ...StackedAssetMedia_assets\n        id\n      }\n      id\n    }\n  }\n  orderType\n  side\n}\n\nfragment PaymentAssetApprovalAction_data on PaymentAssetApprovalActionType {\n  __typename\n  asset {\n    chain {\n      identifier\n    }\n    symbol\n    ...StackedAssetMedia_assets\n    id\n  }\n  ...useHandleBlockchainActions_approve_payment_asset\n}\n\nfragment SetCreatorFeesAction_data on SetCreatorFeesActionType {\n  __typename\n  ...useHandleBlockchainActions_set_creator_fees\n}\n\nfragment StackedAssetMedia_assets on AssetType {\n  relayId\n  ...AssetMedia_asset\n  collection {\n    logo\n    id\n  }\n}\n\nfragment SwapDataHeader_swap on SwapDataType {\n  maker {\n    address\n    displayName\n    id\n  }\n  taker {\n    address\n    displayName\n    id\n  }\n  makerAssets {\n    asset {\n      chain {\n        identifier\n      }\n      id\n    }\n    ...SwapDataSide_assets\n  }\n  takerAssets {\n    ...SwapDataSide_assets\n  }\n}\n\nfragment SwapDataSide_assets on AssetQuantityDataType {\n  asset {\n    relayId\n    displayName\n    symbol\n    assetContract {\n      tokenStandard\n      id\n    }\n    ...StackedAssetMedia_assets\n    id\n  }\n  quantity\n}\n\nfragment TokenPricePayment on PaymentAssetType {\n  symbol\n}\n\nfragment UpdateDropMechanicsAction_data on DropMechanicsUpdateActionType {\n  __typename\n  ...useHandleBlockchainActions_update_drop_mechanics\n}\n\nfragment UpdatePreRevealAction_data on CollectionTokenMetadataUpdateActionType {\n  __typename\n  ...useHandleBlockchainActions_update_drop_pre_reveal\n}\n\nfragment collection_url on CollectionType {\n  slug\n  isCategory\n}\n\nfragment readOfferDataToAcceptPerUnitPrice_offerToAccept on OfferToAcceptType {\n  orderData {\n    perUnitPrice {\n      usd\n      unit\n    }\n    payment {\n      ...TokenPricePayment\n      id\n    }\n  }\n}\n\nfragment readOfferDataToAcceptPrice_offerToAccept on OfferToAcceptType {\n  orderData {\n    perUnitPrice {\n      usd\n      unit\n    }\n    payment {\n      ...TokenPricePayment\n      id\n    }\n  }\n  itemFillAmount\n}\n\nfragment readOrderDataPrices on OrderDataType {\n  perUnitPrice {\n    usd\n    unit\n  }\n  payment {\n    ...TokenPricePayment\n    id\n  }\n  item {\n    __typename\n    ... on AssetQuantityDataType {\n      quantity\n    }\n    ... on Node {\n      __isNode: __typename\n      id\n    }\n  }\n}\n\nfragment readOrderDataToFillPrices_orderDataToFill on OrderToFillType {\n  orderData {\n    perUnitPrice {\n      usd\n      unit\n    }\n    payment {\n      ...TokenPricePayment\n      id\n    }\n  }\n  itemFillAmount\n}\n\nfragment useHandleBlockchainActions_approve_asset on AssetApprovalActionType {\n  method {\n    ...useHandleBlockchainActions_transaction\n  }\n}\n\nfragment useHandleBlockchainActions_approve_payment_asset on PaymentAssetApprovalActionType {\n  method {\n    ...useHandleBlockchainActions_transaction\n  }\n}\n\nfragment useHandleBlockchainActions_ask_for_asset_swap on AskForSwapType {\n  fromAsset {\n    decimals\n    relayId\n    id\n  }\n  toAsset {\n    relayId\n    id\n  }\n}\n\nfragment useHandleBlockchainActions_bulk_accept_offers on BulkAcceptOffersActionType {\n  method {\n    ...useHandleBlockchainActions_transaction\n  }\n  offersToAccept {\n    orderData {\n      openedAt\n    }\n  }\n}\n\nfragment useHandleBlockchainActions_bulk_fulfill_orders on BulkFulfillOrdersActionType {\n  method {\n    ...useHandleBlockchainActions_transaction\n  }\n  ordersToFill {\n    orderData {\n      openedAt\n    }\n  }\n}\n\nfragment useHandleBlockchainActions_burnToRedeem on AssetBurnToRedeemActionType {\n  method {\n    ...useHandleBlockchainActions_transaction\n  }\n}\n\nfragment useHandleBlockchainActions_cancel_orders on CancelOrderActionType {\n  method {\n    __typename\n    ... on TransactionSubmissionDataType {\n      ...useHandleBlockchainActions_transaction\n    }\n    ... on SignAndPostOrderCancelType {\n      cancelOrderData: data {\n        payload\n        message\n      }\n      serverSignature\n      clientSignatureStandard\n    }\n    ... on GaslessCancelType {\n      orderRelayIds\n    }\n  }\n}\n\nfragment useHandleBlockchainActions_cancel_swap_orders on CancelSwapOrdersActionType {\n  method {\n    __typename\n    ...useHandleBlockchainActions_transaction\n  }\n}\n\nfragment useHandleBlockchainActions_create_bulk_order on CreateBulkOrderActionType {\n  method {\n    clientMessage\n    clientSignatureStandard\n    serverSignature\n    orderDatas\n    chain {\n      identifier\n    }\n  }\n}\n\nfragment useHandleBlockchainActions_create_order on CreateOrderActionType {\n  method {\n    clientMessage\n    clientSignatureStandard\n    serverSignature\n    orderData\n    chain {\n      identifier\n    }\n  }\n}\n\nfragment useHandleBlockchainActions_create_swap_order on CreateSwapOrderActionType {\n  method {\n    clientMessage\n    clientSignatureStandard\n    serverSignature\n    swapData\n    chain {\n      identifier\n    }\n  }\n}\n\nfragment useHandleBlockchainActions_deploy_contract on DropContractDeployActionType {\n  method {\n    ...useHandleBlockchainActions_transaction\n  }\n}\n\nfragment useHandleBlockchainActions_fulfill_order on FulfillOrderActionType {\n  method {\n    ...useHandleBlockchainActions_transaction\n  }\n  orderData {\n    openedAt\n  }\n}\n\nfragment useHandleBlockchainActions_fulfill_swap_order on FulfillSwapOrderActionType {\n  method {\n    ...useHandleBlockchainActions_transaction\n  }\n  swapData {\n    openedAt\n  }\n}\n\nfragment useHandleBlockchainActions_mint_asset on MintActionType {\n  method {\n    ...useHandleBlockchainActions_transaction\n  }\n  startTime\n}\n\nfragment useHandleBlockchainActions_mint_your_own_collection on MintYourOwnCollectionActionType {\n  method {\n    ...useHandleBlockchainActions_transaction\n  }\n}\n\nfragment useHandleBlockchainActions_set_creator_fees on SetCreatorFeesActionType {\n  method {\n    ...useHandleBlockchainActions_transaction\n  }\n}\n\nfragment useHandleBlockchainActions_swap_asset on AssetSwapActionType {\n  method {\n    ...useHandleBlockchainActions_transaction\n  }\n}\n\nfragment useHandleBlockchainActions_transaction on TransactionSubmissionDataType {\n  chain {\n    identifier\n  }\n  ...useTransaction_transaction\n}\n\nfragment useHandleBlockchainActions_transfer_asset on AssetTransferActionType {\n  method {\n    ...useHandleBlockchainActions_transaction\n  }\n}\n\nfragment useHandleBlockchainActions_update_drop_mechanics on DropMechanicsUpdateActionType {\n  method {\n    ...useHandleBlockchainActions_transaction\n  }\n}\n\nfragment useHandleBlockchainActions_update_drop_pre_reveal on CollectionTokenMetadataUpdateActionType {\n  method {\n    ...useHandleBlockchainActions_transaction\n  }\n}\n\nfragment useIsRarityEnabled_collection on CollectionType {\n  slug\n  enabledRarities\n}\n\nfragment useTotalItems_ordersData on OrderDataType {\n  item {\n    __typename\n    ... on AssetQuantityDataType {\n      asset {\n        relayId\n        id\n      }\n    }\n    ... on AssetBundleType {\n      assetQuantities(first: 30) {\n        edges {\n          node {\n            asset {\n              relayId\n              id\n            }\n            id\n          }\n        }\n      }\n    }\n    ... on Node {\n      __isNode: __typename\n      id\n    }\n  }\n}\n\nfragment useTotalPriceOfferDataToAccept_offersToAccept on OfferToAcceptType {\n  itemFillAmount\n  ...readOfferDataToAcceptPerUnitPrice_offerToAccept\n}\n\nfragment useTotalPriceOrderDataToFill_ordersToFill on OrderToFillType {\n  ...readOrderDataToFillPrices_orderDataToFill\n}\n\nfragment useTotalPriceOrderData_orderData on OrderDataType {\n  ...readOrderDataPrices\n}\n\nfragment useTransaction_transaction on TransactionSubmissionDataType {\n  chain {\n    identifier\n  }\n  source {\n    value\n  }\n  destination {\n    value\n  }\n  value\n  data\n}\n"
+                  variables:
+                    item:
+                      { asset: "QXNzZXRUeXBlOjg3MzM4MDIwOA==", quantity: "1" }
+                    price:
+                      {
+                        paymentAsset: "UGF5bWVudEFzc2V0VHlwZTo0Mg==",
+                        amount: "0.249990000",
+                      }
+                    recipient: null
+                    openedAt: "2024-07-14T16:44:13.093Z"
+                    closedAt: "2024-07-14T17:00:13.093Z"
+                    englishAuctionReservePrice: null
+                    optionalCreatorFeeBasisPoints: null
+
+      parameters:
+        - in: header
+          name: content-type
+          required: true
+          schema:
+            type: string
+          example: application/json
+        - in: header
+          name: x-signed-query
+          required: true
+          schema:
+            type: string
+          examples:
+            challengeLoginMessageQuery:
+              summary: Value for challengeLoginMessageQuery
+              value: e35fa1b7ede16cf8e95a6867a739cc0002ae8bfde2a8a1926d05d2919170e33a
+            authLoginV2AuthSimplifiedMutation:
+              summary: Value for authLoginV2AuthSimplifiedMutation
+              value: f6b83e92d7ef2ba14a46f695d07198b7eae0403f0e2164270438eff613755981
+            authRefreshMutation:
+              summary: Value for authRefreshMutation
+              value: b7e62623eb6dc115cc77bc30144d64ab87d2d7a56dfb2866a16045df4e479f70
+            AssetPageQuery:
+              summary: Value for AssetPageQuery
+              value: be770800bdd51c9042b4c4cbb9e4706d49bc571908f18c38172d739c13fdbb45
+            CreateListingActionModalQuery:
+              summary: Value for CreateListingActionModalQuery
+              value: 7cf0e05871dfc5136fd7fe6244a57ed106a5d073530affee3d78dc63aee694fe
+
+        - in: header
+          name: x-auth-address
+          required: false
+          schema:
+            type: string
+          example: "0xb71425024868e0c9156c3942AC115Cd3b56d5559"
+
+        - in: header
+          name: cookie
+          required: false
+          schema:
+            type: string
+          example:
+      responses:
+        "200":
+          description: Operation successful
+
+        "400":
+          description: Bad request
+
+        "500":
+          description: Internal server error
+
+  /auth/message/{address}:
+    get:
+      tags:
+        - Auth
+      summary: Get Authentication Message
+      description: Retrieves an authentication message for the given address.
+      parameters:
+        - name: address
+          in: path
+          required: true
+          description: The address to retrieve the authentication message for.
+          schema:
+            type: string
+            example: "0xb71425024868e0c9156c3942AC115Cd3b56d5559"
+      responses:
+        "200":
+          description: Authentication message retrieved successfully
+
+        "400":
+          description: Bad request
+
+        "500":
+          description: Internal server error
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Authenticate User
+      description: Authenticates a user by verifying their signature and message.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                signature:
+                  type: string
+                  description: The signature of the message.
+                  example: "0xeebb072ef058fd85afb03b02b0495457641e94705b13da4d29d7e008e39b5afc4836c777e156f33cacc52011d55b7ce762a50a5fbbbdb167700b1cd6119b6f0c1c"
+                signer:
+                  type: string
+                  description: The address of the signer.
+                  example: "0x9adcFFff1DEf95F7E58B587c1A6B06Ac6A7aE1E5"
+                message:
+                  type: string
+                  description: The message to be signed.
+                  example: |
+                    pro.opensea.io wants you to sign in with your Ethereum account:
+                    0x9adcffff1def95f7e58b587c1a6b06ac6a7ae1e5
+
+                    Sign in to Opensea Pro.
+
+                    URI: https://pro.opensea.io
+                    Version: 1
+                    Chain ID: 1
+                    Nonce: 00b5b062dfe27086080d28ef0ac46bcf481de1cdb52c2639aa73f58d157f12487b983d7a1dc382a2ffaa4b87229c56832ed86a38f6f38d1a443b44a4629202762afa3e6e4a6e32ef708d07b01402d8f5
+                    Issued At: 2024-07-14T17:57:12.076Z
+                    Expiration Time: 2024-07-14T17:58:12.076Z
+
+      responses:
+        "200":
+          description: Authentication successful
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+
 components:
   securitySchemes:
     ApiKeyAuth:
