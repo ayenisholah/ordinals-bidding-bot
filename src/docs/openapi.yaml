@@ -1974,6 +1974,101 @@ paths:
         "500":
           description: Internal server error
 
+  /account/{accountAddress}/collections:
+    get:
+      tags:
+        - Users
+      summary: Get Account Collections
+      description: Retrieves collections associated with a specific account.
+      parameters:
+        - name: accountAddress
+          in: path
+          required: true
+          description: The Ethereum address of the account.
+          schema:
+            type: string
+            example: "0x9adcFFff1DEf95F7E58B587c1A6B06Ac6A7aE1E5"
+        - name: chainName
+          in: query
+          required: true
+          description: The blockchain chain name.
+          schema:
+            type: string
+            example: "ethereum"
+        - name: excludePrivateOwnerships
+          in: query
+          required: false
+          description: Exclude private ownerships from the results.
+          schema:
+            type: boolean
+            example: true
+        - name: excludeDelistedAssets
+          in: query
+          required: false
+          description: Exclude delisted assets from the results.
+          schema:
+            type: boolean
+            example: true
+        - name: limit
+          in: query
+          required: false
+          description: Limit the number of collections returned.
+          schema:
+            type: integer
+            example: 100
+        - name: sort
+          in: query
+          required: false
+          description: Sort order of the collections.
+          schema:
+            type: string
+            example: "estimated_value"
+      responses:
+        "200":
+          description: Collections retrieved successfully
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+
+  /opensea/account/{accountAddress}/orders:
+    get:
+      tags:
+        - Orders
+      summary: Get Account Orders
+      description: Retrieves orders associated with a specific account.
+      parameters:
+        - name: accountAddress
+          in: path
+          required: true
+          description: The Ethereum address of the account.
+          schema:
+            type: string
+            example: "0x9adcFFff1DEf95F7E58B587c1A6B06Ac6A7aE1E5"
+        - name: limit
+          in: query
+          required: false
+          description: Limit the number of orders returned.
+          schema:
+            type: integer
+            example: 50
+        - name: chainName
+          in: query
+          required: true
+          description: The blockchain chain name.
+          schema:
+            type: string
+            enum: ["ethereum", "base", "polygon"]
+      responses:
+        "200":
+          description: Orders retrieved successfully
+
+        "400":
+          description: Bad request
+
+        "500":
+          description: Internal server error
+
 components:
   securitySchemes:
     ApiKeyAuth:
