@@ -7,16 +7,12 @@ info:
 servers:
   - url: https://nfttools.pro/opensea
 tags:
-  - name: Collections
-    description: The collections endpoint allows you to retrieve detailed information about various collections available on Opensea.
-  - name: Tokens
-    description: The tokens endpoint allows you to retrieve detailed information about various tokens available on Opensea.
-  - name: Users
-    description: The users endpoint allows you to retrieve and manage user account information on Opensea.
-  - name: Bids
-    description: Operations related to creating and managing bids on Opensea.
-  - name: GraphQL
-    description: Handles different GraphQL operations on Opensea.
+  - name: Analytics Endpoints
+    description: Opensea analytics endpoints
+  - name: NFT Endpoints
+    description: Opensea NFT endpoints
+  - name: OpenSea Marketplace Endpoints
+    description: OpenSea Marketplace Endpoints
 
 security:
   - ApiKeyAuth: []
@@ -372,14 +368,12 @@ paths:
         "500":
           description: Internal server error
 
-
-
   /api/v2/collections/{slug}/stats:
     get:
       tags:
-        - Collections
+        - Analytics Endpoints
       summary: Get Collection Stats
-      description: Retrieve statistics of a specified collection from OpenSea.
+      description: Get stats for a single collection.
       parameters:
         - name: slug
           in: path
@@ -401,9 +395,9 @@ paths:
   /api/v2/events:
     get:
       tags:
-        - Collections
+        - Analytics Endpoints
       summary: Get Events
-      description: Retrieve events from OpenSea with optional filters for timestamps, limit, and pagination.
+      description: Get a list of events based on before and after timestamps.
       parameters:
         - name: event_type
           in: query
@@ -454,9 +448,9 @@ paths:
   /api/v2/events/accounts/{address}:
     get:
       tags:
-        - Users
-      summary: Get Account Events
-      description: Retrieve events for a specific account from OpenSea with optional filters for timestamps and blockchain.
+        - Analytics Endpoints
+      summary: Get Events (by account)
+      description: Get a list of events for an account.
       parameters:
         - name: address
           in: path
@@ -513,9 +507,9 @@ paths:
   /api/v2/events/collection/{slug}:
     get:
       tags:
-        - Collections
-      summary: Get Collection Events
-      description: Retrieve events for a specific collection from OpenSea with optional filters for timestamps, event types, limit, and pagination.
+        - Analytics Endpoints
+      summary: Get Events (by collection)
+      description: Get a list of events for a collection.
       parameters:
         - name: slug
           in: path
@@ -571,9 +565,9 @@ paths:
   /api/v2/events/chain/{chain}/contract/{contractAddress}/nfts/{tokenId}:
     get:
       tags:
-        - Tokens
-      summary: Get NFT Events
-      description: Retrieve events for a specific NFT from OpenSea.
+        - Analytics Endpoints
+      summary: Get Events (by NFT)
+      description: Get a list of events for a single NFT.
       parameters:
         - name: chain
           in: path
@@ -609,9 +603,9 @@ paths:
   /api/v2/accounts/{address_or_username}:
     get:
       tags:
-        - Users
-      summary: Get Account Information
-      description: Retrieve account information from OpenSea using an address or username.
+        - NFT Endpoints
+      summary: Get Account
+      description: Get an OpenSea Account Profile including details such as bio, social media usernames, and profile image.
       parameters:
         - name: address_or_username
           in: path
@@ -633,9 +627,9 @@ paths:
   /api/v2/collections/{collection_slug}:
     get:
       tags:
-        - Collections
-      summary: Get Collection Information
-      description: Retrieve collection information from OpenSea using a collection slug.
+        - NFT Endpoints
+      summary: Get Collection
+      description: Get a single collection including details such as fees, traits, and links.
       parameters:
         - name: collection_slug
           in: path
@@ -657,9 +651,9 @@ paths:
   /api/v2/collections:
     get:
       tags:
-        - Collections
-      summary: Get All Collections
-      description: Retrieve all collections from OpenSea.
+        - NFT Endpoints
+      summary: Get Collections
+      description: Get a list of OpenSea collections.
       parameters:
         - name: chain
           in: query
@@ -721,9 +715,9 @@ paths:
   /api/v2/chain/{chain}/contract/{contract_address}:
     get:
       tags:
-        - Collections
-      summary: Get Contract Information
-      description: Retrieve information about a specific contract on a specified blockchain from OpenSea.
+        - NFT Endpoints
+      summary: Get Contract
+      description: Get a smart contract for a given chain and address.
       parameters:
         - name: chain
           in: path
@@ -752,9 +746,9 @@ paths:
   /api/v2/chain/{chain}/contract/{contractAddress}/nfts/{tokenId}:
     get:
       tags:
-        - Tokens
-      summary: Get NFT Information
-      description: Retrieve information about a specific NFT on a specified contract and blockchain from OpenSea.
+        - NFT Endpoints
+      summary: Get NFT
+      description: Get metadata, traits, ownership information, and rarity for a single NFT.
       parameters:
         - name: chain
           in: path
@@ -790,9 +784,9 @@ paths:
   /api/v2/chain/{chain}/account/{address}/nfts:
     get:
       tags:
-        - Users
-      summary: Get Account NFTs
-      description: Retrieve NFTs owned by a specific account on a specified blockchain from OpenSea.
+        - NFT Endpoints
+      summary: Get NFTs (by account)
+      description: Get NFTs owned by a given account address.
       parameters:
         - name: chain
           in: path
@@ -840,9 +834,9 @@ paths:
   /api/v2/collection/{slug}/nfts:
     get:
       tags:
-        - Collections
-      summary: Get Collection NFTs
-      description: Retrieve NFTs of a specific collection from OpenSea.
+        - NFT Endpoints
+      summary: Get NFTs (by collection)
+      description: Get multiple NFTs for a collection.
       parameters:
         - name: slug
           in: path
@@ -874,9 +868,9 @@ paths:
   /api/v2/chain/{chain}/contract/{address}/nfts:
     get:
       tags:
-        - Collections
-      summary: Get NFTs by Contract Address
-      description: Retrieve NFTs for a specific contract on a given blockchain from OpenSea.
+        - NFT Endpoints
+      summary: Get NFTs (by contract)
+      description: Get multiple NFTs for a smart contract.
       parameters:
         - name: chain
           in: path
@@ -918,9 +912,9 @@ paths:
   /api/v2/chain/{chain}/payment_token/{address}:
     get:
       tags:
-        - Payment
-      summary: Get Payment Token by Address
-      description: Retrieve payment token details for a specific address on a given blockchain from OpenSea.
+        - NFT Endpoints
+      summary: Get Payment Token
+      description: Get a smart contract for a given chain and address.
       parameters:
         - name: chain
           in: path
@@ -949,9 +943,9 @@ paths:
   /api/v2/traits/{collection_slug}:
     get:
       tags:
-        - Collections
-      summary: Get Traits by Collection Slug
-      description: Retrieve traits for a specific collection from OpenSea.
+        - NFT Endpoints
+      summary: Get Traits
+      description: Get the traits in a collection.
       parameters:
         - name: collection_slug
           in: path
@@ -973,9 +967,9 @@ paths:
   /api/v2/chain/{chain}/contract/{contractAddress}/nfts/{tokenId}/refresh:
     post:
       tags:
-        - Tokens
-      summary: Refresh NFT Data
-      description: Refresh data related to NFTs identified by {tokenId} within the contract at {address} on the chain.
+        - NFT Endpoints
+      summary: Refresh NFT Metadata
+      description: Refresh metadata for a single NFT.
       parameters:
         - name: chain
           in: path
@@ -1011,9 +1005,9 @@ paths:
   /api/v2/listings/collection/{collection_slug}/all:
     get:
       tags:
-        - Collections
-      summary: Get All Listings for a Collection
-      description: Retrieve all listings for the specified collection slug.
+        - OpenSea Marketplace Endpoints
+      summary: Get All Listings (by collection)
+      description: Get all active, valid listings for a single collection.
       parameters:
         - name: collection_slug
           in: path
@@ -1046,9 +1040,10 @@ paths:
   /api/v2/offers/collection/{collection_slug}/all:
     get:
       tags:
-        - Collections
-      summary: Get All Offers for a Collection
-      description: Retrieve all offers for the specified collection slug.
+        - OpenSea Marketplace Endpoints
+      summary: Get All Offers (by collection)
+      description: Get all active, valid offers for the specified collection. This includes individual and criteria offers.
+
       parameters:
         - name: collection_slug
           in: path
@@ -1081,9 +1076,9 @@ paths:
   /api/v2/listings/collection/{collection_slug}/nfts/{tokenId}/best:
     get:
       tags:
-        - Tokens
-      summary: Get Best Listing for an NFT
-      description: Retrieve the best available listing (lowest priced) for the specified NFT tokenId within a collection.
+        - OpenSea Marketplace Endpoints
+      summary: Get Best Listing (by NFT)
+      description: Get the best listing for an NFT.
       parameters:
         - name: collection_slug
           in: path
@@ -1112,9 +1107,9 @@ paths:
   /api/v2/listings/collection/{collection_slug}/best:
     get:
       tags:
-        - Collections
-      summary: Get Best Listing for a Collection
-      description: Retrieve the best available listing (lowest priced) for the specified collection on OpenSea.
+        - OpenSea Marketplace Endpoints
+      summary: Get Best Listings (by collection)
+      description: Get the cheapest priced active, valid listings on a single collection.
       parameters:
         - name: collection_slug
           in: path
@@ -1147,9 +1142,9 @@ paths:
   /api/v2/offers/collection/{collection_slug}/nfts/{tokenId}/best:
     get:
       tags:
-        - Tokens
-      summary: Get Best Offer for an NFT
-      description: Retrieve the best offer (highest bid) for the specified NFT within the given collection on OpenSea.
+        - OpenSea Marketplace Endpoints
+      summary: Get Best Offer (by NFT)
+      description: Get the best offers for an NFT.
       parameters:
         - name: collection_slug
           in: path
@@ -1189,9 +1184,10 @@ paths:
   /api/v2/offers/collection/{collection_slug}:
     get:
       tags:
-        - Collections
-      summary: Get Offers for Collection
-      description: Retrieve offers for all NFTs within the specified collection on OpenSea.
+        - OpenSea Marketplace Endpoints
+      summary: Get Collection Offers
+      description: Get the active, valid collection offers for the specified collection.
+
       parameters:
         - name: collection_slug
           in: path
@@ -1223,9 +1219,9 @@ paths:
   /api/v2/orders/{chain}/seaport/offers:
     get:
       tags:
-        - Collections
-      summary: Get Offers from Seaport
-      description: Retrieve offers for NFTs from the Seaport on OpenSea.
+        - OpenSea Marketplace Endpoints
+      summary: Get Item Offers
+      description: Get the active, valid individual offers. This does not include criteria offers.
       parameters:
         - name: chain
           in: path
@@ -1310,9 +1306,9 @@ paths:
   /api/v2/orders/{chain}/seaport/listings:
     get:
       tags:
-        - Collections
-      summary: Get listings from Seaport
-      description: Retrieve offers for NFTs from the Seaport on OpenSea.
+        - OpenSea Marketplace Endpoints
+      summary: Get Listings
+      description: Get the complete set of active, valid listings.
       parameters:
         - name: chain
           in: path
@@ -1394,12 +1390,120 @@ paths:
         "500":
           description: Internal server error
 
+    post:
+      tags:
+        - OpenSea Marketplace Endpoints
+      summary: Create Listing
+      description: List a single NFT (ERC721 or ERC1155) for sale on the OpenSea marketplace.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                parameters:
+                  type: object
+                  properties:
+                    offerer:
+                      type: string
+                      description: The address which supplies all the items in the offer.
+                      example: "0x9adcFFff1DEf95F7E58B587c1A6B06Ac6A7aE1E5"
+                    zone:
+                      type: string
+                      example: "0x004C00500000aD104D7DBd00e3ae0A5C00560C00"
+                    zoneHash:
+                      type: string
+                      example: "0x0000000000000000000000000000000000000000000000000000000000000000"
+                    startTime:
+                      type: string
+                      example: "1721216867"
+                    endTime:
+                      type: string
+                      example: "1721217747"
+                    orderType:
+                      type: integer
+                      example: 0
+                    offer:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          itemType:
+                            type: integer
+                            example: 2
+                          token:
+                            type: string
+                            example: "0x4c55f84a0ceb006a7d17413d667eab8faf9b6a40"
+                          identifierOrCriteria:
+                            type: string
+                            example: "4445"
+                          startAmount:
+                            type: integer
+                            example: 1
+                          endAmount:
+                            type: integer
+                            example: 1
+                    consideration:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          itemType:
+                            type: integer
+                            example: 0
+                          token:
+                            type: string
+                            example: "0x0000000000000000000000000000000000000000"
+                          identifierOrCriteria:
+                            type: integer
+                            example: 0
+                          startAmount:
+                            type: string
+                            example: "7702500000000000"
+                          endAmount:
+                            type: string
+                            example: "7702500000000000"
+                          recipient:
+                            type: string
+                            example: "0x9adcFFff1DEf95F7E58B587c1A6B06Ac6A7aE1E5"
+                    totalOriginalConsiderationItems:
+                      type: integer
+                      example: 2
+                    salt:
+                      type: string
+                      example: "58114"
+                    conduitKey:
+                      type: string
+                      example: "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000"
+                    nonce:
+                      type: integer
+                      example: 0
+                    counter:
+                      type: string
+                      example: "0"
+                signature:
+                  type: string
+                  description: EIP-712 signature from the offerer of the order.
+                  example: "0x2f1f26496230ec0fdc704b678267bd5f2de050bdceb4847a58c028abbbb89c4f34ac8e885e32211ffed9e006f7158a54ad47cd369446fc6a5dd1eaf4b37a206b1b"
+                protocol_address:
+                  type: string
+                  description: Exchange contract address.
+                  example: "0x00000000000000adc04c56bf30ac9d3c0aaf14dc"
+      responses:
+        "200":
+          description: Operation successful
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+
   /api/v2/orders/chain/{chain}/protocol/{protocol_address}/{order_hash}:
     get:
       tags:
-        - Bids
-      summary: Get Specific Order
-      description: Retrieve a specific order by its protocol address and order hash.
+        - OpenSea Marketplace Endpoints
+      summary: Get Order
+      description: Get a single order, offer or listing, by its order hash. Protocol and Chain are required to prevent hash collisions.
       parameters:
         - name: chain
           in: path
@@ -1435,9 +1539,9 @@ paths:
   /api/v2/offers/collection/{collection_slug}/traits:
     get:
       tags:
-        - Collections
-      summary: Get Offers by Collection Traits
-      description: Retrieve offers for a specific collection based on its traits.
+        - OpenSea Marketplace Endpoints
+      summary: Get Trait Offers
+      description: Get the active, valid trait offers for the specified collection.
       parameters:
         - name: collection_slug
           in: path
@@ -1470,9 +1574,9 @@ paths:
   /api/v2/offers/build:
     post:
       tags:
-        - Bids
-      summary: Build an Offer
-      description: Build an offer for a specific collection or trait on OpenSea.
+        - OpenSea Marketplace Endpoints
+      summary: Build Criteria Offer
+      description: Build a portion of a criteria offer including the merkle tree needed to post an offer.
       requestBody:
         required: true
         content:
@@ -1553,9 +1657,9 @@ paths:
   /api/v2/orders/chain/{chain}/protocol/{protocol_address}/{order_hash}/cancel:
     post:
       tags:
-        - Bids
-      summary: Cancel an Order
-      description: Cancel an order on the specified chain using the given protocol and order hash.
+        - OpenSea Marketplace Endpoints
+      summary: Cancel Order
+      description: Offchain cancel a single order, offer or listing, by its order hash when protected by the SignedZone. Protocol and Chain are required to prevent hash collisions. Please note cancellation is only assured if a fulfillment signature was not vended prior to cancellation.
       parameters:
         - in: path
           name: chain
@@ -1603,9 +1707,9 @@ paths:
   /api/v2/offers:
     post:
       tags:
-        - Bids
-      summary: Create a new offer
-      description: Create a new offer with specified criteria and protocol data.
+        - OpenSea Marketplace Endpoints
+      summary: Create Criteria Offer
+      description: Create a criteria offer to purchase any NFT in a collection or which matches the specified trait.
       requestBody:
         required: true
         content:
@@ -1719,114 +1823,6 @@ paths:
         "500":
           description: Internal server error
 
-  /api/v2/orders/ethereum/seaport/listings:
-    post:
-      tags:
-        - Lists
-      summary: Create a new listing
-      description: Create a new listing with specified parameters and signature.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                parameters:
-                  type: object
-                  properties:
-                    offerer:
-                      type: string
-                      description: The address which supplies all the items in the offer.
-                      example: "0x9adcFFff1DEf95F7E58B587c1A6B06Ac6A7aE1E5"
-                    zone:
-                      type: string
-                      example: "0x004C00500000aD104D7DBd00e3ae0A5C00560C00"
-                    zoneHash:
-                      type: string
-                      example: "0x0000000000000000000000000000000000000000000000000000000000000000"
-                    startTime:
-                      type: string
-                      example: "1721216867"
-                    endTime:
-                      type: string
-                      example: "1721217747"
-                    orderType:
-                      type: integer
-                      example: 0
-                    offer:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          itemType:
-                            type: integer
-                            example: 2
-                          token:
-                            type: string
-                            example: "0x4c55f84a0ceb006a7d17413d667eab8faf9b6a40"
-                          identifierOrCriteria:
-                            type: string
-                            example: "4445"
-                          startAmount:
-                            type: integer
-                            example: 1
-                          endAmount:
-                            type: integer
-                            example: 1
-                    consideration:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          itemType:
-                            type: integer
-                            example: 0
-                          token:
-                            type: string
-                            example: "0x0000000000000000000000000000000000000000"
-                          identifierOrCriteria:
-                            type: integer
-                            example: 0
-                          startAmount:
-                            type: string
-                            example: "7702500000000000"
-                          endAmount:
-                            type: string
-                            example: "7702500000000000"
-                          recipient:
-                            type: string
-                            example: "0x9adcFFff1DEf95F7E58B587c1A6B06Ac6A7aE1E5"
-                    totalOriginalConsiderationItems:
-                      type: integer
-                      example: 2
-                    salt:
-                      type: string
-                      example: "58114"
-                    conduitKey:
-                      type: string
-                      example: "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000"
-                    nonce:
-                      type: integer
-                      example: 0
-                    counter:
-                      type: string
-                      example: "0"
-                signature:
-                  type: string
-                  description: EIP-712 signature from the offerer of the order.
-                  example: "0x2f1f26496230ec0fdc704b678267bd5f2de050bdceb4847a58c028abbbb89c4f34ac8e885e32211ffed9e006f7158a54ad47cd369446fc6a5dd1eaf4b37a206b1b"
-                protocol_address:
-                  type: string
-                  description: Exchange contract address.
-                  example: "0x00000000000000adc04c56bf30ac9d3c0aaf14dc"
-      responses:
-        "200":
-          description: Operation successful
-        "400":
-          description: Bad request
-        "500":
-          description: Internal server error
 components:
   securitySchemes:
     ApiKeyAuth:
